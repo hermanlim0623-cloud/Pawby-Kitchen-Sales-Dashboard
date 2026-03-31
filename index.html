@@ -357,7 +357,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <script>
 // ══ STATE ══
 let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
-let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || '';
+let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
 let activeSheet = 'all';
 
 const saveLocal = () => localStorage.setItem('pawby_v2_orders', JSON.stringify(orders));
@@ -426,12 +426,16 @@ function init() {
   const now = new Date();
   document.getElementById('fDate').valueAsDate = now;
   document.getElementById('fTime').value = now.toTimeString().slice(0,5);
+  // Auto-connect jika URL sudah ada (hardcoded atau dari localStorage)
   if (SHEETS_URL) {
     document.getElementById('sheetsUrl').value = SHEETS_URL;
     document.getElementById('setupBanner').classList.add('hidden');
     setSync('ok','Terhubung ke Sheets');
+    // Auto sync saat halaman dibuka
+    setTimeout(() => doSync(), 800);
+  } else {
+    renderAll();
   }
-  renderAll();
 }
 
 // ══ VIEWS ══
