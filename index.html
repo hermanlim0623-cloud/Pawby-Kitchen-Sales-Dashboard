@@ -284,7 +284,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="m-body">
     <div class="f2">
       <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username"></div>
-      <div class="fg"><label>Nama Pelanggan</label><input id="fNama" placeholder="Cth: Budi"></div>
+      <div class="fg"><label>Nama Anabul 🐾</label><input id="fAnabul" placeholder="Cth: Milo"></div>
     </div>
     <div class="fg"><label>Qty per Produk</label>
       <div class="qty-row">
@@ -472,7 +472,7 @@ async function saveOrder() {
   const tgId     = document.getElementById('fTg').value.trim();
   if (!tgId) { alert('Telegram ID wajib!'); return; }
   const order = {
-    tgId, nama: document.getElementById('fNama').value.trim(),
+    tgId, anabul: document.getElementById('fAnabul').value.trim(),
     pawbeefy:  parseInt(document.getElementById('fPawbeefy').value)||0,
     pawporkby: parseInt(document.getElementById('fPawporkby').value)||0,
     chickipaw: parseInt(document.getElementById('fChickipaw').value)||0,
@@ -491,7 +491,7 @@ async function saveOrder() {
   saveLocal(); closeOrder(); renderAll();
   await postSheets({ action:'addOrder', order, sheetName: order.sheetName });
   // Reset
-  ['fTg','fNama','fTotal'].forEach(id=>document.getElementById(id).value='');
+  ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
   ['fPawbeefy','fPawporkby','fChickipaw','fSpecial'].forEach(id=>document.getElementById(id).value=0);
   document.getElementById('fPackage').value='';
 }
@@ -507,8 +507,9 @@ async function deleteOrder(rowId, sheetName) {
 function renderStats() {
   // Revenue: pakai kolom bill/total, filter yg valid angka
   const rev = orders.reduce((s,o)=>{
-    const v = parseFloat(o.bill||o.total||0);
-    return s + (isNaN(v)?0:v);
+    // Prefer bill over total; skip truly empty rows
+    const v = parseFloat(o.bill || o.total || 0);
+    return s + (isNaN(v) ? 0 : v);
   }, 0);
 
   const qty = orders.reduce((s,o)=>
@@ -558,9 +559,9 @@ function renderOrderTable(elId, list, maxRows) {
       const total = parseFloat(o.bill||o.total||0);
       return `<tr>
         <td><div style="display:flex;align-items:center;gap:8px">
-          <div class="av">${ini(o.tgId||o.nama)}</div>
-          <div><div class="cname">${o.nama||o.tgId||'—'}</div>
-          <div class="cphone">${o.tgId||''}</div></div>
+          <div class="av">${ini(o.tgId)}</div>
+          <div><div class="cname">${o.tgId||'—'}</div>
+          <div class="cphone">${o.anabul ? '🐾 '+o.anabul : ''}</div></div>
         </div></td>
         <td style="font-size:.75rem">${prod}</td>
         <td><span class="price">${fmt$(total)}</span></td>
@@ -622,8 +623,8 @@ function renderCustomers() {
   const el  = document.getElementById('custList');
   const map = {};
   orders.forEach(o=>{
-    const key = o.tgId||o.nama||'?';
-    if (!map[key]) map[key]={tgId:o.tgId||'',nama:o.nama||key,orders:0,total:0};
+    const key = o.tgId||'?';
+    if (!map[key]) map[key]={tgId:o.tgId||'',anabul:o.anabul||'',orders:0,total:0};
     map[key].orders++;
     map[key].total += parseFloat(o.bill||o.total||0)||0;
   });
@@ -632,8 +633,8 @@ function renderCustomers() {
   if (!list.length) { el.innerHTML=`<div class="empty"><div class="e-ico">👥</div><p>Belum ada data</p></div>`; return; }
   el.innerHTML = list.map(c=>`
     <div class="cust-item">
-      <div class="cust-av">${ini(c.tgId||c.nama)}</div>
-      <div><div class="cust-name">${c.nama||c.tgId}</div><div class="cust-sub">${c.tgId} · ${c.orders} order</div></div>
+      <div class="cust-av">${ini(c.tgId)}</div>
+      <div><div class="cust-name">${c.tgId}</div><div class="cust-sub">${c.anabul ? '🐾 '+c.anabul+' · ' : ''}${c.orders} order</div></div>
       <div class="cust-total">${fmt$(c.total)}</div>
     </div>`).join('');
 }
