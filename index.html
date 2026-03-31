@@ -184,6 +184,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .empty .e-ico{font-size:2rem;margin-bottom:10px;opacity:.4;}
 .empty p{font-size:.83rem;}
 
+
+.edit-btn{background:none;border:none;cursor:pointer;color:#94a3b8;padding:4px;border-radius:5px;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:.85rem;}
+.edit-btn:hover{color:var(--blue);background:#dbeafe;}
+.action-btns{display:flex;gap:4px;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-thumb{background:var(--light-blue);border-radius:99px;}
 </style>
@@ -571,7 +575,10 @@ function renderOrderTable(elId, list, maxRows) {
         <td><span class="price">${fmt$(total)}</span></td>
         <td><span class="del-badge ${dc}">${del}</span></td>
         <td style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
-        <td><button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')">🗑</button></td>
+        <td><div class="action-btns">
+          <button class="edit-btn" onclick="openEdit('${o.rowId}','${o.sheetName||''}')" title="Edit">✏️</button>
+          <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Hapus">🗑</button>
+        </div></td>
       </tr>`;
     }).join('')}</tbody></table>`;
 
@@ -684,6 +691,132 @@ function renderAll() {
 }
 
 init();
+
+// ══ EDIT ORDER ══
+let editingOrder = null;
+
+function openEdit(rowId, sheetName) {
+  const o = orders.find(x => String(x.rowId) === String(rowId) && x.sheetName === sheetName);
+  if (!o) return;
+  editingOrder = o;
+
+  document.getElementById('editInfo').innerHTML = 
+    `<strong>${o.tgId}</strong> · ${o.date} · ${o.sheetName}`;
+  document.getElementById('eTotal').value    = o.total || '';
+  document.getElementById('eBill').value     = o.bill  || '';
+  document.getElementById('eDelivery').value = o.delivery || 'DELIVERY by PD';
+  document.getElementById('ePayment').value  = o.payment  || 'ABA';
+  document.getElementById('eTime').value     = o.time     || '';
+  document.getElementById('eAnabul').value   = o.anabul   || '';
+
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('editOverlay').classList.remove('open');
+  editingOrder = null;
+}
+
+document.getElementById('editOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeEdit();
+});
+
+async function saveEdit() {
+  if (!editingOrder) return;
+
+  const updates = {
+    total:    parseFloat(document.getElementById('eTotal').value)    || editingOrder.total,
+    bill:     parseFloat(document.getElementById('eBill').value)     || editingOrder.bill,
+    delivery: document.getElementById('eDelivery').value,
+    payment:  document.getElementById('ePayment').value,
+    time:     document.getElementById('eTime').value,
+    anabul:   document.getElementById('eAnabul').value,
+  };
+
+  // Update lokal
+  const idx = orders.findIndex(x => String(x.rowId) === String(editingOrder.rowId) && x.sheetName === editingOrder.sheetName);
+  if (idx !== -1) {
+    orders[idx] = { ...orders[idx], ...updates };
+    saveLocal();
+  }
+
+  closeEdit();
+  renderAll();
+
+  // Sync semua field ke Sheets
+  setSync('loading', 'Mengupdate Sheets...');
+  const fields = ['total','bill','delivery','payment','time'];
+  for (const field of fields) {
+    await postSheets({
+      action:    'updateOrder',
+      rowId:     editingOrder.rowId,
+      sheetName: editingOrder.sheetName,
+      field:     field,
+      value:     updates[field],
+    });
+  }
+  // Update anabul (kolom S index 18)
+  await postSheets({
+    action:    'updateOrder',
+    rowId:     editingOrder.rowId,
+    sheetName: editingOrder.sheetName,
+    field:     'anabul',
+    value:     updates.anabul,
+  });
+
+  setSync('ok', 'Sheets terupdate ✓');
+  setTimeout(() => setSync('ok', 'Synced ✓'), 3000);
+}
+
+// ══ AUTO REFRESH every 5 minutes ══
+setInterval(() => {
+  if (SHEETS_URL) {
+    console.log('Auto-sync...');
+    doSync();
+  }
+}, 5 * 60 * 1000);
+
 </script>
+
+<!-- Modal: Edit Order -->
+<div class="overlay" id="editOverlay">
+<div class="modal">
+  <div class="m-hdr"><h3>✏️ Edit Order</h3><button class="m-close" onclick="closeEdit()">✕</button></div>
+  <div class="m-body">
+    <div id="editInfo" style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:.82rem;color:var(--muted)"></div>
+    <div class="f2">
+      <div class="fg"><label>Total ($)</label><input type="number" id="eTotal" step="0.01"></div>
+      <div class="fg"><label>Bill ($)</label><input type="number" id="eBill" step="0.01"></div>
+    </div>
+    <div class="f2">
+      <div class="fg"><label>Metode Delivery</label>
+        <select id="eDelivery">
+          <option value="DELIVERY by PD">DELIVERY by PD</option>
+          <option value="COD - HP TOWER">COD - HP TOWER</option>
+          <option value="PICK UP STAR BAY">PICK UP STAR BAY</option>
+          <option value="COD">COD</option>
+        </select>
+      </div>
+      <div class="fg"><label>Payment</label>
+        <select id="ePayment">
+          <option value="ABA">ABA</option>
+          <option value="Cash">Cash</option>
+          <option value="Wing">Wing</option>
+          <option value="ACLEDA">ACLEDA</option>
+        </select>
+      </div>
+    </div>
+    <div class="f2">
+      <div class="fg"><label>Jam</label><input type="time" id="eTime"></div>
+      <div class="fg"><label>Nama Anabul 🐾</label><input type="text" id="eAnabul" placeholder="Cth: Milo"></div>
+    </div>
+  </div>
+  <div class="m-footer">
+    <button class="btn-cancel" onclick="closeEdit()">Batal</button>
+    <button class="btn-save" onclick="saveEdit()">💾 Update Order</button>
+  </div>
+</div>
+</div>
+
 </body>
 </html>
