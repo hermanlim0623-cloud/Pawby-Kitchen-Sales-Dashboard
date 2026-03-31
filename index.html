@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pawby Kitchen — Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --navy: #1e3a5f;
+    --navy-dark: #0f1f35;
+    --blue: #2d6a9f;
+    --sky: #5b9bd5;
+    --light-blue: #BFDBFE;
+    --bg: #F0F6FF;
+    --bg-card: #ffffff;
+    --text: #1C2B3A;
+    --text-muted: #5a7a99;
+    --border: #dbeafe;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --font: 'Poppins', sans-serif;
+    --mono: 'DM Mono', monospace;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 24px rgba(30,58,95,0.10);
+    --shadow-lg: 0 8px 40px rgba(30,58,95,0.16);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    background: var(--navy-dark);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .sidebar-logo .paw { font-size: 22px; }
+
+  .sidebar-logo span {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .sidebar-logo small {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--sky);
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .sidebar-nav {
+    padding: 20px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .nav-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 12px 12px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: rgba(255,255,255,0.55);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.07); }
+  .nav-item.active { color: white; background: linear-gradient(135deg, var(--blue), var(--sky)); box-shadow: 0 4px 14px rgba(45,106,159,0.4); }
+  .nav-item i { width: 17px; height: 17px; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 12px 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* ── Main ── */
+  .main {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-title h1 { font-size: 1.15rem; font-weight: 700; color: var(--navy); }
+  .topbar-title p { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  .date-badge {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-family: var(--mono);
+  }
+
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 99px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(30,58,95,0.3);
+    font-family: var(--font);
+  }
+  .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,58,95,0.4); }
+  .btn-add i { width: 15px; height: 15px; }
+
+  /* ── Content ── */
+  .content { padding: 28px 32px; flex: 1; }
+
+  /* ── Views ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Stats Grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 26px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .stat-card.blue::before { background: linear-gradient(90deg, var(--navy), var(--sky)); }
+  .stat-card.green::before { background: linear-gradient(90deg, #059669, #10b981); }
+  .stat-card.orange::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  .stat-card.purple::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+  .stat-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+  }
+  .stat-icon i { width: 20px; height: 20px; }
+  .stat-card.blue .stat-icon { background: #dbeafe; color: var(--navy); }
+  .stat-card.green .stat-icon { background: #d1fae5; color: #059669; }
+  .stat-card.orange .stat-icon { background: #fef3c7; color: #d97706; }
+  .stat-card.purple .stat-icon { background: #ede9fe; color: #7c3aed; }
+
+  .stat-value {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    font-family: var(--mono);
+    margin-bottom: 4px;
+  }
+
+  .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
+
+  .stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 3px 8px;
+    border-radius: 99px;
+  }
+  .stat-change.up { background: #d1fae5; color: #059669; }
+  .stat-change.neutral { background: #f1f5f9; color: var(--text-muted); }
+
+  /* ── Dashboard Grid ── */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-header h3 { font-size: 0.9rem; font-weight: 700; color: var(--navy); }
+  .card-header span { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* ── Order Table ── */
+  .order-table { width: 100%; border-collapse: collapse; }
+  .order-table th {
+    padding: 12px 22px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .order-table td {
+    padding: 13px 22px;
+    font-size: 0.83rem;
+    border-bottom: 1px solid #f0f6ff;
+    vertical-align: middle;
+  }
+  .order-table tr:last-child td { border-bottom: none; }
+  .order-table tr:hover td { background: #f8fbff; }
+
+  .customer-cell { display: flex; align-items: center; gap: 9px; }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--navy), var(--sky));
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .customer-name { font-weight: 600; color: var(--text); }
+  .customer-phone { font-size: 0.72rem; color: var(--text-muted); font-family: var(--mono); }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .status-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .status-badge.pending { background: #fef3c7; color: #d97706; }
+  .status-badge.pending::before { background: #f59e0b; }
+  .status-badge.process { background: #dbeafe; color: var(--blue); }
+  .status-badge.process::before { background: var(--sky); }
+  .status-badge.done { background: #d1fae5; color: #059669; }
+  .status-badge.done::before { background: #10b981; }
+  .status-badge.cancel { background: #fee2e2; color: #dc2626; }
+  .status-badge.cancel::before { background: #ef4444; }
+
+  .price-cell { font-weight: 700; font-family: var(--mono); color: var(--navy); }
+
+  .action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--blue);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font);
+  }
+  .action-btn:hover { background: var(--navy); color: white; border-color: var(--navy); }
+
+  /* ── Top Products ── */
+  .product-list { padding: 4px 0; }
+  .product-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 22px;
+    border-bottom: 1px solid #f0f6ff;
+    transition: background 0.15s;
+  }
+  .product-item:last-child { border-bottom: none; }
+  .product-item:hover { background: #f8fbff; }
+
+  .product-rank {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--mono);
+  }
+  .product-rank.gold { background: #fef3c7; color: #d97706; }
+  .product-rank.silver { background: #f1f5f9; color: #64748b; }
+  .product-rank.bronze { background: #fef9f0; color: #c2760a; }
+
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-size: 0.83rem; font-weight: 600; color: var(--text); }
+  .product-sold { font-size: 0.72rem; color: var(--text-muted); }
+
+  .product-bar-wrap { width: 70px; }
+  .product-bar {
+    height: 5px;
+    background: var(--bg);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .product-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--navy), var(--sky));
+    border-radius: 99px;
+    transition: width 0.8s ease;
+  }
+
+  .product-revenue { font-size: 0.78rem; font-weight: 700; font-family: var(--mono); color: var(--navy); min-width: 55px; text-align: right; }
+
+  /* ── Recent Customers ── */
+  .customer-list { padding: 4px 0; }
+  .cust-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 22px;
+    border-bottom: 1px solid #f0f6ff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .cust-item:last-child { border-bottom: none; }
+  .cust-item:hover { background: #f8fbff; }
+  .cust-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .cust-name { font-size: 0.83rem; font-weight: 600; }
+  .cust-orders { font-size: 0.72rem; color: var(--text-muted); }
+  .cust-total { font-size: 0.78rem; font-weight: 700; font-family: var(--mono); color: var(--navy); margin-left: auto; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,22,48,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn 0.25s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 1rem; font-weight: 700; color: var(--navy); }
+  .modal-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { background: #fee2e2; color: var(--red); }
+  .modal-close i { width: 15px; height: 15px; }
+
+  .modal-body { padding: 22px 24px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    color: var(--text);
+    background: var(--bg);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--blue);
+    background: white;
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .modal-footer {
+    padding: 16px 24px 22px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    padding: 9px 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 99px;
+    background: none;
+    font-family: var(--font);
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-cancel:hover { border-color: var(--red); color: var(--red); }
+
+  .btn-save {
+    padding: 9px 24px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    border: none;
+    border-radius: 99px;
+    color: white;
+    font-family: var(--font);
+    font-size: 0.83rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(30,58,95,0.3);
+  }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,58,95,0.4); }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state i { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* ── Status Select ── */
+  select.status-select {
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--light-blue); border-radius: 99px; }
+
+  /* ── Delete btn ── */
+  .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+  }
+  .delete-btn:hover { color: var(--red); background: #fee2e2; }
+  .delete-btn i { width: 14px; height: 14px; }
+
+  /* ── Products View ── */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .product-card {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .product-card-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+  .product-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .product-card-price { font-size: 1.1rem; font-weight: 800; font-family: var(--mono); color: var(--blue); margin-bottom: 10px; }
+  .product-card-stat { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 12px; }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .section-header h2 { font-size: 1rem; font-weight: 700; color: var(--navy); }
+  .section-header span { font-size: 0.78rem; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="paw">🐾</span>
+    <div>
+      <span>Pawby Kitchen<br><small>Sales Dashboard</small></span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Menu Utama</div>
+    <button class="nav-item active" onclick="switchView('dashboard', this)">
+      <i data-lucide="layout-dashboard"></i> Dashboard
+    </button>
+    <button class="nav-item" onclick="switchView('orders', this)">
+      <i data-lucide="shopping-bag"></i> Semua Order
+    </button>
+    <button class="nav-item" onclick="switchView('customers', this)">
+      <i data-lucide="users"></i> Pelanggan
+    </button>
+    <button class="nav-item" onclick="switchView('products', this)">
+      <i data-lucide="package"></i> Produk
+    </button>
+    <div class="nav-label">Lainnya</div>
+    <button class="nav-item" onclick="window.open('index.html')">
+      <i data-lucide="globe"></i> Lihat Website
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="nav-item" style="color:rgba(255,255,255,0.4)">
+      <i data-lucide="settings"></i> Pengaturan
+    </button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1 id="viewTitle">Dashboard Overview</h1>
+      <p id="viewSubtitle">Selamat datang kembali, Admin Pawby 🐾</p>
+    </div>
+    <div class="topbar-right">
+      <div class="date-badge" id="currentDate"></div>
+      <button class="btn-add" onclick="openModal()">
+        <i data-lucide="plus"></i> Tambah Order
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ══ VIEW: DASHBOARD ══ -->
+    <div class="view active" id="view-dashboard">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+          <div class="stat-value" id="statRevenue">$0</div>
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-change up" id="statRevenueChange">↑ 0 order</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon"><i data-lucide="shopping-bag"></i></div>
+          <div class="stat-value" id="statOrders">0</div>
+          <div class="stat-label">Total Order</div>
+          <div class="stat-change up" id="statDone">✓ 0 selesai</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-icon"><i data-lucide="clock"></i></div>
+          <div class="stat-value" id="statPending">0</div>
+          <div class="stat-label">Order Pending</div>
+          <div class="stat-change neutral">Perlu diproses</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon"><i data-lucide="users"></i></div>
+          <div class="stat-value" id="statCustomers">0</div>
+          <div class="stat-label">Pelanggan Aktif</div>
+          <div class="stat-change up" id="statCustChange">unique customers</div>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="dash-grid">
+        <!-- Recent Orders -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Order Terbaru</h3>
+            <span id="recentCount">0 order</span>
+          </div>
+          <div id="recentOrdersTable">
+            <div class="empty-state">
+              <i data-lucide="inbox"></i>
+              <p>Belum ada order.<br>Klik "+ Tambah Order" untuk mulai!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Products -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Produk Terlaris</h3>
+          </div>
+          <div class="product-list" id="topProductsList">
+            <div class="empty-state">
+              <i data-lucide="bar-chart-2"></i>
+              <p>Belum ada data produk</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VIEW: ALL ORDERS ══ -->
+    <div class="view" id="view-orders">
+      <div class="section-header">
+        <h2>Semua Order</h2>
+        <span id="allOrderCount">0 total</span>
+      </div>
+      <div class="card">
+        <div id="allOrdersTable">
+          <div class="empty-state">
+            <i data-lucide="shopping-bag"></i>
+            <p>Belum ada order masuk</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VIEW: CUSTOMERS ══ -->
+    <div class="view" id="view-customers">
+      <div class="section-header">
+        <h2>Pelanggan Aktif</h2>
+        <span id="custCount">0 pelanggan</span>
+      </div>
+      <div class="card">
+        <div class="customer-list" id="customersList">
+          <div class="empty-state">
+            <i data-lucide="users"></i>
+            <p>Belum ada data pelanggan</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VIEW: PRODUCTS ══ -->
+    <div class="view" id="view-products">
+      <div class="section-header">
+        <h2>Katalog Produk</h2>
+      </div>
+      <div class="products-grid" id="productsGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ Modal Tambah Order ══ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🛒 Tambah Order Baru</h3>
+      <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nama Pelanggan *</label>
+          <input type="text" id="fName" placeholder="Cth: Budi Santoso">
+        </div>
+        <div class="form-group">
+          <label>No. Telepon / Telegram *</label>
+          <input type="text" id="fPhone" placeholder="08xx-xxxx-xxxx">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Produk *</label>
+        <select id="fProduct">
+          <option value="">-- Pilih Produk --</option>
+          <option value="Weekly Pawby Pack">Weekly Pawby Pack — $21.99</option>
+          <option value="Starter Pack">Starter Pack — $10.99</option>
+          <option value="Pawporkby">Pawporkby — $1.50</option>
+          <option value="Pawbeefy">Pawbeefy — $2.00</option>
+          <option value="Chickipaw">Chickipaw — $1.50</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="fQty" value="1" min="1">
+        </div>
+        <div class="form-group">
+          <label>Total Harga ($)</label>
+          <input type="number" id="fTotal" placeholder="0.00" step="0.01">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="fStatus">
+            <option value="pending">⏳ Pending</option>
+            <option value="process">🔄 Diproses</option>
+            <option value="done">✅ Selesai</option>
+            <option value="cancel">❌ Dibatalkan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tanggal Order</label>
+          <input type="date" id="fDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Catatan (opsional)</label>
+        <textarea id="fNote" rows="2" placeholder="Cth: Alergi ayam, kirim sore hari..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveOrder()">💾 Simpan Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data & State ──
+const PRODUCTS_CATALOG = [
+  { name: 'Weekly Pawby Pack', price: 21.99, emoji: '🥩', desc: 'Paket mingguan lengkap' },
+  { name: 'Starter Pack',      price: 10.99, emoji: '🍱', desc: 'Cocok untuk pemula' },
+  { name: 'Pawporkby',         price: 1.50,  emoji: '🐷', desc: 'Daging babi segar' },
+  { name: 'Pawbeefy',          price: 2.00,  emoji: '🐄', desc: 'Daging sapi pilihan' },
+  { name: 'Chickipaw',         price: 1.50,  emoji: '🐔', desc: 'Ayam kampung segar' },
+];
+
+let orders = JSON.parse(localStorage.getItem('pawby_orders') || '[]');
+
+function saveData() {
+  localStorage.setItem('pawby_orders', JSON.stringify(orders));
+}
+
+// ── Date ──
+function initDate() {
+  const el = document.getElementById('currentDate');
+  const now = new Date();
+  el.textContent = now.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('fDate').valueAsDate = now;
+}
+
+// ── Switch View ──
+function switchView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  btn.classList.add('active');
+  const titles = {
+    dashboard: ['Dashboard Overview', 'Selamat datang kembali, Admin Pawby 🐾'],
+    orders:    ['Semua Order', 'Kelola & update status order pelanggan'],
+    customers: ['Pelanggan Aktif', 'Data pelanggan yang pernah order'],
+    products:  ['Katalog Produk', 'Daftar produk Pawby Kitchen'],
+  };
+  document.getElementById('viewTitle').textContent = titles[name][0];
+  document.getElementById('viewSubtitle').textContent = titles[name][1];
+  renderAll();
+}
+
+// ── Modal ──
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  lucide.createIcons();
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── Auto-fill harga ──
+document.getElementById('fProduct').addEventListener('change', function() {
+  const prod = PRODUCTS_CATALOG.find(p => p.name === this.value);
+  if (prod) {
+    const qty = parseInt(document.getElementById('fQty').value) || 1;
+    document.getElementById('fTotal').value = (prod.price * qty).toFixed(2);
+  }
+});
+document.getElementById('fQty').addEventListener('input', function() {
+  const prodName = document.getElementById('fProduct').value;
+  const prod = PRODUCTS_CATALOG.find(p => p.name === prodName);
+  if (prod) {
+    document.getElementById('fTotal').value = (prod.price * this.value).toFixed(2);
+  }
+});
+
+// ── Save Order ──
+function saveOrder() {
+  const name    = document.getElementById('fName').value.trim();
+  const phone   = document.getElementById('fPhone').value.trim();
+  const product = document.getElementById('fProduct').value;
+  const qty     = parseInt(document.getElementById('fQty').value) || 1;
+  const total   = parseFloat(document.getElementById('fTotal').value) || 0;
+  const status  = document.getElementById('fStatus').value;
+  const date    = document.getElementById('fDate').value;
+  const note    = document.getElementById('fNote').value.trim();
+
+  if (!name || !phone || !product) {
+    alert('Nama, telepon, dan produk wajib diisi!');
+    return;
+  }
+
+  orders.unshift({
+    id: Date.now(),
+    name, phone, product, qty, total, status, date, note
+  });
+  saveData();
+  closeModal();
+  renderAll();
+
+  // Reset form
+  document.getElementById('fName').value = '';
+  document.getElementById('fPhone').value = '';
+  document.getElementById('fProduct').value = '';
+  document.getElementById('fQty').value = 1;
+  document.getElementById('fTotal').value = '';
+  document.getElementById('fStatus').value = 'pending';
+  document.getElementById('fNote').value = '';
+}
+
+// ── Delete Order ──
+function deleteOrder(id) {
+  if (!confirm('Hapus order ini?')) return;
+  orders = orders.filter(o => o.id !== id);
+  saveData();
+  renderAll();
+}
+
+// ── Update Status ──
+function updateStatus(id, val) {
+  const o = orders.find(o => o.id === id);
+  if (o) { o.status = val; saveData(); renderAll(); }
+}
+
+// ── Helpers ──
+function fmtMoney(n) { return '$' + parseFloat(n).toFixed(2); }
+function initials(name) { return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function statusLabel(s) {
+  return { pending:'Pending', process:'Diproses', done:'Selesai', cancel:'Dibatalkan' }[s] || s;
+}
+
+// ── Render Stats ──
+function renderStats() {
+  const valid = orders.filter(o => o.status !== 'cancel');
+  const revenue = valid.reduce((s,o) => s + (o.total||0), 0);
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const done    = orders.filter(o => o.status === 'done').length;
+  const customers = [...new Set(orders.map(o => o.phone))].length;
+
+  document.getElementById('statRevenue').textContent = fmtMoney(revenue);
+  document.getElementById('statOrders').textContent  = orders.length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statCustomers').textContent = customers;
+  document.getElementById('statRevenueChange').textContent = `↑ ${orders.length} order`;
+  document.getElementById('statDone').textContent = `✓ ${done} selesai`;
+  document.getElementById('statCustChange').textContent = `${customers} unique customers`;
+}
+
+// ── Render Recent Orders Table ──
+function renderOrderTable(containerId, orderList, maxRows) {
+  const el = document.getElementById(containerId);
+  const rows = maxRows ? orderList.slice(0, maxRows) : orderList;
+
+  if (!rows.length) {
+    el.innerHTML = `<div class="empty-state"><p>Belum ada order masuk</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <table class="order-table">
+      <thead>
+        <tr>
+          <th>Pelanggan</th>
+          <th>Produk</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Tgl</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(o => `
+          <tr>
+            <td>
+              <div class="customer-cell">
+                <div class="avatar">${initials(o.name)}</div>
+                <div>
+                  <div class="customer-name">${o.name}</div>
+                  <div class="customer-phone">${o.phone}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:0.82rem;">${o.product} <span style="color:var(--text-muted);font-size:0.72rem">x${o.qty}</span></td>
+            <td><span class="price-cell">${fmtMoney(o.total)}</span></td>
+            <td>
+              <select class="status-select status-badge ${o.status}" onchange="updateStatus(${o.id}, this.value)">
+                <option value="pending"  ${o.status==='pending'  ?'selected':''}>⏳ Pending</option>
+                <option value="process"  ${o.status==='process'  ?'selected':''}>🔄 Proses</option>
+                <option value="done"     ${o.status==='done'     ?'selected':''}>✅ Selesai</option>
+                <option value="cancel"   ${o.status==='cancel'   ?'selected':''}>❌ Batal</option>
+              </select>
+            </td>
+            <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--mono)">${o.date || '-'}</td>
+            <td>
+              <button class="delete-btn" onclick="deleteOrder(${o.id})" title="Hapus">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('recentCount') && (document.getElementById('recentCount').textContent = `${orders.length} order`);
+  document.getElementById('allOrderCount') && (document.getElementById('allOrderCount').textContent = `${orders.length} total`);
+}
+
+// ── Render Top Products ──
+function renderTopProducts() {
+  const el = document.getElementById('topProductsList');
+  const map = {};
+  orders.filter(o => o.status !== 'cancel').forEach(o => {
+    if (!map[o.product]) map[o.product] = { qty: 0, rev: 0 };
+    map[o.product].qty += o.qty || 1;
+    map[o.product].rev += o.total || 0;
+  });
+
+  const sorted = Object.entries(map).sort((a,b) => b[1].qty - a[1].qty).slice(0, 5);
+  if (!sorted.length) {
+    el.innerHTML = `<div class="empty-state"><i data-lucide="bar-chart-2"></i><p>Belum ada data</p></div>`;
+    return;
+  }
+  const maxQty = sorted[0][1].qty;
+  const rankClass = ['gold','silver','bronze','',''];
+  el.innerHTML = sorted.map(([name, d], i) => `
+    <div class="product-item">
+      <div class="product-rank ${rankClass[i]}">${i+1}</div>
+      <div class="product-info">
+        <div class="product-name">${name}</div>
+        <div class="product-sold">${d.qty} terjual</div>
+      </div>
+      <div class="product-bar-wrap">
+        <div class="product-bar">
+          <div class="product-bar-fill" style="width:${Math.round(d.qty/maxQty*100)}%"></div>
+        </div>
+      </div>
+      <div class="product-revenue">${fmtMoney(d.rev)}</div>
+    </div>
+  `).join('');
+}
+
+// ── Render Customers ──
+function renderCustomers() {
+  const el = document.getElementById('customersList');
+  const map = {};
+  orders.forEach(o => {
+    if (!map[o.phone]) map[o.phone] = { name: o.name, phone: o.phone, orders: 0, total: 0 };
+    map[o.phone].orders++;
+    map[o.phone].total += o.total || 0;
+  });
+  const list = Object.values(map).sort((a,b) => b.total - a.total);
+  document.getElementById('custCount').textContent = `${list.length} pelanggan`;
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><p>Belum ada pelanggan</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(c => `
+    <div class="cust-item">
+      <div class="cust-avatar">${initials(c.name)}</div>
+      <div>
+        <div class="cust-name">${c.name}</div>
+        <div class="cust-orders">${c.phone} · ${c.orders} order</div>
+      </div>
+      <div class="cust-total">${fmtMoney(c.total)}</div>
+    </div>
+  `).join('');
+}
+
+// ── Render Products ──
+function renderProducts() {
+  const el = document.getElementById('productsGrid');
+  const map = {};
+  orders.filter(o => o.status !== 'cancel').forEach(o => {
+    if (!map[o.product]) map[o.product] = { qty: 0, rev: 0 };
+    map[o.product].qty += o.qty || 1;
+    map[o.product].rev += o.total || 0;
+  });
+  el.innerHTML = PRODUCTS_CATALOG.map(p => `
+    <div class="product-card">
+      <div class="product-card-icon">${p.emoji}</div>
+      <h4>${p.name}</h4>
+      <div class="product-card-price">${fmtMoney(p.price)}</div>
+      <div class="product-card-stat">
+        <span>🛒 ${(map[p.name]?.qty||0)} terjual</span>
+        <span>💰 ${fmtMoney(map[p.name]?.rev||0)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Render All ──
+function renderAll() {
+  renderStats();
+  renderOrderTable('recentOrdersTable', orders, 8);
+  renderOrderTable('allOrdersTable', orders, null);
+  renderTopProducts();
+  renderCustomers();
+  renderProducts();
+  lucide.createIcons();
+}
+
+// ── Init ──
+initDate();
+renderAll();
+lucide.createIcons();
+</script>
+</body>
+</html>
