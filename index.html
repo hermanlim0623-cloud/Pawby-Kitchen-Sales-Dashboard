@@ -830,7 +830,7 @@ function renderAll() {
         const key = d.getFullYear() + '-' + (d.getMonth()+1);
         return key === activeSheet;
       });
-  renderOrderTable('recentTbl', orders, 8);
+  renderOrderTable('recentTbl', filtered, 8);
   renderOrderTable('allTbl', filtered, null);
   renderMonthTabs();
   renderTopProducts();
