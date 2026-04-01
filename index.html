@@ -737,6 +737,12 @@ function renderMonthTabs() {
     }).join('');
 }
 
+// ══ TAMBAHKAN FUNGSI INI! ══
+function filterSheet(month) {
+  activeSheet = month;
+  renderAll();
+}
+
 // ══ RENDER TOP PRODUCTS ══
 function renderTopProducts() {
   const el  = document.getElementById('topProds');
