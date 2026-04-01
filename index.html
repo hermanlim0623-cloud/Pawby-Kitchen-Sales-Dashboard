@@ -22,7 +22,8 @@ function safeIcons() { try { if(window.lucide) lucide.createIcons(); } catch(e){
   --sh:0 4px 24px rgba(30,58,95,.10); --shl:0 8px 40px rgba(30,58,95,.16);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+html{overflow-x:hidden;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden;}
 
 .sidebar{width:240px;background:var(--navy-dark);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;bottom:0;z-index:100;}
 .sb-logo{display:flex;align-items:center;gap:10px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,.08);}
@@ -36,7 +37,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ni .ico{width:16px;height:16px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-style:normal;}
 .sb-footer{padding:14px 12px 0;border-top:1px solid rgba(255,255,255,.08);}
 
-.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;overflow-x:hidden;}
 .topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
 .topbar-title h1{font-size:1.1rem;font-weight:700;color:var(--navy);}
 .topbar-title p{font-size:.76rem;color:var(--muted);}
@@ -233,16 +234,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   /* Stats grid: 2 columns */
   .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
   .stat{padding:14px;}
-  .stat-val{font-size:1.2rem;}
+  .stat-val{font-size:1.2rem;word-break:break-all;}
   .stat-ico{width:32px;height:32px;font-size:.9rem;margin-bottom:8px;}
 
   /* Dashboard grid: single column */
   .dash-grid{grid-template-columns:1fr;gap:14px;}
 
-  /* Table: horizontal scroll */
-  .tbl th,.tbl td{padding:9px 12px;font-size:.72rem;white-space:nowrap;}
+  /* Hide Delivery & Date columns on mobile */
+  .hide-sm{display:none;}
+
+  /* Table: card-style rows on mobile */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px;}
+  .tbl{min-width:auto;}
+  .tbl th,.tbl td{padding:9px 10px;font-size:.74rem;}
+  .tbl th:first-child,.tbl td:first-child{padding-left:14px;}
+  .tbl td{white-space:normal;word-break:break-word;}
   .av{width:26px;height:26px;font-size:.58rem;}
+  .cname{font-size:.78rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cphone{font-size:.65rem;}
   .del-badge{font-size:.62rem;max-width:100px;}
+  .price{font-size:.74rem;}
 
   /* Forms in modals */
   .f2{grid-template-columns:1fr;}
@@ -262,30 +273,71 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .p-card h4{font-size:.8rem;}
   .p-price{font-size:.88rem;}
 
-  /* Sheet tabs */
-  .sheet-tabs{gap:4px;}
-  .stab{padding:4px 10px;font-size:.7rem;}
+  /* Sheet tabs: scrollable */
+  .sheet-tabs{gap:4px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+  .stab{padding:4px 10px;font-size:.7rem;flex-shrink:0;}
 
   /* Customers */
   .cust-item{padding:10px 14px;gap:9px;}
+  .cust-name{font-size:.78rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cust-total{font-size:.72rem;}
+
+  /* Product rank items */
+  .prod-item{padding:10px 14px;gap:8px;}
+  .prod-name{font-size:.76rem;}
+  .prod-sold{font-size:.66rem;}
+  .prod-rev{font-size:.72rem;min-width:40px;}
+  .bar-wrap{width:40px;}
+
+  /* Card header */
+  .card-hdr{padding:13px 16px 10px;}
+  .card-hdr h3{font-size:.82rem;}
 }
 
 /* ══ RESPONSIVE: SMALL PHONE (<= 420px) ══ */
 @media(max-width:420px){
   .stats-grid{grid-template-columns:1fr 1fr;gap:8px;}
   .stat{padding:12px;}
-  .stat-val{font-size:1.05rem;}
-  .stat-lbl{font-size:.68rem;}
+  .stat-val{font-size:1rem;word-break:break-all;}
+  .stat-lbl{font-size:.66rem;}
+  .stat-sub{font-size:.62rem;padding:2px 6px;}
   .stat-ico{width:28px;height:28px;font-size:.8rem;margin-bottom:6px;}
 
   .p-grid{grid-template-columns:1fr 1fr;gap:8px;}
 
-  .topbar-title h1{font-size:.88rem;}
+  .topbar{padding:10px 12px;gap:6px;}
+  .topbar-title h1{font-size:.85rem;}
+  .topbar-title p{font-size:.65rem;}
   .btn-add{font-size:.7rem;padding:6px 11px;}
-  .sync-chip{font-size:.66rem;padding:4px 9px;}
-  .date-pill{font-size:.64rem;}
+  .sync-chip{font-size:.64rem;padding:3px 8px;}
+  .date-pill{font-size:.62rem;padding:3px 8px;}
+
+  .content{padding:12px;}
 
   .qty-row{grid-template-columns:1fr 1fr;}
+
+  /* Even smaller table text */
+  .tbl th,.tbl td{padding:8px 8px;font-size:.7rem;}
+  .cname{font-size:.74rem;max-width:90px;}
+  .price{font-size:.7rem;}
+  .av{width:24px;height:24px;font-size:.54rem;}
+  .action-btns{gap:2px;}
+  .edit-btn,.del-btn{font-size:.75rem;padding:3px;}
+
+  /* Modal tighter */
+  .modal{max-width:98vw;margin:6px;}
+  .m-hdr{padding:14px 14px 10px;}
+  .m-hdr h3{font-size:.88rem;}
+  .m-body{padding:14px;}
+  .m-footer{padding:10px 14px 14px;}
+  .fg label{font-size:.72rem;}
+  .fg input,.fg select,.fg textarea{padding:8px 10px;font-size:.78rem;}
+  .btn-save{padding:7px 16px;font-size:.76rem;}
+  .btn-cancel{padding:7px 14px;font-size:.76rem;}
+
+  /* Sec header */
+  .sec-hdr h2{font-size:.88rem;}
+  .sec-hdr span{font-size:.7rem;}
 }
 </style>
 </head>
@@ -669,8 +721,8 @@ function renderOrderTable(elId, list, maxRows) {
     return '';
   };
 
-  el.innerHTML = `<table class="tbl">
-    <thead><tr><th>Pelanggan</th><th>Produk</th><th>Total</th><th>Delivery</th><th>Tgl</th><th></th></tr></thead>
+  el.innerHTML = `<div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Pelanggan</th><th>Produk</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Tgl</th><th></th></tr></thead>
     <tbody>${rows.map(o=>{
       const items=[];
       if(parseInt(o.pawbeefy))  items.push(`🐄×${o.pawbeefy}`);
@@ -690,14 +742,14 @@ function renderOrderTable(elId, list, maxRows) {
         </div></td>
         <td style="font-size:.75rem">${prod}</td>
         <td><span class="price">${fmt$(total)}</span></td>
-        <td><span class="del-badge ${dc}">${del}</span></td>
-        <td style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
+        <td class="hide-sm"><span class="del-badge ${dc}">${del}</span></td>
+        <td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
         <td><div class="action-btns">
           <button class="edit-btn" onclick="openEdit('${o.rowId}','${o.sheetName||''}')" title="Edit">✏️</button>
           <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Hapus">🗑</button>
         </div></td>
       </tr>`;
-    }).join('')}</tbody></table>`;
+    }).join('')}</tbody></table></div>`;
 
   if(document.getElementById('recentCnt')) document.getElementById('recentCnt').textContent=`${orders.length} order`;
   if(document.getElementById('allCnt'))    document.getElementById('allCnt').textContent=`${orders.length} total`;
