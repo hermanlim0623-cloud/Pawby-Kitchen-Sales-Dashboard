@@ -535,7 +535,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="m-body">
     <div class="f2">
       <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username"></div>
-      <div class="fg"><label>Nama Anabul 🐾</label><input id="fAnabul" placeholder="Cth: Milo"></div>
+      <div class="fg"><label>Nama Anabul 🐾</label><input id="fAnabul" placeholder="Cth: Milo" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"></div>
     </div>
     <div class="fg"><label>Qty per Produk</label>
       <div class="qty-row">
