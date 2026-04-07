@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pawby Kitchen — Sales Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- Lucide dengan fallback -->
 <script>
 window.lucide = null;
 function safeIcons() { try { if(window.lucide) lucide.createIcons(); } catch(e){} }
@@ -24,6 +23,64 @@ function safeIcons() { try { if(window.lucide) lucide.createIcons(); } catch(e){
 *{margin:0;padding:0;box-sizing:border-box;}
 html{overflow-x:hidden;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden;}
+
+/* ══ LOGIN SCREEN ══ */
+#loginScreen{
+  position:fixed;inset:0;background:var(--navy-dark);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;font-family:var(--font);
+  background-image:radial-gradient(ellipse at 20% 50%, rgba(45,106,159,.3) 0%, transparent 60%),
+                   radial-gradient(ellipse at 80% 20%, rgba(91,155,213,.15) 0%, transparent 50%);
+}
+.login-box{
+  background:rgba(30,58,95,.6);backdrop-filter:blur(20px);
+  border:1px solid rgba(91,155,213,.2);
+  border-radius:24px;padding:40px 36px;
+  width:100%;max-width:400px;margin:16px;
+  box-shadow:0 24px 64px rgba(0,0,0,.5);
+}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .paw{font-size:3rem;display:block;margin-bottom:10px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.login-logo h2{color:#fff;font-size:1.3rem;font-weight:800;margin-bottom:4px;}
+.login-logo p{color:var(--sky);font-size:.76rem;}
+.login-error{
+  display:none;background:rgba(239,68,68,.15);color:#fca5a5;
+  border:1px solid rgba(239,68,68,.3);
+  border-radius:10px;padding:10px 14px;
+  font-size:.78rem;margin-bottom:16px;text-align:center;
+}
+.login-field{margin-bottom:16px;}
+.login-field label{display:block;color:var(--light-blue);font-size:.74rem;font-weight:600;margin-bottom:6px;letter-spacing:.3px;}
+.login-field input{
+  width:100%;padding:12px 16px;
+  border-radius:12px;border:1.5px solid rgba(91,155,213,.3);
+  background:rgba(15,31,53,.6);color:#fff;
+  font-family:var(--font);font-size:.86rem;outline:none;
+  transition:border-color .2s,background .2s;
+}
+.login-field input:focus{border-color:var(--sky);background:rgba(15,31,53,.9);}
+.login-field input::placeholder{color:rgba(255,255,255,.25);}
+.login-btn{
+  width:100%;padding:13px;margin-top:8px;
+  background:linear-gradient(135deg,var(--blue),var(--sky));
+  color:#fff;border:none;border-radius:12px;
+  font-family:var(--font);font-size:.9rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 6px 20px rgba(45,106,159,.4);
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,106,159,.5);}
+.login-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.login-footer{text-align:center;margin-top:20px;color:rgba(255,255,255,.2);font-size:.68rem;}
+.logout-btn{
+  display:flex;align-items:center;gap:6px;
+  background:none;border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.4);padding:6px 12px;border-radius:99px;
+  font-size:.7rem;cursor:pointer;font-family:var(--font);
+  transition:all .2s;width:calc(100% - 24px);margin:0 12px;
+  justify-content:center;
+}
+.logout-btn:hover{border-color:var(--red);color:#fca5a5;}
 
 .sidebar{width:240px;background:var(--navy-dark);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;bottom:0;z-index:100;}
 .sb-logo{display:flex;align-items:center;gap:10px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,.08);}
@@ -180,19 +237,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 .del-btn{background:none;border:none;cursor:pointer;color:#ccc;padding:4px;border-radius:5px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
 .del-btn:hover{color:var(--red);background:#fee2e2;}
-
 .empty{text-align:center;padding:44px 20px;color:var(--muted);}
 .empty .e-ico{font-size:2rem;margin-bottom:10px;opacity:.4;}
 .empty p{font-size:.83rem;}
-
-
 .edit-btn{background:none;border:none;cursor:pointer;color:#94a3b8;padding:4px;border-radius:5px;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:.85rem;}
 .edit-btn:hover{color:var(--blue);background:#dbeafe;}
 .action-btns{display:flex;gap:4px;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-thumb{background:var(--light-blue);border-radius:99px;}
 
-/* ══ UTILS ══ */
 .stat-period{font-size:.62rem;color:var(--muted);font-style:italic;margin-top:2px;}
 .hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--navy);font-size:1.4rem;line-height:1;transition:background .2s;}
 .hamburger:hover{background:var(--bg);}
@@ -200,54 +253,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sidebar-overlay.open{display:block;opacity:1;}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 
-/* ══ DESKTOP LARGE (>1280px) ══ */
 @media(min-width:1280px){
   .stats-grid{grid-template-columns:repeat(4,1fr);}
   .dash-grid{grid-template-columns:1fr 340px;}
   .content{padding:28px 36px;}
 }
-
-/* ══ TABLET LANDSCAPE (<=1024px) ══ */
 @media(max-width:1024px){
   .stats-grid{grid-template-columns:repeat(2,1fr);}
   .dash-grid{grid-template-columns:1fr;}
   .content{padding:22px 24px;}
 }
-
-/* ══ TABLET PORTRAIT (<=768px) ══ */
 @media(max-width:768px){
-  /* Sidebar off-canvas */
   .sidebar{transform:translateX(-100%);transition:transform .3s ease;width:260px;z-index:200;}
   .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(10,22,48,.3);}
   .sidebar-overlay.open{display:block;opacity:1;}
   .main{margin-left:0;}
   .hamburger{display:flex;align-items:center;justify-content:center;}
-
-  /* Topbar */
   .topbar{padding:10px 16px;flex-wrap:wrap;gap:6px;}
   .topbar-title h1{font-size:.95rem;}
   .topbar-title p{font-size:.7rem;}
   .topbar-right{width:100%;justify-content:flex-start;flex-wrap:wrap;gap:6px;}
   .date-pill{font-size:.68rem;padding:4px 10px;}
   .btn-add{font-size:.74rem;padding:7px 13px;}
-
-  /* Content */
   .content{padding:16px;}
-
-  /* Stats 2-col */
   .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
   .stat{padding:14px;}
   .stat-val{font-size:1.2rem;word-break:break-all;}
   .stat-ico{width:32px;height:32px;font-size:.9rem;margin-bottom:8px;}
   .stat-lbl{font-size:.72rem;}
   .stat-sub{font-size:.67rem;}
-
-  /* Dashboard cards */
   .dash-grid{grid-template-columns:1fr;gap:14px;}
   .card-hdr{padding:13px 16px 10px;}
   .card-hdr h3{font-size:.82rem;}
-
-  /* Table */
   .hide-sm{display:none;}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .tbl{min-width:auto;}
@@ -260,8 +297,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .del-badge{font-size:.62rem;max-width:90px;}
   .price{font-size:.74rem;}
   .action-btns{gap:2px;}
-
-  /* Modal — center aligned, scrollable */
   .overlay{padding:12px;align-items:flex-start;padding-top:20px;overflow-y:auto;}
   .modal{max-width:96vw;margin:0 auto;border-radius:18px;max-height:88vh;overflow-y:auto;}
   .m-hdr{padding:16px 18px 12px;}
@@ -270,49 +305,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .m-footer{padding:12px 18px 16px;}
   .f2{grid-template-columns:1fr;}
   .qty-row{grid-template-columns:repeat(2,1fr);gap:8px;}
-
-  /* Setup banner */
   .setup-banner{flex-direction:column;align-items:flex-start;gap:10px;}
-
-  /* Products */
   .p-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
   .p-card{padding:14px;}
   .p-emoji{font-size:1.4rem;margin-bottom:6px;}
   .p-card h4{font-size:.8rem;}
   .p-price{font-size:.88rem;}
-
-  /* Sheet tabs */
   .sheet-tabs{gap:4px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
   .sheet-tabs::-webkit-scrollbar{display:none;}
   .stab{padding:4px 10px;font-size:.7rem;flex-shrink:0;}
-
-  /* Customers */
   .cust-item{padding:10px 14px;gap:9px;}
   .cust-name{font-size:.78rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .cust-total{font-size:.72rem;}
-
-  /* Products rank */
   .prod-item{padding:10px 14px;gap:8px;}
   .prod-name{font-size:.76rem;}
   .prod-sold{font-size:.66rem;}
   .prod-rev{font-size:.72rem;min-width:40px;}
   .bar-wrap{width:40px;}
-
-  /* Sec header */
   .sec-hdr h2{font-size:.9rem;}
   .sec-hdr span{font-size:.72rem;}
-
-  /* Date range picker — single calendar on mobile */
   #calRight{display:none;}
+  .login-box{padding:28px 20px;}
 }
-
-/* ══ LARGE PHONE (480px–767px) ══ */
 @media(min-width:481px) and (max-width:767px){
   .stats-grid{grid-template-columns:repeat(2,1fr);gap:12px;}
   .modal{max-width:92vw;}
 }
-
-/* ══ SMALL PHONE (<=480px) ══ */
 @media(max-width:480px){
   .content{padding:12px;}
   .topbar{padding:10px 12px;gap:6px;}
@@ -321,26 +339,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .btn-add{font-size:.72rem;padding:6px 12px;}
   .sync-chip{font-size:.64rem;padding:3px 8px;}
   .date-pill{font-size:.62rem;padding:3px 8px;}
-
-  /* Stats 2-col compact */
   .stats-grid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
   .stat{padding:12px;}
   .stat-val{font-size:1rem;word-break:break-all;}
   .stat-lbl{font-size:.66rem;}
   .stat-sub{font-size:.62rem;padding:2px 6px;}
   .stat-ico{width:28px;height:28px;font-size:.85rem;margin-bottom:6px;}
-
-  /* Products */
   .p-grid{grid-template-columns:1fr 1fr;gap:8px;}
-
-  /* Table */
   .tbl th,.tbl td{padding:8px 8px;font-size:.7rem;}
   .cname{font-size:.74rem;max-width:80px;}
   .price{font-size:.7rem;}
   .av{width:24px;height:24px;font-size:.54rem;}
   .edit-btn,.del-btn{font-size:.75rem;padding:3px;}
-
-  /* Modal — bottom sheet */
   .overlay{padding:0;align-items:flex-end;overflow-y:auto;overflow-x:hidden;}
   .modal{max-width:100%;width:100%;margin:0;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;overflow-x:hidden;}
   .m-hdr{padding:14px 16px 10px;}
@@ -352,11 +362,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .btn-save{padding:8px 18px;font-size:.78rem;}
   .btn-cancel{padding:8px 14px;font-size:.78rem;}
   .qty-row{grid-template-columns:1fr 1fr;gap:7px;}
-
-  /* Period label picker stays inline-block always */
 }
-
-/* ══ VERY SMALL PHONE (<=360px) ══ */
 @media(max-width:360px){
   .stats-grid{grid-template-columns:1fr 1fr;gap:6px;}
   .stat{padding:10px;}
@@ -375,6 +381,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </head>
 <body>
 
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="paw">🐾</span>
+      <h2>Pawby Kitchen</h2>
+      <p>Sales Dashboard — Admin Only</p>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label>Username</label>
+      <input id="loginUser" type="text" placeholder="Masukkan username" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Masukkan password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Masuk →</button>
+    <p class="login-footer">Pawby Kitchen © 2026 · Phnom Penh, Cambodia 🇰🇭</p>
+  </div>
+</div>
+
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <aside class="sidebar" id="sidebar">
@@ -392,9 +422,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="ni" onclick="openSetup()"><span class="ico">🔗</span>Setup Sheets</button>
     <button class="ni" onclick="doSync()"><span class="ico">🔄</span>Sync Data</button>
     <button class="ni" onclick="window.open('https://pawbykitchen.com/')"><span class="ico">🌐</span>Lihat Website</button>
+    <div class="nav-lbl">Akun</div>
+    <button class="ni" onclick="doLogout()" style="color:rgba(239,68,68,.7)"><span class="ico">🚪</span>Logout</button>
   </nav>
   <div class="sb-footer">
     <div style="padding:8px 12px;font-size:.68rem;color:rgba(255,255,255,.25);font-family:var(--mono)" id="lastSyncInfo">Belum pernah sync</div>
+    <div style="padding:4px 12px 8px;font-size:.65rem;color:rgba(255,255,255,.2);font-family:var(--mono)" id="loginInfo"></div>
   </div>
 </aside>
 
@@ -418,7 +451,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 
   <div class="content">
-    <div class="setup-banner" id="setupBanner">
+    <div class="setup-banner hidden" id="setupBanner">
       <div>
         <h4>⚠️ Google Sheets belum terhubung</h4>
         <p>Klik Setup Sheets lalu paste URL Apps Script kamu agar data terbaca dari Sheets.</p>
@@ -428,20 +461,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
     <!-- DASHBOARD -->
     <div class="view active" id="view-dashboard">
-
-      <!-- DATE RANGE PICKER TRIGGER -->
       <div style="margin-bottom:16px;position:relative;display:inline-block;">
         <button id="activePeriodLabel" onclick="toggleRangePicker()" style="font-size:.75rem;font-weight:700;color:var(--navy);background:#fff;border:1.5px solid var(--border);padding:6px 14px;border-radius:99px;font-family:var(--mono);cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--sh);transition:all .2s;">
           📅 — <span style="font-size:.6rem;opacity:.35">▼</span>
         </button>
-
-        <!-- Compact inline dropdown picker -->
         <div id="calDropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:400;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(10,22,48,.15);padding:12px;width:260px;">
-          <!-- single month view -->
           <div id="calBody">
             <div class="cal-wrap" id="calLeft"></div>
           </div>
-          <!-- footer -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);gap:6px;">
             <span id="rangeSelectedLabel" style="font-size:.68rem;color:var(--muted);font-family:var(--mono);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
             <button onclick="resetToCurrentMonth()" style="font-size:.67rem;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;padding:3px 6px;font-family:var(--font);flex-shrink:0;">Clear</button>
@@ -469,9 +496,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         .cal-day.range-start.range-end{border-radius:5px!important;}
         .cal-day.is-today{color:var(--blue);font-weight:800;}
         .cal-day.range-start.is-today,.cal-day.range-end.is-today{color:#fff!important;}
-        @media(max-width:400px){
-          #calDropdown{width:calc(100vw - 32px);left:0;}
-        }
+        @media(max-width:400px){#calDropdown{width:calc(100vw - 32px);left:0;}}
       </style>
 
       <div class="stats-grid">
@@ -577,8 +602,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="m-hdr"><h3>🔗 Hubungkan Google Sheets</h3><button class="m-close" onclick="closeSetup()">✕</button></div>
   <div class="m-body">
     <div class="step"><div class="step-n">1</div><div><h4>Buka Google Sheets kamu</h4><p>Buka file <strong>Pawby's Sales</strong> → klik menu <strong>Extensions → Apps Script</strong>.</p></div></div>
-    <div class="step"><div class="step-n">2</div><div><h4>Paste kode Apps Script</h4><p>Hapus semua kode lama, paste seluruh isi file <code>apps-script.gs</code>. Klik Save.</p></div></div>
-    <div class="step"><div class="step-n">3</div><div><h4>Deploy sebagai Web App</h4><p>Klik <strong>Deploy → New deployment → Web app</strong>. Set <em>Who has access</em> ke <code>Anyone</code>. Deploy & copy URL-nya.</p></div></div>
+    <div class="step"><div class="step-n">2</div><div><h4>Paste kode Apps Script</h4><p>Hapus semua kode lama, paste seluruh isi file <code>Code.gs</code>. Klik Save.</p></div></div>
+    <div class="step"><div class="step-n">3</div><div><h4>Deploy sebagai Web App</h4><p>Klik <strong>Deploy → Manage deployments → Edit → New version → Deploy</strong>. Copy URL-nya.</p></div></div>
     <div class="step"><div class="step-n">4</div><div><h4>Paste URL di sini</h4>
       <div class="url-row">
         <input id="sheetsUrl" type="text" placeholder="https://script.google.com/macros/s/...">
@@ -589,690 +614,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="m-footer"><button class="btn-cancel" onclick="closeSetup()">Tutup</button></div>
 </div>
 </div>
-
-<script>
-// ══ STATE ══
-let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
-let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
-let activeSheet = 'all';
-
-// ══ DATE RANGE PICKER STATE ══
-const _now = new Date();
-const _todayStr = _now.toISOString().slice(0,10);
-
-function _monthStart(y,m){return `${y}-${String(m).padStart(2,'0')}-01`;}
-function _monthEnd(y,m){return `${y}-${String(m).padStart(2,'0')}-31`;}
-
-let rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth()+1);
-let rangeTo   = _monthEnd(_now.getFullYear(),   _now.getMonth()+1);
-let pickStep  = 0;
-let hoverDate = null;
-let calViewLeft  = new Date(_now.getFullYear(), _now.getMonth(), 1);
-let calViewRight = new Date(_now.getFullYear(), _now.getMonth()+1, 1);
-
-function getActiveMonthRange() {
-  const f=rangeFrom, t=rangeTo;
-  const df=new Date(f), dt=new Date(t);
-  let label;
-  const isMobile = window.innerWidth <= 480;
-  if (f===t) {
-    label = df.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-  } else if (f.slice(0,7)===t.slice(0,7) && f.slice(8)==='01' && parseInt(t.slice(8))>=28) {
-    label = new Date(f.slice(0,7)+'-02').toLocaleString('id-ID',{month:'long',year:'numeric'});
-  } else {
-    const fmt = isMobile
-      ? {day:'numeric',month:'short'}
-      : {day:'numeric',month:'short',year:'numeric'};
-    label = `${df.toLocaleDateString('id-ID',{day:'numeric',month:'short'})} – ${dt.toLocaleDateString('id-ID',fmt)}`;
-  }
-  return { from:f, to:t, label:`📅 ${label}` };
-}
-
-function toggleRangePicker() {
-  const dd = document.getElementById('calDropdown');
-  if (dd.classList.contains('open')) { closePicker(); return; }
-  renderCals();
-  attachCalHover();
-  dd.classList.add('open');
-}
-
-function closePicker() {
-  document.getElementById('calDropdown').classList.remove('open');
-  pickStep=0; hoverDate=null;
-}
-
-function handleCalOverlayClick(e) {}
-
-// Today shortcut
-function goToday() {
-  rangeFrom = _todayStr; rangeTo = _todayStr;
-  calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
-  pickStep=0; hoverDate=null;
-  renderCals(); attachCalHover();
-  updateDayStyles(); updateRangeLabel();
-}
-
-function applyRange() {
-  if (rangeTo < rangeFrom) { const t=rangeFrom; rangeFrom=rangeTo; rangeTo=t; }
-  closePicker();
-  renderStats();
-}
-
-function resetToCurrentMonth() {
-  rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth()+1);
-  rangeTo   = _monthEnd(_now.getFullYear(),   _now.getMonth()+1);
-  calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
-  pickStep=0; hoverDate=null;
-  renderCals(); attachCalHover(); applyRange();
-}
-
-function navCal(side, dir) {
-  calViewLeft = new Date(calViewLeft.getFullYear(), calViewLeft.getMonth()+dir, 1);
-  renderCals();
-  attachCalHover();
-}
-
-function renderCals() {
-  document.getElementById('calLeft').innerHTML = buildCal(calViewLeft, 'left');
-  const r = document.getElementById('calRight');
-  if (r) r.innerHTML = '';
-  updateDayStyles();
-  updateRangeLabel();
-}
-
-function buildCal(viewDate, side) {
-  const y=viewDate.getFullYear(), mo=viewDate.getMonth();
-  const monthName = viewDate.toLocaleString('id-ID',{month:'long',year:'numeric'});
-  const firstDay  = new Date(y,mo,1).getDay();
-  const daysInMonth = new Date(y,mo+1,0).getDate();
-  const offset = (firstDay+6)%7;
-  const dows   = ['Mo','Tu','We','Th','Fr','Sa','Su'];
-
-  let html = `<div class="cal-nav">
-    <button class="cal-nav-btn" onclick="navCal('${side}',-1)">&#8249;</button>
-    <span class="cal-month-lbl">${monthName}</span>
-    <button class="cal-nav-btn" onclick="navCal('${side}',1)">&#8250;</button>
-  </div>
-  <div class="cal-grid">`;
-
-  dows.forEach(d=>{ html+=`<div class="cal-dow">${d}</div>`; });
-  for(let i=0;i<offset;i++) html+=`<div class="cal-day cal-empty"></div>`;
-
-  for(let d=1;d<=daysInMonth;d++){
-    const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = ds===_todayStr;
-    html+=`<button class="cal-day${isToday?' is-today':''}" data-date="${ds}" onclick="pickDay('${ds}')">${d}</button>`;
-  }
-  html+=`</div>`;
-  return html;
-}
-
-// Fast style update — no full rebuild, just reclassify buttons
-function updateDayStyles(effFrom, effTo) {
-  const f = effFrom || rangeFrom;
-  const t = effTo   || rangeTo;
-  document.querySelectorAll('#calModal .cal-day[data-date]').forEach(btn => {
-    const ds = btn.dataset.date;
-    btn.classList.remove('range-start','range-end','in-range');
-    if(ds===f && ds===t) { btn.classList.add('range-start','range-end'); }
-    else if(ds===f)      { btn.classList.add('range-start'); }
-    else if(ds===t)      { btn.classList.add('range-end'); }
-    else if(ds>f&&ds<t)  { btn.classList.add('in-range'); }
-  });
-}
-
-// Attach hover via delegation — much faster than per-button onmouseenter
-function attachCalHover() {
-  const body = document.getElementById('calBody');
-  body.onmouseover = function(e) {
-    if(pickStep!==1) return;
-    const btn = e.target.closest('.cal-day[data-date]');
-    if(!btn) return;
-    const ds = btn.dataset.date;
-    if(ds === hoverDate) return;
-    hoverDate = ds;
-    const eff_to   = ds < rangeFrom ? rangeFrom : ds;
-    const eff_from = ds < rangeFrom ? ds : rangeFrom;
-    updateDayStyles(eff_from, eff_to);
-  };
-  body.onmouseleave = function() {
-    if(pickStep!==1) return;
-    hoverDate = null;
-    updateDayStyles();
-  };
-}
-
-function pickDay(ds) {
-  if(pickStep===0){
-    rangeFrom=ds; rangeTo=ds; pickStep=1;
-    updateDayStyles(); updateRangeLabel();
-  } else {
-    if(ds<rangeFrom){rangeTo=rangeFrom;rangeFrom=ds;}
-    else rangeTo=ds;
-    pickStep=0; hoverDate=null;
-    updateDayStyles(); updateRangeLabel();
-  }
-}
-
-function updateRangeLabel() {
-  const lbl=document.getElementById('rangeSelectedLabel');
-  if(!lbl)return;
-  if(pickStep===1){lbl.textContent='→ pilih akhir';return;}
-  lbl.textContent = rangeFrom===rangeTo ? rangeFrom : `${rangeFrom}  →  ${rangeTo}`;
-}
-
-const saveLocal = () => localStorage.setItem('pawby_v2_orders', JSON.stringify(orders));
-const fmt$ = n => '$' + parseFloat(n||0).toFixed(2);
-const ini  = s => (s||'?').replace('@','').slice(0,2).toUpperCase();
-
-// ══ SYNC STATUS ══
-function setSync(state, txt) {
-  const el = document.getElementById('syncChip');
-  el.className = 'sync-chip ' + state;
-  document.getElementById('syncTxt').textContent = txt;
-}
-
-// ══ CONNECT SHEETS ══
-function connectSheets() {
-  const url = document.getElementById('sheetsUrl').value.trim();
-  if (!url.includes('script.google.com')) { alert('URL tidak valid!'); return; }
-  SHEETS_URL = url;
-  localStorage.setItem('pawby_sheets_url', url);
-  document.getElementById('setupBanner').classList.add('hidden');
-  closeSetup();
-  doSync();
-}
-
-// ══ SYNC DATA ══
-async function doSync() {
-  if (!SHEETS_URL) { openSetup(); return; }
-  setSync('loading', 'Mengambil data...');
-  try {
-    const res  = await fetch(SHEETS_URL + '?action=getOrders&t=' + Date.now());
-    const data = await res.json();
-    if (data.success && data.orders) {
-      orders = data.orders;
-      saveLocal();
-      const now = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      document.getElementById('lastSyncInfo').textContent = 'Sync: ' + now;
-      setSync('ok', 'Synced ✓');
-      renderAll();
-      populateSheetSelect(orders);
-    } else {
-      setSync('err', 'Gagal: ' + (data.error||'unknown'));
-    }
-  } catch(e) {
-    setSync('err', 'Koneksi gagal');
-    console.error(e);
-  }
-}
-
-async function postSheets(body) {
-  if (!SHEETS_URL) return;
-  try {
-    await fetch(SHEETS_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
-    setSync('ok','Tersimpan ✓');
-    setTimeout(()=>setSync('ok','Synced ✓'), 3000);
-  } catch(e) { setSync('err','Gagal kirim'); }
-}
-
-// ══ INIT ══
-function init() {
-  document.getElementById('datePill').textContent =
-    new Date().toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
-  const now = new Date();
-  document.getElementById('fDate').valueAsDate = now;
-  document.getElementById('fTime').value = now.toTimeString().slice(0,5);
-
-  // Auto-connect jika URL sudah ada (hardcoded atau dari localStorage)
-  if (SHEETS_URL) {
-    document.getElementById('sheetsUrl').value = SHEETS_URL;
-    document.getElementById('setupBanner').classList.add('hidden');
-    setSync('ok','Terhubung ke Sheets');
-    // Auto sync saat halaman dibuka
-    setTimeout(() => doSync(), 800);
-  } else {
-    renderAll();
-  }
-}
-
-// ══ SIDEBAR TOGGLE (mobile) ══
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-}
-
-// ══ VIEWS ══
-function switchView(name, btn) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  btn.classList.add('active');
-  const map = {
-    dashboard:['Dashboard Overview','Selamat datang kembali, Admin Pawby 🐾'],
-    orders:   ['Semua Order','Kelola order dari semua bulan'],
-    customers:['Pelanggan','Data pelanggan Telegram'],
-    products: ['Katalog Produk','Statistik per produk'],
-  };
-  document.getElementById('vTitle').textContent = map[name][0];
-  document.getElementById('vSub').textContent   = map[name][1];
-  closeSidebar();
-  renderAll();
-}
-
-// ══ MODALS ══
-function openOrder()  { populateSheetSelect(orders); document.getElementById('orderOverlay').classList.add('open'); closeSidebar(); }
-function closeOrder() { document.getElementById('orderOverlay').classList.remove('open'); }
-function openSetup()  { document.getElementById('setupOverlay').classList.add('open'); closeSidebar(); }
-function closeSetup() { document.getElementById('setupOverlay').classList.remove('open'); }
-document.getElementById('orderOverlay').addEventListener('click',function(e){if(e.target===this)closeOrder();});
-document.getElementById('setupOverlay').addEventListener('click',function(e){if(e.target===this)closeSetup();});
-
-function populateSheetSelect(data) {
-  const sheets = [...new Set((data||[]).map(o=>o.sheetName).filter(Boolean))];
-  const sel = document.getElementById('fSheet');
-  sel.innerHTML = sheets.length
-    ? sheets.map(s=>`<option value="${s}">${s}</option>`).join('')
-    : '<option value="March Pawby Sales">March Pawby Sales</option>';
-}
-
-// ══ AUTO CALC TOTAL ══
-function calcTotal() {
-  const PRICES = {
-    pawbeefy:  2.00,
-    pawporkby: 1.50,
-    chickipaw: 1.50,
-    special:   3.00,
-  };
-  const PACKAGE_PRICES = {
-    'Starter Pack':      10.99,
-    'Weekly Pawby Pack': 21.99,
-  };
-
-  let total = 0;
-  total += (parseInt(document.getElementById('fPawbeefy').value)  || 0) * PRICES.pawbeefy;
-  total += (parseInt(document.getElementById('fPawporkby').value) || 0) * PRICES.pawporkby;
-  total += (parseInt(document.getElementById('fChickipaw').value) || 0) * PRICES.chickipaw;
-  total += (parseInt(document.getElementById('fSpecial').value)   || 0) * PRICES.special;
-
-  const pkg = document.getElementById('fPackage').value;
-  if (pkg && PACKAGE_PRICES[pkg]) total += PACKAGE_PRICES[pkg];
-
-  document.getElementById('fTotal').value = total > 0 ? total.toFixed(2) : '';
-}
-
-// ══ SAVE ORDER ══
-async function saveOrder() {
-  let tgId = document.getElementById('fTg').value.trim();
-
-  // Auto tambah @ kalau belum ada
-  if (tgId && !tgId.startsWith('@')) {
-    tgId = '@' + tgId;
-  }
-  const order = {
-    tgId, anabul: document.getElementById('fAnabul').value.trim(),
-    pawbeefy:  parseInt(document.getElementById('fPawbeefy').value)||0,
-    pawporkby: parseInt(document.getElementById('fPawporkby').value)||0,
-    chickipaw: parseInt(document.getElementById('fChickipaw').value)||0,
-    special:   parseInt(document.getElementById('fSpecial').value)||0,
-    package:   document.getElementById('fPackage').value,
-    total:     parseFloat(document.getElementById('fTotal').value)||0,
-    delivery:  document.getElementById('fDelivery').value,
-    payment:   document.getElementById('fPayment').value,
-    date:      document.getElementById('fDate').value,
-    time:      document.getElementById('fTime').value,
-    sheetName: document.getElementById('fSheet').value,
-  };
-  order.bill = order.total;
-  order.rowId = Date.now();
-  orders.unshift(order);
-  saveLocal(); closeOrder(); renderAll();
-  await postSheets({ action:'addOrder', order, sheetName: order.sheetName });
-  // Reset
-  ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
-  ['fPawbeefy','fPawporkby','fChickipaw','fSpecial'].forEach(id=>document.getElementById(id).value=0);
-  document.getElementById('fPackage').value='';
-}
-
-async function deleteOrder(rowId, sheetName) {
-  if (!confirm('Hapus order ini?')) return;
-  orders = orders.filter(o=>String(o.rowId)!==String(rowId));
-  saveLocal(); renderAll();
-  await postSheets({ action:'deleteOrder', rowId, sheetName });
-}
-
-// ══ FILTER — range yang dipilih ══
-function getFilteredOrders() {
-  const from = rangeFrom, to = rangeTo;
-  return orders.filter(o => {
-    if (!o.date) return false;
-    return o.date >= from && o.date <= to;
-  });
-}
-
-// ══ RENDER STATS ══
-function renderStats() {
-  const src = getFilteredOrders();
-  const { label } = getActiveMonthRange();
-
-  const rev = src.reduce((s,o)=>{
-    const v = parseFloat(o.bill || o.total || 0);
-    return s + (isNaN(v) ? 0 : v);
-  }, 0);
-
-  const qty = src.reduce((s,o)=>
-    s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)
-    +(parseInt(o.chickipaw)||0)+(parseInt(o.special)||0), 0);
-
-  const custs = [...new Set(src.map(o=>o.tgId).filter(Boolean))].length;
-
-  // Update label bulan aktif
-  const lbl = document.getElementById('activePeriodLabel');
-  if (lbl) lbl.innerHTML = `${label} <span style="font-size:.65rem;opacity:.5">▼</span>`;
-
-  document.getElementById('sRev').textContent    = fmt$(rev);
-  document.getElementById('sOrders').textContent = src.length;
-  document.getElementById('sProd').textContent   = qty;
-  document.getElementById('sCust').textContent   = custs;
-  const isSingleMonth = rangeFrom.slice(0,7) === rangeTo.slice(0,7) && rangeFrom.slice(8)==='01' && parseInt(rangeTo.slice(8))>=28;
-  const periodSub = isSingleMonth ? 'bulan ini' : 'periode ini';
-  document.getElementById('sRevSub').textContent  = `dari ${src.length} order`;
-  document.getElementById('sOrderSub').textContent = periodSub;
-  document.getElementById('sProdSub').textContent  = periodSub;
-  document.getElementById('sCustSub').textContent  = `${custs} Telegram unik`;
-
-  ['sRevPeriod','sOrderPeriod','sProdPeriod','sCustPeriod'].forEach(id => {
-    document.getElementById(id).textContent = '';
-  });
-}
-
-// ══ RENDER TABLE ══
-function renderOrderTable(elId, list, maxRows) {
-  const el   = document.getElementById(elId);
-  const rows = maxRows ? list.slice(0,maxRows) : list;
-  if (!rows.length) { el.innerHTML=`<div class="empty"><div class="e-ico">📭</div><p>Belum ada order</p></div>`; return; }
-
-  const delClass = d => {
-    if (!d) return '';
-    const u = d.toUpperCase();
-    if (u.includes('DELIVERY')) return 'delivery';
-    if (u.includes('PICK'))     return 'pickup';
-    if (u.includes('COD'))      return 'cod';
-    return '';
-  };
-
-  el.innerHTML = `<div class="tbl-wrap"><table class="tbl">
-    <thead><tr><th>Pelanggan</th><th>Produk</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Tgl</th><th></th></tr></thead>
-    <tbody>${rows.map(o=>{
-      const items=[];
-      if(parseInt(o.pawbeefy))  items.push(`🐄×${o.pawbeefy}`);
-      if(parseInt(o.pawporkby)) items.push(`🐷×${o.pawporkby}`);
-      if(parseInt(o.chickipaw)) items.push(`🐔×${o.chickipaw}`);
-      if(parseInt(o.special))   items.push(`⭐×${o.special}`);
-      if(o.package)             items.push(`📦${o.package}`);
-      const prod = items.length ? items.join(' ') : '—';
-      const del  = o.delivery && isNaN(parseFloat(o.delivery)) ? o.delivery : '—';
-      const dc   = delClass(del);
-      const total = parseFloat(o.bill||o.total||0);
-      return `<tr>
-        <td><div style="display:flex;align-items:center;gap:8px">
-          <div class="av">${ini(o.tgId)}</div>
-          <div><div class="cname">${o.tgId||'—'}</div>
-          <div class="cphone">${o.anabul ? '🐾 '+o.anabul : ''}</div></div>
-        </div></td>
-        <td style="font-size:.75rem">${prod}</td>
-        <td><span class="price">${fmt$(total)}</span></td>
-        <td class="hide-sm"><span class="del-badge ${dc}">${del}</span></td>
-        <td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
-        <td><div class="action-btns">
-          <button class="edit-btn" onclick="openEdit('${o.rowId}','${o.sheetName||''}')" title="Edit">✏️</button>
-          <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Hapus">🗑</button>
-        </div></td>
-      </tr>`;
-    }).join('')}</tbody></table></div>`;
-
-  if(elId==='recentTbl' && document.getElementById('recentCnt'))
-    document.getElementById('recentCnt').textContent = rows.length < list.length ? `${rows.length} dari ${list.length}` : `${list.length} order`;
-  if(elId==='allTbl' && document.getElementById('allCnt'))
-    document.getElementById('allCnt').textContent = `${list.length} order`;
-}
-
-// ══ MONTH TABS (NEW) ══
-function getMonthsFromOrders(data) {
-  const months = new Set();
-
-  data.forEach(o => {
-    if (o.date) {
-      const [year, month] = o.date.split('-');
-      const key = year + '-' + month;
-      months.add(key);
-    }
-  });
-
-  return Array.from(months).sort().reverse();
-}
-
-function renderMonthTabs() {
-  const el = document.getElementById('sheetTabs');
-  const months = getMonthsFromOrders(orders);
-
-  el.innerHTML =
-    `<button class="stab ${activeSheet==='all'?'active':''}" onclick="filterSheet('all')">📋 Semua</button>`
-    +
-    months.map(m => {
-      const [y, mo] = m.split('-');
-      const name = new Date(y, mo-1).toLocaleString('id-ID', { month: 'long' });
-
-      return `
-        <button class="stab ${activeSheet===m?'active':''}" onclick="filterSheet('${m}')">
-          ${name}
-        </button>
-      `;
-    }).join('');
-}
-
-// ══ TAMBAHKAN FUNGSI INI! ══
-function filterSheet(month) {
-  activeSheet = month;
-  renderAll();
-}
-
-// ══ RENDER TOP PRODUCTS ══
-function renderTopProducts() {
-  const el  = document.getElementById('topProds');
-  const map = {};
-  const add = (name, qty, price) => {
-    if (!qty || qty <= 0) return;
-    if (!map[name]) map[name]={qty:0,rev:0};
-    map[name].qty += qty;
-    map[name].rev += qty * price;
-  };
-  orders.forEach(o=>{
-    add('Pawbeefy',  parseInt(o.pawbeefy)||0,  2.00);
-    add('Pawporkby', parseInt(o.pawporkby)||0, 1.50);
-    add('Chickipaw', parseInt(o.chickipaw)||0, 1.50);
-    add('Special',   parseInt(o.special)||0,   3.00);
-    if (o.package && o.package.trim()) {
-      const price = (o.package||'').toLowerCase().includes('weekly') ? 21.99 : 10.99;
-      add(o.package.trim(), 1, price);
-    }
-  });
-  const sorted = Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,6);
-  if (!sorted.length) { el.innerHTML=`<div class="empty"><div class="e-ico">📊</div><p>Belum ada data</p></div>`; return; }
-  const maxQ = sorted[0][1].qty;
-  const rc   = ['g','s','b','','',''];
-  el.innerHTML = sorted.map(([name,d],i)=>`
-    <div class="prod-item">
-      <div class="rank ${rc[i]}">${i+1}</div>
-      <div class="prod-info"><div class="prod-name">${name}</div><div class="prod-sold">${d.qty} terjual</div></div>
-      <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(d.qty/maxQ*100)}%"></div></div></div>
-      <div class="prod-rev">${fmt$(d.rev)}</div>
-    </div>`).join('');
-}
-
-// ══ RENDER CUSTOMERS ══
-function renderCustomers() {
-  const el  = document.getElementById('custList');
-  const map = {};
-  orders.forEach(o=>{
-    const key = o.tgId||'?';
-    if (!map[key]) map[key]={tgId:o.tgId||'',anabul:o.anabul||'',orders:0,total:0};
-    map[key].orders++;
-    map[key].total += parseFloat(o.bill||o.total||0)||0;
-  });
-  const list = Object.values(map).sort((a,b)=>b.total-a.total);
-  document.getElementById('custCnt').textContent = `${list.length} pelanggan`;
-  if (!list.length) { el.innerHTML=`<div class="empty"><div class="e-ico">👥</div><p>Belum ada data</p></div>`; return; }
-  el.innerHTML = list.map(c=>`
-    <div class="cust-item">
-      <div class="cust-av">${ini(c.tgId)}</div>
-      <div><div class="cust-name">${c.tgId}</div><div class="cust-sub">${c.anabul ? '🐾 '+c.anabul+' · ' : ''}${c.orders} order</div></div>
-      <div class="cust-total">${fmt$(c.total)}</div>
-    </div>`).join('');
-}
-
-// ══ RENDER PRODUCTS ══
-function renderProducts() {
-  const map = {};
-  orders.forEach(o=>{
-    const add=(k,qty,price)=>{if(!qty||qty<=0)return;if(!map[k])map[k]={qty:0,rev:0};map[k].qty+=qty;map[k].rev+=qty*price;};
-    add('Pawbeefy', parseInt(o.pawbeefy)||0,  2.00);
-    add('Pawporkby',parseInt(o.pawporkby)||0, 1.50);
-    add('Chickipaw',parseInt(o.chickipaw)||0, 1.50);
-    add('Special',  parseInt(o.special)||0,   3.00);
-    if(o.package&&o.package.trim()){const p=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;if(!map[o.package])map[o.package]={qty:0,rev:0};map[o.package].qty+=1;map[o.package].rev+=p;}
-  });
-  const items=[
-    {name:'Pawbeefy',emoji:'🐄',price:'$2.00'},
-    {name:'Pawporkby',emoji:'🐷',price:'$1.50'},
-    {name:'Chickipaw',emoji:'🐔',price:'$1.50'},
-    {name:'Special',emoji:'⭐',price:'$3.00'},
-    {name:'Starter Pack',emoji:'🍱',price:'$10.99'},
-    {name:'Weekly Pawby Pack',emoji:'🥩',price:'$21.99'},
-  ];
-  document.getElementById('prodGrid').innerHTML = items.map(p=>`
-    <div class="p-card">
-      <div class="p-emoji">${p.emoji}</div>
-      <h4>${p.name}</h4>
-      <div class="p-price">${p.price}</div>
-      <div class="p-stat"><span>🛒 ${map[p.name]?.qty||0} terjual</span><span>💰 ${fmt$(map[p.name]?.rev||0)}</span></div>
-    </div>`).join('');
-}
-
-// ══ RENDER ALL ══
-function renderAll() {
-  renderStats();
-  const filtered = activeSheet === 'all'
-    ? orders
-    : orders.filter(o => {
-        if (!o.date) return false;
-        const [year, month] = o.date.split('-');
-        const key = year + '-' + month;
-        return key === activeSheet;
-      });
-  renderOrderTable('recentTbl', filtered, 8);
-  renderOrderTable('allTbl', filtered, null);
-  renderMonthTabs();
-  renderTopProducts();
-  renderCustomers();
-  renderProducts();
-}
-
-init();
-
-// ══ EDIT ORDER ══
-let editingOrder = null;
-
-function openEdit(rowId, sheetName) {
-  const o = orders.find(x => String(x.rowId) === String(rowId) && x.sheetName === sheetName);
-  if (!o) return;
-  editingOrder = o;
-
-  document.getElementById('editInfo').innerHTML = 
-    `<strong>${o.tgId}</strong> · ${o.date} · ${o.sheetName}`;
-  document.getElementById('eTotal').value    = o.total || '';
-  document.getElementById('eBill').value     = o.bill  || '';
-  document.getElementById('eDelivery').value = o.delivery || 'DELIVERY by PD';
-  document.getElementById('ePayment').value  = o.payment  || 'ABA';
-  document.getElementById('eTime').value     = o.time     || '';
-  document.getElementById('eAnabul').value   = o.anabul   || '';
-
-  document.getElementById('editOverlay').classList.add('open');
-}
-
-function closeEdit() {
-  document.getElementById('editOverlay').classList.remove('open');
-  editingOrder = null;
-}
-
-document.getElementById('editOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeEdit();
-});
-
-async function saveEdit() {
-  if (!editingOrder) return;
-
-  const updates = {
-    total:    parseFloat(document.getElementById('eTotal').value)    || editingOrder.total,
-    bill:     parseFloat(document.getElementById('eBill').value)     || editingOrder.bill,
-    delivery: document.getElementById('eDelivery').value,
-    payment:  document.getElementById('ePayment').value,
-    time:     document.getElementById('eTime').value,
-    anabul:   document.getElementById('eAnabul').value,
-  };
-
-  // Update lokal
-  const idx = orders.findIndex(x => String(x.rowId) === String(editingOrder.rowId) && x.sheetName === editingOrder.sheetName);
-  if (idx !== -1) {
-    orders[idx] = { ...orders[idx], ...updates };
-    saveLocal();
-  }
-
-  closeEdit();
-  renderAll();
-
-  // Sync semua field ke Sheets
-  setSync('loading', 'Mengupdate Sheets...');
-  const fields = ['total','bill','delivery','payment','time'];
-  for (const field of fields) {
-    await postSheets({
-      action:    'updateOrder',
-      rowId:     editingOrder.rowId,
-      sheetName: editingOrder.sheetName,
-      field:     field,
-      value:     updates[field],
-    });
-  }
-  // Update anabul (kolom S index 18)
-  await postSheets({
-    action:    'updateOrder',
-    rowId:     editingOrder.rowId,
-    sheetName: editingOrder.sheetName,
-    field:     'anabul',
-    value:     updates.anabul,
-  });
-
-  setSync('ok', 'Sheets terupdate ✓');
-  setTimeout(() => setSync('ok', 'Synced ✓'), 3000);
-}
-
-// ══ AUTO REFRESH every 5 minutes ══
-setInterval(() => {
-  if (SHEETS_URL) {
-    console.log('Auto-sync...');
-    doSync();
-  }
-}, 5 * 60 * 1000);
-
-</script>
 
 <!-- Modal: Edit Order -->
 <div class="overlay" id="editOverlay">
@@ -1314,5 +655,585 @@ setInterval(() => {
 </div>
 </div>
 
+<script>
+// ══ STATE ══
+let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
+let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
+let activeSheet = 'all';
+const SESSION_KEY = 'pawby_session';
+const SESSION_HOURS = 12;
+
+// ══════════════════════════════════════════
+// LOGIN SYSTEM
+// ══════════════════════════════════════════
+function checkSession() {
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (!raw) return false;
+  try {
+    const s = JSON.parse(raw);
+    if (s.token && s.expires > Date.now()) return s;
+    localStorage.removeItem(SESSION_KEY);
+    return false;
+  } catch(e) { return false; }
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const btn      = document.getElementById('loginBtn');
+  const errEl    = document.getElementById('loginError');
+
+  if (!username || !password) {
+    showLoginError('Username dan password wajib diisi!');
+    return;
+  }
+
+  btn.textContent = 'Memverifikasi...';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', username, password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        token:   data.token,
+        name:    data.name,
+        expires: Date.now() + (SESSION_HOURS * 60 * 60 * 1000)
+      }));
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('loginInfo').textContent = '👤 ' + data.name;
+      init();
+    } else {
+      showLoginError(data.error || 'Username atau password salah');
+    }
+  } catch(e) {
+    showLoginError('Koneksi gagal. Cek internet kamu.');
+  }
+
+  btn.textContent = 'Masuk →';
+  btn.disabled = false;
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function doLogout() {
+  if (!confirm('Yakin mau logout?')) return;
+  localStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+// ══ CEK SESSION SAAT BUKA ══
+(function() {
+  const session = checkSession();
+  if (session) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('loginInfo').textContent = '👤 ' + session.name;
+    // Init dipanggil setelah DOM siap
+    init();
+  }
+})();
+
+// ══════════════════════════════════════════
+// DATE RANGE PICKER
+// ══════════════════════════════════════════
+const _now = new Date();
+const _todayStr = _now.toISOString().slice(0,10);
+function _monthStart(y,m){return `${y}-${String(m).padStart(2,'0')}-01`;}
+function _monthEnd(y,m){return `${y}-${String(m).padStart(2,'0')}-31`;}
+let rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth()+1);
+let rangeTo   = _monthEnd(_now.getFullYear(),   _now.getMonth()+1);
+let pickStep=0, hoverDate=null;
+let calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
+
+function getActiveMonthRange() {
+  const f=rangeFrom, t=rangeTo;
+  const df=new Date(f), dt=new Date(t);
+  let label;
+  const isMobile = window.innerWidth <= 480;
+  if (f===t) {
+    label = df.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+  } else if (f.slice(0,7)===t.slice(0,7) && f.slice(8)==='01' && parseInt(t.slice(8))>=28) {
+    label = new Date(f.slice(0,7)+'-02').toLocaleString('id-ID',{month:'long',year:'numeric'});
+  } else {
+    const fmt = isMobile ? {day:'numeric',month:'short'} : {day:'numeric',month:'short',year:'numeric'};
+    label = `${df.toLocaleDateString('id-ID',{day:'numeric',month:'short'})} – ${dt.toLocaleDateString('id-ID',fmt)}`;
+  }
+  return { from:f, to:t, label:`📅 ${label}` };
+}
+
+function toggleRangePicker() {
+  const dd = document.getElementById('calDropdown');
+  if (dd.classList.contains('open')) { closePicker(); return; }
+  renderCals(); attachCalHover(); dd.classList.add('open');
+}
+function closePicker() {
+  document.getElementById('calDropdown').classList.remove('open');
+  pickStep=0; hoverDate=null;
+}
+function goToday() {
+  rangeFrom=_todayStr; rangeTo=_todayStr;
+  calViewLeft=new Date(_now.getFullYear(),_now.getMonth(),1);
+  pickStep=0; hoverDate=null;
+  renderCals(); attachCalHover(); updateDayStyles(); updateRangeLabel();
+}
+function applyRange() {
+  if (rangeTo<rangeFrom){const t=rangeFrom;rangeFrom=rangeTo;rangeTo=t;}
+  closePicker(); renderStats();
+}
+function resetToCurrentMonth() {
+  rangeFrom=_monthStart(_now.getFullYear(),_now.getMonth()+1);
+  rangeTo=_monthEnd(_now.getFullYear(),_now.getMonth()+1);
+  calViewLeft=new Date(_now.getFullYear(),_now.getMonth(),1);
+  pickStep=0; hoverDate=null;
+  renderCals(); attachCalHover(); applyRange();
+}
+function navCal(side,dir) {
+  calViewLeft=new Date(calViewLeft.getFullYear(),calViewLeft.getMonth()+dir,1);
+  renderCals(); attachCalHover();
+}
+function renderCals() {
+  document.getElementById('calLeft').innerHTML=buildCal(calViewLeft,'left');
+  updateDayStyles(); updateRangeLabel();
+}
+function buildCal(viewDate,side) {
+  const y=viewDate.getFullYear(),mo=viewDate.getMonth();
+  const monthName=viewDate.toLocaleString('id-ID',{month:'long',year:'numeric'});
+  const firstDay=new Date(y,mo,1).getDay();
+  const daysInMonth=new Date(y,mo+1,0).getDate();
+  const offset=(firstDay+6)%7;
+  const dows=['Mo','Tu','We','Th','Fr','Sa','Su'];
+  let html=`<div class="cal-nav">
+    <button class="cal-nav-btn" onclick="navCal('${side}',-1)">&#8249;</button>
+    <span class="cal-month-lbl">${monthName}</span>
+    <button class="cal-nav-btn" onclick="navCal('${side}',1)">&#8250;</button>
+  </div><div class="cal-grid">`;
+  dows.forEach(d=>{html+=`<div class="cal-dow">${d}</div>`;});
+  for(let i=0;i<offset;i++)html+=`<div class="cal-day cal-empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===_todayStr;
+    html+=`<button class="cal-day${isToday?' is-today':''}" data-date="${ds}" onclick="pickDay('${ds}')">${d}</button>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+function updateDayStyles(effFrom,effTo) {
+  const f=effFrom||rangeFrom, t=effTo||rangeTo;
+  document.querySelectorAll('.cal-day[data-date]').forEach(btn=>{
+    const ds=btn.dataset.date;
+    btn.classList.remove('range-start','range-end','in-range');
+    if(ds===f&&ds===t){btn.classList.add('range-start','range-end');}
+    else if(ds===f){btn.classList.add('range-start');}
+    else if(ds===t){btn.classList.add('range-end');}
+    else if(ds>f&&ds<t){btn.classList.add('in-range');}
+  });
+}
+function attachCalHover() {
+  const body=document.getElementById('calBody');
+  body.onmouseover=function(e){
+    if(pickStep!==1)return;
+    const btn=e.target.closest('.cal-day[data-date]');
+    if(!btn)return;
+    const ds=btn.dataset.date;
+    if(ds===hoverDate)return;
+    hoverDate=ds;
+    const eff_to=ds<rangeFrom?rangeFrom:ds;
+    const eff_from=ds<rangeFrom?ds:rangeFrom;
+    updateDayStyles(eff_from,eff_to);
+  };
+  body.onmouseleave=function(){
+    if(pickStep!==1)return;
+    hoverDate=null; updateDayStyles();
+  };
+}
+function pickDay(ds) {
+  if(pickStep===0){rangeFrom=ds;rangeTo=ds;pickStep=1;updateDayStyles();updateRangeLabel();}
+  else{
+    if(ds<rangeFrom){rangeTo=rangeFrom;rangeFrom=ds;}else rangeTo=ds;
+    pickStep=0;hoverDate=null;updateDayStyles();updateRangeLabel();
+  }
+}
+function updateRangeLabel() {
+  const lbl=document.getElementById('rangeSelectedLabel');
+  if(!lbl)return;
+  if(pickStep===1){lbl.textContent='→ pilih akhir';return;}
+  lbl.textContent=rangeFrom===rangeTo?rangeFrom:`${rangeFrom}  →  ${rangeTo}`;
+}
+
+// ══════════════════════════════════════════
+// CORE
+// ══════════════════════════════════════════
+const saveLocal = () => localStorage.setItem('pawby_v2_orders', JSON.stringify(orders));
+const fmt$ = n => '$' + parseFloat(n||0).toFixed(2);
+const ini  = s => (s||'?').replace('@','').slice(0,2).toUpperCase();
+
+function setSync(state,txt) {
+  const el=document.getElementById('syncChip');
+  el.className='sync-chip '+state;
+  document.getElementById('syncTxt').textContent=txt;
+}
+
+function connectSheets() {
+  const url=document.getElementById('sheetsUrl').value.trim();
+  if(!url.includes('script.google.com')){alert('URL tidak valid!');return;}
+  SHEETS_URL=url;
+  localStorage.setItem('pawby_sheets_url',url);
+  document.getElementById('setupBanner').classList.add('hidden');
+  closeSetup(); doSync();
+}
+
+async function doSync() {
+  if(!SHEETS_URL){openSetup();return;}
+  setSync('loading','Mengambil data...');
+  try {
+    const res=await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now());
+    const data=await res.json();
+    if(data.success&&data.orders){
+      orders=data.orders; saveLocal();
+      const now=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('lastSyncInfo').textContent='Sync: '+now;
+      setSync('ok','Synced ✓');
+      renderAll(); populateSheetSelect(orders);
+    } else {
+      setSync('err','Gagal: '+(data.error||'unknown'));
+    }
+  } catch(e){setSync('err','Koneksi gagal');console.error(e);}
+}
+
+async function postSheets(body) {
+  if(!SHEETS_URL)return;
+  try {
+    await fetch(SHEETS_URL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    setSync('ok','Tersimpan ✓');
+    setTimeout(()=>setSync('ok','Synced ✓'),3000);
+  } catch(e){setSync('err','Gagal kirim');}
+}
+
+function init() {
+  document.getElementById('datePill').textContent =
+    new Date().toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+  const now=new Date();
+  document.getElementById('fDate').valueAsDate=now;
+  document.getElementById('fTime').value=now.toTimeString().slice(0,5);
+  if(SHEETS_URL){
+    document.getElementById('sheetsUrl').value=SHEETS_URL;
+    document.getElementById('setupBanner').classList.add('hidden');
+    setSync('ok','Terhubung ke Sheets');
+    setTimeout(()=>doSync(),800);
+  } else {
+    document.getElementById('setupBanner').classList.remove('hidden');
+    renderAll();
+  }
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+function switchView(name,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+  const map={
+    dashboard:['Dashboard Overview','Selamat datang kembali, Admin Pawby 🐾'],
+    orders:['Semua Order','Kelola order dari semua bulan'],
+    customers:['Pelanggan','Data pelanggan Telegram'],
+    products:['Katalog Produk','Statistik per produk'],
+  };
+  document.getElementById('vTitle').textContent=map[name][0];
+  document.getElementById('vSub').textContent=map[name][1];
+  closeSidebar(); renderAll();
+}
+
+function openOrder(){populateSheetSelect(orders);document.getElementById('orderOverlay').classList.add('open');closeSidebar();}
+function closeOrder(){document.getElementById('orderOverlay').classList.remove('open');}
+function openSetup(){document.getElementById('setupOverlay').classList.add('open');closeSidebar();}
+function closeSetup(){document.getElementById('setupOverlay').classList.remove('open');}
+document.getElementById('orderOverlay').addEventListener('click',function(e){if(e.target===this)closeOrder();});
+document.getElementById('setupOverlay').addEventListener('click',function(e){if(e.target===this)closeSetup();});
+
+function populateSheetSelect(data){
+  const sheets=[...new Set((data||[]).map(o=>o.sheetName).filter(Boolean))];
+  const sel=document.getElementById('fSheet');
+  sel.innerHTML=sheets.length
+    ?sheets.map(s=>`<option value="${s}">${s}</option>`).join('')
+    :'<option value="Apr Pawby Sales">Apr Pawby Sales</option>';
+}
+
+function calcTotal(){
+  const PRICES={pawbeefy:2.00,pawporkby:1.50,chickipaw:1.50,special:3.00};
+  const PKG={'Starter Pack':10.99,'Weekly Pawby Pack':21.99};
+  let total=0;
+  total+=(parseInt(document.getElementById('fPawbeefy').value)||0)*PRICES.pawbeefy;
+  total+=(parseInt(document.getElementById('fPawporkby').value)||0)*PRICES.pawporkby;
+  total+=(parseInt(document.getElementById('fChickipaw').value)||0)*PRICES.chickipaw;
+  total+=(parseInt(document.getElementById('fSpecial').value)||0)*PRICES.special;
+  const pkg=document.getElementById('fPackage').value;
+  if(pkg&&PKG[pkg])total+=PKG[pkg];
+  document.getElementById('fTotal').value=total>0?total.toFixed(2):'';
+}
+
+async function saveOrder(){
+  let tgId=document.getElementById('fTg').value.trim();
+  if(tgId&&!tgId.startsWith('@'))tgId='@'+tgId;
+  const order={
+    tgId,anabul:document.getElementById('fAnabul').value.trim(),
+    pawbeefy:parseInt(document.getElementById('fPawbeefy').value)||0,
+    pawporkby:parseInt(document.getElementById('fPawporkby').value)||0,
+    chickipaw:parseInt(document.getElementById('fChickipaw').value)||0,
+    special:parseInt(document.getElementById('fSpecial').value)||0,
+    package:document.getElementById('fPackage').value,
+    total:parseFloat(document.getElementById('fTotal').value)||0,
+    delivery:document.getElementById('fDelivery').value,
+    payment:document.getElementById('fPayment').value,
+    date:document.getElementById('fDate').value,
+    time:document.getElementById('fTime').value,
+    sheetName:document.getElementById('fSheet').value,
+  };
+  order.bill=order.total;
+  order.rowId=Date.now();
+  orders.unshift(order);
+  saveLocal();closeOrder();renderAll();
+  await postSheets({action:'addOrder',order,sheetName:order.sheetName});
+  ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
+  ['fPawbeefy','fPawporkby','fChickipaw','fSpecial'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('fPackage').value='';
+}
+
+async function deleteOrder(rowId,sheetName){
+  if(!confirm('Hapus order ini?'))return;
+  orders=orders.filter(o=>String(o.rowId)!==String(rowId));
+  saveLocal();renderAll();
+  await postSheets({action:'deleteOrder',rowId,sheetName});
+}
+
+function getFilteredOrders(){
+  const from=rangeFrom,to=rangeTo;
+  return orders.filter(o=>{if(!o.date)return false;return o.date>=from&&o.date<=to;});
+}
+
+function renderStats(){
+  const src=getFilteredOrders();
+  const{label}=getActiveMonthRange();
+  const rev=src.reduce((s,o)=>{const v=parseFloat(o.bill||o.total||0);return s+(isNaN(v)?0:v);},0);
+  const qty=src.reduce((s,o)=>s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)+(parseInt(o.chickipaw)||0)+(parseInt(o.special)||0),0);
+  const custs=[...new Set(src.map(o=>o.tgId).filter(Boolean))].length;
+  const lbl=document.getElementById('activePeriodLabel');
+  if(lbl)lbl.innerHTML=`${label} <span style="font-size:.65rem;opacity:.5">▼</span>`;
+  document.getElementById('sRev').textContent=fmt$(rev);
+  document.getElementById('sOrders').textContent=src.length;
+  document.getElementById('sProd').textContent=qty;
+  document.getElementById('sCust').textContent=custs;
+  const isSingleMonth=rangeFrom.slice(0,7)===rangeTo.slice(0,7)&&rangeFrom.slice(8)==='01'&&parseInt(rangeTo.slice(8))>=28;
+  const periodSub=isSingleMonth?'bulan ini':'periode ini';
+  document.getElementById('sRevSub').textContent=`dari ${src.length} order`;
+  document.getElementById('sOrderSub').textContent=periodSub;
+  document.getElementById('sProdSub').textContent=periodSub;
+  document.getElementById('sCustSub').textContent=`${custs} Telegram unik`;
+  ['sRevPeriod','sOrderPeriod','sProdPeriod','sCustPeriod'].forEach(id=>{document.getElementById(id).textContent='';});
+}
+
+function renderOrderTable(elId,list,maxRows){
+  const el=document.getElementById(elId);
+  const rows=maxRows?list.slice(0,maxRows):list;
+  if(!rows.length){el.innerHTML=`<div class="empty"><div class="e-ico">📭</div><p>Belum ada order</p></div>`;return;}
+  const delClass=d=>{if(!d)return'';const u=d.toUpperCase();if(u.includes('DELIVERY'))return'delivery';if(u.includes('PICK'))return'pickup';if(u.includes('COD'))return'cod';return'';};
+  el.innerHTML=`<div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Pelanggan</th><th>Produk</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Tgl</th><th></th></tr></thead>
+    <tbody>${rows.map(o=>{
+      const items=[];
+      if(parseInt(o.pawbeefy))items.push(`🐄×${o.pawbeefy}`);
+      if(parseInt(o.pawporkby))items.push(`🐷×${o.pawporkby}`);
+      if(parseInt(o.chickipaw))items.push(`🐔×${o.chickipaw}`);
+      if(parseInt(o.special))items.push(`⭐×${o.special}`);
+      if(o.package)items.push(`📦${o.package}`);
+      const prod=items.length?items.join(' '):'—';
+      const del=o.delivery&&isNaN(parseFloat(o.delivery))?o.delivery:'—';
+      const dc=delClass(del);
+      const total=parseFloat(o.bill||o.total||0);
+      return`<tr>
+        <td><div style="display:flex;align-items:center;gap:8px">
+          <div class="av">${ini(o.tgId)}</div>
+          <div><div class="cname">${o.tgId||'—'}</div>
+          <div class="cphone">${o.anabul?'🐾 '+o.anabul:''}</div></div>
+        </div></td>
+        <td style="font-size:.75rem">${prod}</td>
+        <td><span class="price">${fmt$(total)}</span></td>
+        <td class="hide-sm"><span class="del-badge ${dc}">${del}</span></td>
+        <td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
+        <td><div class="action-btns">
+          <button class="edit-btn" onclick="openEdit('${o.rowId}','${o.sheetName||''}')" title="Edit">✏️</button>
+          <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Hapus">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+  if(elId==='recentTbl'&&document.getElementById('recentCnt'))
+    document.getElementById('recentCnt').textContent=rows.length<list.length?`${rows.length} dari ${list.length}`:`${list.length} order`;
+  if(elId==='allTbl'&&document.getElementById('allCnt'))
+    document.getElementById('allCnt').textContent=`${list.length} order`;
+}
+
+function getMonthsFromOrders(data){
+  const months=new Set();
+  data.forEach(o=>{if(o.date){const[year,month]=o.date.split('-');months.add(year+'-'+month);}});
+  return Array.from(months).sort().reverse();
+}
+
+function renderMonthTabs(){
+  const el=document.getElementById('sheetTabs');
+  const months=getMonthsFromOrders(orders);
+  el.innerHTML=`<button class="stab ${activeSheet==='all'?'active':''}" onclick="filterSheet('all')">📋 Semua</button>`
+    +months.map(m=>{
+      const[y,mo]=m.split('-');
+      const name=new Date(y,mo-1).toLocaleString('id-ID',{month:'long'});
+      return`<button class="stab ${activeSheet===m?'active':''}" onclick="filterSheet('${m}')">${name}</button>`;
+    }).join('');
+}
+
+function filterSheet(month){activeSheet=month;renderAll();}
+
+function renderTopProducts(){
+  const el=document.getElementById('topProds');
+  const map={};
+  const add=(name,qty,price)=>{if(!qty||qty<=0)return;if(!map[name])map[name]={qty:0,rev:0};map[name].qty+=qty;map[name].rev+=qty*price;};
+  orders.forEach(o=>{
+    add('Pawbeefy',parseInt(o.pawbeefy)||0,2.00);
+    add('Pawporkby',parseInt(o.pawporkby)||0,1.50);
+    add('Chickipaw',parseInt(o.chickipaw)||0,1.50);
+    add('Special',parseInt(o.special)||0,3.00);
+    if(o.package&&o.package.trim()){const price=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;add(o.package.trim(),1,price);}
+  });
+  const sorted=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,6);
+  if(!sorted.length){el.innerHTML=`<div class="empty"><div class="e-ico">📊</div><p>Belum ada data</p></div>`;return;}
+  const maxQ=sorted[0][1].qty;
+  const rc=['g','s','b','','',''];
+  el.innerHTML=sorted.map(([name,d],i)=>`
+    <div class="prod-item">
+      <div class="rank ${rc[i]}">${i+1}</div>
+      <div class="prod-info"><div class="prod-name">${name}</div><div class="prod-sold">${d.qty} terjual</div></div>
+      <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(d.qty/maxQ*100)}%"></div></div></div>
+      <div class="prod-rev">${fmt$(d.rev)}</div>
+    </div>`).join('');
+}
+
+function renderCustomers(){
+  const el=document.getElementById('custList');
+  const map={};
+  orders.forEach(o=>{const key=o.tgId||'?';if(!map[key])map[key]={tgId:o.tgId||'',anabul:o.anabul||'',orders:0,total:0};map[key].orders++;map[key].total+=parseFloat(o.bill||o.total||0)||0;});
+  const list=Object.values(map).sort((a,b)=>b.total-a.total);
+  document.getElementById('custCnt').textContent=`${list.length} pelanggan`;
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="e-ico">👥</div><p>Belum ada data</p></div>`;return;}
+  el.innerHTML=list.map(c=>`
+    <div class="cust-item">
+      <div class="cust-av">${ini(c.tgId)}</div>
+      <div><div class="cust-name">${c.tgId}</div><div class="cust-sub">${c.anabul?'🐾 '+c.anabul+' · ':''}${c.orders} order</div></div>
+      <div class="cust-total">${fmt$(c.total)}</div>
+    </div>`).join('');
+}
+
+function renderProducts(){
+  const map={};
+  orders.forEach(o=>{
+    const add=(k,qty,price)=>{if(!qty||qty<=0)return;if(!map[k])map[k]={qty:0,rev:0};map[k].qty+=qty;map[k].rev+=qty*price;};
+    add('Pawbeefy',parseInt(o.pawbeefy)||0,2.00);
+    add('Pawporkby',parseInt(o.pawporkby)||0,1.50);
+    add('Chickipaw',parseInt(o.chickipaw)||0,1.50);
+    add('Special',parseInt(o.special)||0,3.00);
+    if(o.package&&o.package.trim()){const p=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;if(!map[o.package])map[o.package]={qty:0,rev:0};map[o.package].qty+=1;map[o.package].rev+=p;}
+  });
+  const items=[
+    {name:'Pawbeefy',emoji:'🐄',price:'$2.00'},
+    {name:'Pawporkby',emoji:'🐷',price:'$1.50'},
+    {name:'Chickipaw',emoji:'🐔',price:'$1.50'},
+    {name:'Special',emoji:'⭐',price:'$3.00'},
+    {name:'Starter Pack',emoji:'🍱',price:'$10.99'},
+    {name:'Weekly Pawby Pack',emoji:'🥩',price:'$21.99'},
+  ];
+  document.getElementById('prodGrid').innerHTML=items.map(p=>`
+    <div class="p-card">
+      <div class="p-emoji">${p.emoji}</div>
+      <h4>${p.name}</h4>
+      <div class="p-price">${p.price}</div>
+      <div class="p-stat"><span>🛒 ${map[p.name]?.qty||0} terjual</span><span>💰 ${fmt$(map[p.name]?.rev||0)}</span></div>
+    </div>`).join('');
+}
+
+function renderAll(){
+  renderStats();
+  const filtered=activeSheet==='all'
+    ?orders
+    :orders.filter(o=>{if(!o.date)return false;const[year,month]=o.date.split('-');return year+'-'+month===activeSheet;});
+  renderOrderTable('recentTbl',filtered,8);
+  renderOrderTable('allTbl',filtered,null);
+  renderMonthTabs();
+  renderTopProducts();
+  renderCustomers();
+  renderProducts();
+}
+
+// ══ EDIT ORDER ══
+let editingOrder=null;
+function openEdit(rowId,sheetName){
+  const o=orders.find(x=>String(x.rowId)===String(rowId)&&x.sheetName===sheetName);
+  if(!o)return;
+  editingOrder=o;
+  document.getElementById('editInfo').innerHTML=`<strong>${o.tgId}</strong> · ${o.date} · ${o.sheetName}`;
+  document.getElementById('eTotal').value=o.total||'';
+  document.getElementById('eBill').value=o.bill||'';
+  document.getElementById('eDelivery').value=o.delivery||'DELIVERY by PD';
+  document.getElementById('ePayment').value=o.payment||'ABA';
+  document.getElementById('eTime').value=o.time||'';
+  document.getElementById('eAnabul').value=o.anabul||'';
+  document.getElementById('editOverlay').classList.add('open');
+}
+function closeEdit(){document.getElementById('editOverlay').classList.remove('open');editingOrder=null;}
+document.getElementById('editOverlay').addEventListener('click',function(e){if(e.target===this)closeEdit();});
+
+async function saveEdit(){
+  if(!editingOrder)return;
+  const updates={
+    total:parseFloat(document.getElementById('eTotal').value)||editingOrder.total,
+    bill:parseFloat(document.getElementById('eBill').value)||editingOrder.bill,
+    delivery:document.getElementById('eDelivery').value,
+    payment:document.getElementById('ePayment').value,
+    time:document.getElementById('eTime').value,
+    anabul:document.getElementById('eAnabul').value,
+  };
+  const idx=orders.findIndex(x=>String(x.rowId)===String(editingOrder.rowId)&&x.sheetName===editingOrder.sheetName);
+  if(idx!==-1){orders[idx]={...orders[idx],...updates};saveLocal();}
+  closeEdit();renderAll();
+  setSync('loading','Mengupdate Sheets...');
+  const fields=['total','bill','delivery','payment','time'];
+  for(const field of fields){
+    await postSheets({action:'updateOrder',rowId:editingOrder.rowId,sheetName:editingOrder.sheetName,field,value:updates[field]});
+  }
+  await postSheets({action:'updateOrder',rowId:editingOrder.rowId,sheetName:editingOrder.sheetName,field:'anabul',value:updates.anabul});
+  setSync('ok','Sheets terupdate ✓');
+  setTimeout(()=>setSync('ok','Synced ✓'),3000);
+}
+
+// ══ AUTO REFRESH every 5 minutes ══
+setInterval(()=>{if(SHEETS_URL&&checkSession()){doSync();}},5*60*1000);
+</script>
 </body>
 </html>
