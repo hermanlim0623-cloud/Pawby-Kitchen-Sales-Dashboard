@@ -693,11 +693,10 @@ async function doLogin() {
   errEl.style.display = 'none';
 
   try {
-    const res = await fetch(SHEETS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', username, password })
-    });
+    const res = await fetch(SHEETS_URL + 
+      '?action=login&username=' + encodeURIComponent(username) + 
+      '&password=' + encodeURIComponent(password) +
+      '&t=' + Date.now());
     const data = await res.json();
 
     if (data.success) {
