@@ -84,7 +84,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 .sidebar{width:240px;background:var(--navy-dark);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;bottom:0;z-index:100;}
 .sb-logo{display:flex;align-items:center;gap:10px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,.08);}
-.sb-logo span{font-size:.9rem;font-weight:700;color:#fff;line-height:1.2;}
+.sb-logo span{font-size:22px}
 .sb-logo small{display:block;font-size:.6rem;color:var(--sky);letter-spacing:1px;text-transform:uppercase;}
 .sb-nav{padding:18px 12px;flex:1;display:flex;flex-direction:column;gap:3px;}
 .nav-lbl{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);padding:10px 12px 5px;}
@@ -555,17 +555,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="fg" style="margin:0"><label style="font-size:.68rem">⭐ Special</label><input type="number" id="fSpecial" value="0" min="0" oninput="calcTotal()"></div>
       </div>
     </div>
-    <div class="f2">
-      <div class="fg"><label>Package</label>
-        <select id="fPackage" onchange="calcTotal()">
+    
+    <!-- Package dengan Qty -->
+    <div class="fg">
+      <label>Package</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="fPackage" onchange="calcTotal()" style="flex:1;">
           <option value="">— Tidak ada —</option>
-          <option value="Starter Pack">Starter Pack ($10.99)</option>
-          <option value="Weekly Pawby Pack">Weekly Pawby Pack ($21.99)</option>
+          <option value="Starter Pack" data-price="10.99">Starter Pack ($10.99)</option>
+          <option value="Weekly Pawby Pack" data-price="21.99">Weekly Pawby Pack ($21.99)</option>
         </select>
+        <input type="number" id="fPackageQty" value="0" min="0" 
+               oninput="calcTotal()" 
+               style="width:70px;text-align:center;" 
+               placeholder="Qty">
       </div>
-      <div class="fg"><label>Total ($)</label><input type="number" id="fTotal" placeholder="0.00" step="0.01" style="background:#f0fdf4;font-weight:700;color:#059669;width:100%;box-sizing:border-box;"></div>
     </div>
+    
     <div class="f2">
+      <div class="fg"><label>Total ($)</label><input type="number" id="fTotal" placeholder="0.00" step="0.01" style="background:#f0fdf4;font-weight:700;color:#059669;width:100%;box-sizing:border-box;"></div>
       <div class="fg"><label>Metode Delivery</label>
         <select id="fDelivery">
           <option value="DELIVERY by PD">DELIVERY by PD</option>
@@ -574,6 +582,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <option value="COD">COD</option>
         </select>
       </div>
+    </div>
+    <div class="f2">
       <div class="fg"><label>Payment</label>
         <select id="fPayment">
           <option value="ABA">ABA</option>
@@ -582,12 +592,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <option value="ACLEDA">ACLEDA</option>
         </select>
       </div>
+      <div class="fg"><label>Tanggal</label><input type="date" id="fDate"></div>
     </div>
     <div class="f2">
-      <div class="fg"><label>Tanggal</label><input type="date" id="fDate"></div>
       <div class="fg"><label>Jam</label><input type="time" id="fTime"></div>
+      <div class="fg"><label>Sheet Tujuan</label><select id="fSheet"></select></div>
     </div>
-    <div class="fg"><label>Sheet Tujuan</label><select id="fSheet"></select></div>
   </div>
   <div class="m-footer">
     <button class="btn-cancel" onclick="closeOrder()">Batal</button>
@@ -737,7 +747,6 @@ function doLogout() {
   if (session) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('loginInfo').textContent = '👤 ' + session.name;
-    // Init dipanggil setelah DOM siap
     init();
   }
 })();
@@ -979,29 +988,47 @@ function populateSheetSelect(data){
     :'<option value="Apr Pawby Sales">Apr Pawby Sales</option>';
 }
 
+// ══════════════════════════════════════════
+// FUNGSI CALC TOTAL - UPDATED
+// ══════════════════════════════════════════
 function calcTotal(){
   const PRICES={pawbeefy:2.00,pawporkby:1.50,chickipaw:1.50,special:3.00};
-  const PKG={'Starter Pack':10.99,'Weekly Pawby Pack':21.99};
   let total=0;
+  
+  // Hitung produk individual
   total+=(parseInt(document.getElementById('fPawbeefy').value)||0)*PRICES.pawbeefy;
   total+=(parseInt(document.getElementById('fPawporkby').value)||0)*PRICES.pawporkby;
   total+=(parseInt(document.getElementById('fChickipaw').value)||0)*PRICES.chickipaw;
   total+=(parseInt(document.getElementById('fSpecial').value)||0)*PRICES.special;
-  const pkg=document.getElementById('fPackage').value;
-  if(pkg&&PKG[pkg])total+=PKG[pkg];
+  
+  // Hitung package dengan quantity
+  const pkgSelect=document.getElementById('fPackage');
+  const pkgQty=parseInt(document.getElementById('fPackageQty').value)||0;
+  if(pkgSelect.value && pkgQty>0){
+    const pkgPrice=parseFloat(pkgSelect.options[pkgSelect.selectedIndex].dataset.price)||0;
+    total+=pkgPrice*pkgQty;
+  }
+  
   document.getElementById('fTotal').value=total>0?total.toFixed(2):'';
 }
 
+// ══════════════════════════════════════════
+// FUNGSI SAVE ORDER - UPDATED
+// ══════════════════════════════════════════
 async function saveOrder(){
   let tgId=document.getElementById('fTg').value.trim();
   if(tgId&&!tgId.startsWith('@'))tgId='@'+tgId;
+  
+  const pkgSelect=document.getElementById('fPackage');
   const order={
-    tgId,anabul:document.getElementById('fAnabul').value.trim(),
+    tgId,
+    anabul:document.getElementById('fAnabul').value.trim(),
     pawbeefy:parseInt(document.getElementById('fPawbeefy').value)||0,
     pawporkby:parseInt(document.getElementById('fPawporkby').value)||0,
     chickipaw:parseInt(document.getElementById('fChickipaw').value)||0,
     special:parseInt(document.getElementById('fSpecial').value)||0,
-    package:document.getElementById('fPackage').value,
+    package:pkgSelect.value,
+    packageQty:parseInt(document.getElementById('fPackageQty').value)||0,  // BARU
     total:parseFloat(document.getElementById('fTotal').value)||0,
     delivery:document.getElementById('fDelivery').value,
     payment:document.getElementById('fPayment').value,
@@ -1012,10 +1039,14 @@ async function saveOrder(){
   order.bill=order.total;
   order.rowId=Date.now();
   orders.unshift(order);
-  saveLocal();closeOrder();renderAll();
+  saveLocal();
+  closeOrder();
+  renderAll();
   await postSheets({action:'addOrder',order,sheetName:order.sheetName});
+  
+  // Reset form
   ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
-  ['fPawbeefy','fPawporkby','fChickipaw','fSpecial'].forEach(id=>document.getElementById(id).value=0);
+  ['fPawbeefy','fPawporkby','fChickipaw','fSpecial','fPackageQty'].forEach(id=>document.getElementById(id).value=0);
   document.getElementById('fPackage').value='';
 }
 
@@ -1035,7 +1066,7 @@ function renderStats(){
   const src=getFilteredOrders();
   const{label}=getActiveMonthRange();
   const rev=src.reduce((s,o)=>{const v=parseFloat(o.bill||o.total||0);return s+(isNaN(v)?0:v);},0);
-  const qty=src.reduce((s,o)=>s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)+(parseInt(o.chickipaw)||0)+(parseInt(o.special)||0),0);
+  const qty=src.reduce((s,o)=>s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)+(parseInt(o.chickipaw)||0)+(parseInt(o.special)||0)+(parseInt(o.packageQty)||0),0);
   const custs=[...new Set(src.map(o=>o.tgId).filter(Boolean))].length;
   const lbl=document.getElementById('activePeriodLabel');
   if(lbl)lbl.innerHTML=`${label} <span style="font-size:.65rem;opacity:.5">▼</span>`;
@@ -1065,7 +1096,10 @@ function renderOrderTable(elId,list,maxRows){
       if(parseInt(o.pawporkby))items.push(`🐷×${o.pawporkby}`);
       if(parseInt(o.chickipaw))items.push(`🐔×${o.chickipaw}`);
       if(parseInt(o.special))items.push(`⭐×${o.special}`);
-      if(o.package)items.push(`📦${o.package}`);
+      if(o.package){
+        const qty=o.packageQty>1?`×${o.packageQty}`:'';
+        items.push(`📦${o.package}${qty}`);
+      }
       const prod=items.length?items.join(' '):'—';
       const del=o.delivery&&isNaN(parseFloat(o.delivery))?o.delivery:'—';
       const dc=delClass(del);
@@ -1120,7 +1154,11 @@ function renderTopProducts(){
     add('Pawporkby',parseInt(o.pawporkby)||0,1.50);
     add('Chickipaw',parseInt(o.chickipaw)||0,1.50);
     add('Special',parseInt(o.special)||0,3.00);
-    if(o.package&&o.package.trim()){const price=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;add(o.package.trim(),1,price);}
+    if(o.package&&o.package.trim()){
+      const price=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;
+      const pkgQty=parseInt(o.packageQty)||1;
+      add(o.package.trim(),pkgQty,price);
+    }
   });
   const sorted=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,6);
   if(!sorted.length){el.innerHTML=`<div class="empty"><div class="e-ico">📊</div><p>Belum ada data</p></div>`;return;}
@@ -1158,7 +1196,13 @@ function renderProducts(){
     add('Pawporkby',parseInt(o.pawporkby)||0,1.50);
     add('Chickipaw',parseInt(o.chickipaw)||0,1.50);
     add('Special',parseInt(o.special)||0,3.00);
-    if(o.package&&o.package.trim()){const p=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;if(!map[o.package])map[o.package]={qty:0,rev:0};map[o.package].qty+=1;map[o.package].rev+=p;}
+    if(o.package&&o.package.trim()){
+      const p=(o.package||'').toLowerCase().includes('weekly')?21.99:10.99;
+      const pkgQty=parseInt(o.packageQty)||1;
+      if(!map[o.package])map[o.package]={qty:0,rev:0};
+      map[o.package].qty+=pkgQty;
+      map[o.package].rev+=p*pkgQty;
+    }
   });
   const items=[
     {name:'Pawbeefy',emoji:'🐄',price:'$2.00'},
