@@ -51,7 +51,7 @@ async function doLogin() {
   const password = document.getElementById('loginPass').value;
   const btn      = document.getElementById('loginBtn');
   const errEl    = document.getElementById('loginError');
-  if (!username || !password) { showLoginError('Username dan password wajib diisi!'); return; }
+  if (!username || !password) { showLoginError('Username and password are required!'); return; }
   btn.textContent = 'Memverifikasi...';
   btn.disabled = true;
   errEl.style.display = 'none';
@@ -71,12 +71,12 @@ async function doLogin() {
       document.getElementById('loginInfo').textContent = '👤 ' + data.name;
       init();
     } else {
-      showLoginError(data.error || 'Username atau password salah');
+      showLoginError(data.error || 'Incorrect username or password');
     }
   } catch(e) {
-    showLoginError('Koneksi gagal. Cek internet kamu.');
+    showLoginError('Connection failed. Check your internet.');
   }
-  btn.textContent = 'Masuk →';
+  btn.textContent = 'Sign In →';
   btn.disabled = false;
 }
 
@@ -120,12 +120,12 @@ function getActiveMonthRange() {
   let label;
   const isMobile = window.innerWidth <= 480;
   if (f===t) {
-    label = df.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    label = df.toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'});
   } else if (f.slice(0,7)===t.slice(0,7) && f.slice(8)==='01' && parseInt(t.slice(8))>=28) {
-    label = new Date(f.slice(0,7)+'-02').toLocaleString('id-ID',{month:'long',year:'numeric'});
+    label = new Date(f.slice(0,7)+'-02').toLocaleString('en-US',{month:'long',year:'numeric'});
   } else {
     const fmt = isMobile ? {day:'numeric',month:'short'} : {day:'numeric',month:'short',year:'numeric'};
-    label = `${df.toLocaleDateString('id-ID',{day:'numeric',month:'short'})} – ${dt.toLocaleDateString('id-ID',fmt)}`;
+    label = `${df.toLocaleDateString('en-US',{day:'numeric',month:'short'})} – ${dt.toLocaleDateString('en-US',fmt)}`;
   }
   return { from:f, to:t, label:`📅 ${label}` };
 }
@@ -173,7 +173,7 @@ function renderCals() {
 
 function buildCal(viewDate,side) {
   const y=viewDate.getFullYear(),mo=viewDate.getMonth();
-  const monthName=viewDate.toLocaleString('id-ID',{month:'long',year:'numeric'});
+  const monthName=viewDate.toLocaleString('en-US',{month:'long',year:'numeric'});
   const firstDay=new Date(y,mo,1).getDay();
   const daysInMonth=new Date(y,mo+1,0).getDate();
   const offset=(firstDay+6)%7;
@@ -255,7 +255,7 @@ function setSync(state,txt) {
 
 function connectSheets() {
   const url=document.getElementById('sheetsUrl').value.trim();
-  if(!url.includes('script.google.com')){alert('URL tidak valid!');return;}
+  if(!url.includes('script.google.com')){alert('Invalid URL!');return;}
   SHEETS_URL=url;
   localStorage.setItem('pawby_sheets_url',url);
   document.getElementById('setupBanner').classList.add('hidden');
@@ -264,20 +264,20 @@ function connectSheets() {
 
 async function doSync() {
   if(!SHEETS_URL){openSetup();return;}
-  setSync('loading','Mengambil data...');
+  setSync('loading','Fetching data...');
   try {
     const res=await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now());
     const data=await res.json();
     if(data.success&&data.orders){
       orders=data.orders; saveLocal();
-      const now=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      document.getElementById('lastSyncInfo').textContent='Sync: '+now;
+      const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('lastSyncInfo').textContent='Last sync: '+now;
       setSync('ok','Synced ✓');
       renderAll(); populateSheetSelect(orders);
     } else {
-      setSync('err','Gagal: '+(data.error||'unknown'));
+      setSync('err','Failed: '+(data.error||'unknown'));
     }
-  } catch(e){setSync('err','Koneksi gagal');console.error(e);}
+  } catch(e){setSync('err','Connection failed');console.error(e);}
 }
 
 async function postSheets(body) {
@@ -288,21 +288,21 @@ async function postSheets(body) {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
-    setSync('ok','Tersimpan ✓');
+    setSync('ok','Saved ✓');
     setTimeout(()=>setSync('ok','Synced ✓'),3000);
-  } catch(e){setSync('err','Gagal kirim');}
+  } catch(e){setSync('err','Send failed');}
 }
 
 function init() {
   document.getElementById('datePill').textContent =
-    new Date().toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+    new Date().toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
   const now=new Date();
   document.getElementById('fDate').valueAsDate=now;
   document.getElementById('fTime').value=now.toTimeString().slice(0,5);
   if(SHEETS_URL){
     document.getElementById('sheetsUrl').value=SHEETS_URL;
     document.getElementById('setupBanner').classList.add('hidden');
-    setSync('ok','Terhubung ke Sheets');
+    setSync('ok','Connected to Sheets');
     setTimeout(()=>doSync(),800);
   } else {
     document.getElementById('setupBanner').classList.remove('hidden');
@@ -327,10 +327,10 @@ function switchView(name,btn){
   document.getElementById('view-'+name).classList.add('active');
   btn.classList.add('active');
   const map={
-    dashboard:['Dashboard Overview','Selamat datang kembali, Admin Pawby 🐾'],
-    orders:['Semua Order','Kelola order dari semua bulan'],
-    customers:['Pelanggan','Data pelanggan Telegram'],
-    products:['Katalog Produk','Statistik per produk'],
+    dashboard:['Dashboard Overview','Welcome back, Pawby Admin 🐾'],
+    orders:['All Orders','Manage orders from all months'],
+    customers:['Customers','Telegram customer data'],
+    products:['Product Catalog','Statistics per product'],
   };
   document.getElementById('vTitle').textContent=map[name][0];
   document.getElementById('vSub').textContent=map[name][1];
@@ -547,11 +547,11 @@ function renderStats(){
   document.getElementById('sProd').textContent=qty;
   document.getElementById('sCust').textContent=custs;
   const isSingleMonth=rangeFrom.slice(0,7)===rangeTo.slice(0,7)&&rangeFrom.slice(8)==='01'&&parseInt(rangeTo.slice(8))>=28;
-  const periodSub=isSingleMonth?'bulan ini':'periode ini';
-  document.getElementById('sRevSub').textContent=`dari ${src.length} order`;
+  const periodSub=isSingleMonth?'this month':'this period';
+  document.getElementById("sRevSub").textContent=`from ${src.length} orders`;
   document.getElementById('sOrderSub').textContent=periodSub;
   document.getElementById('sProdSub').textContent=periodSub;
-  document.getElementById('sCustSub').textContent=`${custs} Telegram unik`;
+  document.getElementById('sCustSub').textContent=`${custs} unique on Telegram`;
   ['sRevPeriod','sOrderPeriod','sProdPeriod','sCustPeriod'].forEach(id=>{document.getElementById(id).textContent='';});
 }
 
@@ -561,10 +561,10 @@ function renderStats(){
 function renderOrderTable(elId,list,maxRows){
   const el=document.getElementById(elId);
   const rows=maxRows?list.slice(0,maxRows):list;
-  if(!rows.length){el.innerHTML=`<div class="empty"><div class="e-ico">📭</div><p>Belum ada order</p></div>`;return;}
+  if(!rows.length){el.innerHTML=`<div class="empty"><div class="e-ico">📭</div><p>No orders yet</p></div>`;return;}
   const delClass=d=>{if(!d)return'';const u=d.toUpperCase();if(u.includes('DELIVERY'))return'delivery';if(u.includes('PICK'))return'pickup';if(u.includes('COD'))return'cod';return'';};
   el.innerHTML=`<div class="tbl-wrap"><table class="tbl">
-    <thead><tr><th>Pelanggan</th><th>Produk</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Tgl</th><th></th></tr></thead>
+    <thead><tr><th>Customer</th><th>Products</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Date</th><th></th></tr></thead>
     <tbody>${rows.map(o=>{
       const items=[];
       if(parseInt(o.pawbeefy))  items.push(`🐄×${o.pawbeefy}`);
@@ -596,7 +596,7 @@ function renderOrderTable(elId,list,maxRows){
       </tr>`;
     }).join('')}</tbody></table></div>`;
   if(elId==='recentTbl'&&document.getElementById('recentCnt'))
-    document.getElementById('recentCnt').textContent=rows.length<list.length?`${rows.length} dari ${list.length}`:`${list.length} order`;
+    document.getElementById('recentCnt').textContent=rows.length<list.length?`${rows.length} of ${list.length}`:`${list.length} orders`;
   if(elId==='allTbl'&&document.getElementById('allCnt'))
     document.getElementById('allCnt').textContent=`${list.length} order`;
 }
@@ -616,7 +616,7 @@ function renderMonthTabs(){
   el.innerHTML=`<button class="stab ${activeSheet==='all'?'active':''}" onclick="filterSheet('all')">📋 Semua</button>`
     +months.map(m=>{
       const[y,mo]=m.split('-');
-      const name=new Date(y,mo-1).toLocaleString('id-ID',{month:'long'});
+      const name=new Date(y,mo-1).toLocaleString('en-US',{month:'long'});
       return`<button class="stab ${activeSheet===m?'active':''}" onclick="filterSheet('${m}')">${name}</button>`;
     }).join('');
 }
@@ -638,13 +638,13 @@ function renderTopProducts(){
     }
   });
   const sorted=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,6);
-  if(!sorted.length){el.innerHTML=`<div class="empty"><div class="e-ico">📊</div><p>Belum ada data</p></div>`;return;}
+  if(!sorted.length){el.innerHTML=`<div class="empty"><div class="e-ico">📊</div><p>No data yet</p></div>`;return;}
   const maxQ=sorted[0][1].qty;
   const rc=['g','s','b','','',''];
   el.innerHTML=sorted.map(([name,d],i)=>`
     <div class="prod-item">
       <div class="rank ${rc[i]}">${i+1}</div>
-      <div class="prod-info"><div class="prod-name">${name}</div><div class="prod-sold">${d.qty} terjual</div></div>
+      <div class="prod-info"><div class="prod-name">${name}</div><div class="prod-sold">${d.qty} sold</div></div>
       <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(d.qty/maxQ*100)}%"></div></div></div>
       <div class="prod-rev">${fmt$(d.rev)}</div>
     </div>`).join('');
@@ -663,8 +663,8 @@ function renderCustomers(){
     map[key].total+=parseFloat(o.bill||o.total||0)||0;
   });
   const list=Object.values(map).sort((a,b)=>b.total-a.total);
-  document.getElementById('custCnt').textContent=`${list.length} pelanggan`;
-  if(!list.length){el.innerHTML=`<div class="empty"><div class="e-ico">👥</div><p>Belum ada data</p></div>`;return;}
+  document.getElementById('custCnt').textContent=`${list.length} customers`;
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div>`;return;}
   el.innerHTML=list.map(c=>`
     <div class="cust-item">
       <div class="cust-av">${ini(c.tgId)}</div>
@@ -702,7 +702,7 @@ function renderProducts(){
       <div class="p-emoji">${p.emoji}</div>
       <h4>${p.name}</h4>
       <div class="p-price">${p.price}</div>
-      <div class="p-stat"><span>🛒 ${map[p.name]?.qty||0} terjual</span><span>💰 ${fmt$(map[p.name]?.rev||0)}</span></div>
+      <div class="p-stat"><span>🛒 ${map[p.name]?.qty||0} sold</span><span>💰 ${fmt$(map[p.name]?.rev||0)}</span></div>
     </div>`).join('');
 }
 
@@ -757,12 +757,12 @@ async function saveEdit(){
   const idx=orders.findIndex(x=>String(x.rowId)===String(editingOrder.rowId)&&x.sheetName===editingOrder.sheetName);
   if(idx!==-1){orders[idx]={...orders[idx],...updates};saveLocal();}
   closeEdit(); renderAll();
-  setSync('loading','Mengupdate Sheets...');
+  setSync('loading','Updating Sheets...');
   const fields=['total','bill','delivery','payment','time','anabul'];
   for(const field of fields){
     await postSheets({action:'updateOrder',rowId:editingOrder.rowId,sheetName:editingOrder.sheetName,field,value:updates[field]});
   }
-  setSync('ok','Sheets terupdate ✓');
+  setSync('ok','Sheets updated ✓');
   setTimeout(()=>setSync('ok','Synced ✓'),3000);
 }
 
