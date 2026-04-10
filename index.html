@@ -523,9 +523,9 @@ onkeydown="if(event.key==='Enter')doLogin()">
 <div class="fg" style="margin:0"><label style="font-size:.68rem">🐷 Pawporkby</label><input type="number" id="fPawporkby" value="0" min="0" oninput="calcTotal()"></div>
 <div class="fg" style="margin:0"><label style="font-size:.68rem">🐔 Chickipaw</label><input type="number" id="fChickipaw" value="0" min="0" oninput="calcTotal()"></div>
 <div class="fg" style="margin:0"><label style="font-size:.68rem">🫐 Blueberry Bliss</label><input type="number" id="fBlueberry" value="0" min="0" oninput="calcTotal()"></div>
-<div class="fg" style="margin:0"><label style="font-size:.68rem">🥣 Collagen Broth</label><input type="number" id="fCollagen" value="0" min="0" oninput="calcTotal()"></div>
+<div class="fg" style="margin:0"><label style="font-size:.68rem">🍖 Collagen Broth</label><input type="number" id="fCollagen" value="0" min="0" oninput="calcTotal()"></div>
 <div class="fg" style="margin:0"><label style="font-size:.68rem">🍝 Spawghetti</label><input type="number" id="fSpawghetti" value="0" min="0" oninput="calcTotal()"></div>
-<div class="fg" style="margin:0"><label style="font-size:.68rem">🧶 Woofball</label><input type="number" id="fWoofball" value="0" min="0" oninput="calcTotal()"></div>
+<div class="fg" style="margin:0"><label style="font-size:.68rem">🥣 Woofball</label><input type="number" id="fWoofball" value="0" min="0" oninput="calcTotal()"></div>
 </div>
 </div>
 <!-- Package dengan Qty -->
@@ -1088,9 +1088,9 @@ addProd('🐄','Pawbeefy',order.pawbeefy,PRICES.pawbeefy);
 addProd('🐷','Pawporkby',order.pawporkby,PRICES.pawporkby);
 addProd('🐔','Chickipaw',order.chickipaw,PRICES.chickipaw);
 addProd('🫐','Blueberry Bliss',order.blueberry,PRICES.blueberry);
-addProd('🥣','Collagen Broth',order.collagen,PRICES.collagen);
+addProd('🍖','Collagen Broth',order.collagen,PRICES.collagen);
 addProd('🍝','Spawghetti Beefonara',order.spawghetti,PRICES.spawghetti);
-addProd('🧶','Woofball',order.woofball,PRICES.woofball);
+addProd('🥣','Woofball',order.woofball,PRICES.woofball);
 if(order.package&&order.packageQty>0){
 const pp={'Starter Pack':10.99,'Weekly Pawby Pack':21.99};
 const pkgP=pp[order.package]||0;const lt=pkgP*order.packageQty;subtotal+=lt;
@@ -1164,9 +1164,9 @@ if(parseInt(o.pawbeefy))items.push(`🐄×${o.pawbeefy}`);
 if(parseInt(o.pawporkby))items.push(`🐷×${o.pawporkby}`);
 if(parseInt(o.chickipaw))items.push(`🐔×${o.chickipaw}`);
 if(parseInt(o.blueberry))items.push(`🫐×${o.blueberry}`);
-if(parseInt(o.collagen))items.push(`🥣×${o.collagen}`);
+if(parseInt(o.collagen))items.push(`🍖×${o.collagen}`);
 if(parseInt(o.spawghetti))items.push(`🍝×${o.spawghetti}`);
-if(parseInt(o.woofball))items.push(`🧶×${o.woofball}`);
+if(parseInt(o.woofball))items.push(`🥣×${o.woofball}`);
 if(o.package){
 const qty=o.packageQty>1?`×${o.packageQty}`:'';
 items.push(`📦${o.package}${qty}`);
@@ -1280,9 +1280,9 @@ const items=[
 {name:'Pawporkby',emoji:'🐷',price:'$1.50'},
 {name:'Chickipaw',emoji:'🐔',price:'$1.50'},
 {name:'Blueberry Bliss',emoji:'🫐',price:'$2.50'},
-{name:'Collagen Broth',emoji:'🥣',price:'$3.00'},
+{name:'Collagen Broth',emoji:'🍖',price:'$3.00'},
 {name:'Spawghetti Beefonara',emoji:'🍝',price:'$3.00'},
-{name:'Woofball',emoji:'🧶',price:'$3.00'},
+{name:'Woofball',emoji:'🥣',price:'$3.00'},
 {name:'Starter Pack',emoji:'🍱',price:'$10.99'},
 {name:'Weekly Pawby Pack',emoji:'🥩',price:'$21.99'},
 ];
