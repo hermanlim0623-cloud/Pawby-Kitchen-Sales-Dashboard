@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,15 +22,15 @@
     <div class="login-error" id="loginError"></div>
     <div class="login-field">
       <label>Username</label>
-      <input id="loginUser" type="text" placeholder="Masukkan username" autocomplete="username"
+      <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username"
         onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
     </div>
     <div class="login-field">
       <label>Password</label>
-      <input id="loginPass" type="password" placeholder="Masukkan password" autocomplete="current-password"
+      <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password"
         onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">Masuk →</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
     <p class="login-footer">Pawby Kitchen © 2026 · Phnom Penh, Cambodia 🇰🇭</p>
   </div>
 </div>
@@ -47,18 +47,18 @@
   <nav class="sb-nav">
     <div class="nav-lbl">Menu</div>
     <button class="ni active" onclick="switchView('dashboard',this)"><span class="ico">📊</span>Dashboard</button>
-    <button class="ni" onclick="switchView('orders',this)"><span class="ico">🛍️</span>Semua Order</button>
-    <button class="ni" onclick="switchView('customers',this)"><span class="ico">👥</span>Pelanggan</button>
-    <button class="ni" onclick="switchView('products',this)"><span class="ico">📦</span>Produk</button>
-    <div class="nav-lbl">Koneksi</div>
+    <button class="ni" onclick="switchView('orders',this)"><span class="ico">🛍️</span>All Orders</button>
+    <button class="ni" onclick="switchView('customers',this)"><span class="ico">👥</span>Customers</button>
+    <button class="ni" onclick="switchView('products',this)"><span class="ico">📦</span>Products</button>
+    <div class="nav-lbl">Connection</div>
     <button class="ni" onclick="openSetup()"><span class="ico">🔗</span>Setup Sheets</button>
     <button class="ni" onclick="doSync()"><span class="ico">🔄</span>Sync Data</button>
-    <button class="ni" onclick="window.open('https://pawbykitchen.com/')"><span class="ico">🌐</span>Lihat Website</button>
-    <div class="nav-lbl">Akun</div>
+    <button class="ni" onclick="window.open('https://pawbykitchen.com/')"><span class="ico">🌐</span>Visit Website</button>
+    <div class="nav-lbl">Account</div>
     <button class="ni" onclick="doLogout()" style="color:rgba(239,68,68,.7)"><span class="ico">🚪</span>Logout</button>
   </nav>
   <div class="sb-footer">
-    <div style="padding:8px 12px;font-size:.68rem;color:rgba(255,255,255,.25);font-family:var(--mono)" id="lastSyncInfo">Belum pernah sync</div>
+    <div style="padding:8px 12px;font-size:.68rem;color:rgba(255,255,255,.25);font-family:var(--mono)" id="lastSyncInfo">Never synced</div>
     <div style="padding:4px 12px 8px;font-size:.65rem;color:rgba(255,255,255,.2);font-family:var(--mono)" id="loginInfo"></div>
   </div>
 </aside>
@@ -72,16 +72,16 @@
       <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title">
         <h1 id="vTitle">Dashboard Overview</h1>
-        <p id="vSub">Selamat datang kembali, Admin Pawby 🐾</p>
+        <p id="vSub">Welcome back, Pawby Admin 🐾</p>
       </div>
     </div>
     <div class="topbar-right">
       <button class="sync-chip warn" id="syncChip" onclick="doSync()">
         <div class="sync-dot"></div>
-        <span id="syncTxt">Belum terhubung</span>
+        <span id="syncTxt">Not connected</span>
       </button>
       <div class="date-pill" id="datePill"></div>
-      <button class="btn-add" onclick="openOrder()">+ Tambah Order</button>
+      <button class="btn-add" onclick="openOrder()">+ Add Order</button>
     </div>
   </div>
 
@@ -91,10 +91,10 @@
     <!-- Setup Banner -->
     <div class="setup-banner hidden" id="setupBanner">
       <div>
-        <h4>⚠️ Google Sheets belum terhubung</h4>
-        <p>Klik Setup Sheets lalu paste URL Apps Script kamu agar data terbaca dari Sheets.</p>
+        <h4>⚠️ Google Sheets not connected</h4>
+        <p>Click Setup Sheets and paste your Apps Script URL to load data from Sheets.</p>
       </div>
-      <button class="btn-setup" onclick="openSetup()">Setup Sekarang →</button>
+      <button class="btn-setup" onclick="openSetup()">Setup Now →</button>
     </div>
 
     <!-- ══ DASHBOARD VIEW ══ -->
@@ -125,27 +125,27 @@
           <div class="stat-ico">💰</div>
           <div class="stat-val" id="sRev">$0</div>
           <div class="stat-lbl">Total Revenue</div>
-          <div class="stat-sub up" id="sRevSub">dari 0 order</div>
+          <div class="stat-sub up" id="sRevSub">from 0 orders</div>
           <div class="stat-period" id="sRevPeriod"></div>
         </div>
         <div class="stat green">
           <div class="stat-ico">🛍️</div>
           <div class="stat-val" id="sOrders">0</div>
-          <div class="stat-lbl">Total Order</div>
-          <div class="stat-sub up" id="sOrderSub">0 bulan ini</div>
+          <div class="stat-lbl">Total Orders</div>
+          <div class="stat-sub up" id="sOrderSub">0 this month</div>
           <div class="stat-period" id="sOrderPeriod"></div>
         </div>
         <div class="stat orange">
           <div class="stat-ico">📦</div>
           <div class="stat-val" id="sProd">0</div>
-          <div class="stat-lbl">Item Terjual</div>
+          <div class="stat-lbl">Items Sold</div>
           <div class="stat-sub neu" id="sProdSub">total qty</div>
           <div class="stat-period" id="sProdPeriod"></div>
         </div>
         <div class="stat purple">
           <div class="stat-ico">👥</div>
           <div class="stat-val" id="sCust">0</div>
-          <div class="stat-lbl">Pelanggan Unik</div>
+          <div class="stat-lbl">Unique Customers</div>
           <div class="stat-sub up" id="sCustSub">via Telegram</div>
           <div class="stat-period" id="sCustPeriod"></div>
         </div>
@@ -154,32 +154,32 @@
       <!-- Dash Grid -->
       <div class="dash-grid">
         <div class="card">
-          <div class="card-hdr"><h3>Order Terbaru</h3><span id="recentCnt">—</span></div>
-          <div id="recentTbl"><div class="empty"><div class="e-ico">📭</div><p>Belum ada data. Sync dari Sheets dulu!</p></div></div>
+          <div class="card-hdr"><h3>Recent Orders</h3><span id="recentCnt">—</span></div>
+          <div id="recentTbl"><div class="empty"><div class="e-ico">📭</div><p>No data yet. Sync from Sheets first!</p></div></div>
         </div>
         <div class="card">
-          <div class="card-hdr"><h3>🏆 Produk Terlaris</h3></div>
-          <div id="topProds"><div class="empty"><div class="e-ico">📊</div><p>Belum ada data</p></div></div>
+          <div class="card-hdr"><h3>🏆 Top Products</h3></div>
+          <div id="topProds"><div class="empty"><div class="e-ico">📊</div><p>No data yet</p></div></div>
         </div>
       </div>
     </div>
 
     <!-- ══ ORDERS VIEW ══ -->
     <div class="view" id="view-orders">
-      <div class="sec-hdr"><h2>Semua Order</h2><span id="allCnt">—</span></div>
+      <div class="sec-hdr"><h2>All Orders</h2><span id="allCnt">—</span></div>
       <div class="sheet-tabs" id="sheetTabs"></div>
-      <div class="card"><div id="allTbl"><div class="empty"><div class="e-ico">🛍️</div><p>Belum ada order</p></div></div></div>
+      <div class="card"><div id="allTbl"><div class="empty"><div class="e-ico">🛍️</div><p>No orders yet</p></div></div></div>
     </div>
 
     <!-- ══ CUSTOMERS VIEW ══ -->
     <div class="view" id="view-customers">
-      <div class="sec-hdr"><h2>Pelanggan</h2><span id="custCnt">—</span></div>
-      <div class="card"><div id="custList"><div class="empty"><div class="e-ico">👥</div><p>Belum ada data</p></div></div></div>
+      <div class="sec-hdr"><h2>Customers</h2><span id="custCnt">—</span></div>
+      <div class="card"><div id="custList"><div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div></div></div>
     </div>
 
     <!-- ══ PRODUCTS VIEW ══ -->
     <div class="view" id="view-products">
-      <div class="sec-hdr"><h2>Katalog Produk</h2></div>
+      <div class="sec-hdr"><h2>Product Catalog</h2></div>
       <div class="p-grid" id="prodGrid"></div>
     </div>
 
@@ -187,17 +187,17 @@
 </div><!-- /main -->
 
 <!-- ══════════════════════════════════════════
-     MODAL: TAMBAH ORDER
+     MODAL: ADD ORDER
 ══════════════════════════════════════════ -->
 <div class="overlay" id="orderOverlay">
   <div class="modal">
-    <div class="m-hdr"><h3>🛒 Tambah Order Baru</h3><button class="m-close" onclick="closeOrder()">✕</button></div>
+    <div class="m-hdr"><h3>🛒 Add New Order</h3><button class="m-close" onclick="closeOrder()">✕</button></div>
     <div class="m-body">
       <div class="f2">
         <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username"></div>
-        <div class="fg"><label>Nama Anabul 🐾</label><input id="fAnabul" placeholder="Cth: Milo" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"></div>
+        <div class="fg"><label>Furbaby's Name 🐾</label><input id="fAnabul" placeholder="e.g. Milo" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"></div>
       </div>
-      <div class="fg"><label>Qty per Produk</label>
+      <div class="fg"><label>Qty per Product</label>
         <div class="qty-row">
           <div class="fg" style="margin:0"><label style="font-size:.68rem">🐄 Pawbeefy</label><input type="number" id="fPawbeefy" value="0" min="0" oninput="calcTotal()"></div>
           <div class="fg" style="margin:0"><label style="font-size:.68rem">🐷 Pawporkby</label><input type="number" id="fPawporkby" value="0" min="0" oninput="calcTotal()"></div>
@@ -213,7 +213,7 @@
         <label>Package</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <select id="fPackage" onchange="calcTotal()" style="flex:1;">
-            <option value="">— Tidak ada —</option>
+            <option value="">— None —</option>
             <option value="Starter Pack" data-price="10.99">Starter Pack ($10.99)</option>
             <option value="Weekly Pawby Pack" data-price="21.99">Weekly Pawby Pack ($21.99)</option>
           </select>
@@ -222,10 +222,10 @@
       </div>
       <div class="f2">
         <div class="fg"><label>Total ($)</label><input type="number" id="fTotal" placeholder="0.00" step="0.01" style="background:#f0fdf4;font-weight:700;color:#059669;width:100%;box-sizing:border-box;"></div>
-        <div class="fg"><label>Disc ($)</label><input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal()" placeholder="0.00" style="width:100%;box-sizing:border-box;"></div>
+        <div class="fg"><label>Discount ($)</label><input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal()" placeholder="0.00" style="width:100%;box-sizing:border-box;"></div>
       </div>
       <div class="f2">
-        <div class="fg"><label>Metode Delivery</label>
+        <div class="fg"><label>Delivery Method</label>
           <select id="fDelivery">
             <option value="DELIVERY by PD">DELIVERY by PD</option>
             <option value="COD - HP TOWER">COD - HP TOWER</option>
@@ -243,16 +243,16 @@
             <option value="ACLEDA">ACLEDA</option>
           </select>
         </div>
-        <div class="fg"><label>Tanggal</label><input type="date" id="fDate"></div>
+        <div class="fg"><label>Date</label><input type="date" id="fDate"></div>
       </div>
       <div class="f2">
         <div class="fg"><label>Time</label><input type="time" id="fTime"></div>
-        <div class="fg"><label>Sheet Tujuan</label><select id="fSheet"></select></div>
+        <div class="fg"><label>Target Sheet</label><select id="fSheet"></select></div>
       </div>
     </div>
     <div class="m-footer">
       <button class="btn-cancel" onclick="closeOrder()">Cancel</button>
-      <button class="btn-save" onclick="saveOrder()">💾 Simpan Order</button>
+      <button class="btn-save" onclick="saveOrder()">💾 Save Order</button>
     </div>
   </div>
 </div>
@@ -324,7 +324,7 @@
 
     <!-- Action Buttons -->
     <div class="receipt-actions">
-      <button class="rc-btn-close" onclick="closeReceipt()">Tutup</button>
+      <button class="rc-btn-close" onclick="closeReceipt()">Close</button>
       <button class="rc-btn-download" onclick="downloadReceipt()">⬇️ Download Receipt</button>
     </div>
 
@@ -336,19 +336,19 @@
 ══════════════════════════════════════════ -->
 <div class="overlay" id="setupOverlay">
   <div class="modal">
-    <div class="m-hdr"><h3>🔗 Hubungkan Google Sheets</h3><button class="m-close" onclick="closeSetup()">✕</button></div>
+    <div class="m-hdr"><h3>🔗 Connect Google Sheets</h3><button class="m-close" onclick="closeSetup()">✕</button></div>
     <div class="m-body">
-      <div class="step"><div class="step-n">1</div><div><h4>Buka Google Sheets kamu</h4><p>Buka file <strong>Pawby's Sales</strong> → klik menu <strong>Extensions → Apps Script</strong>.</p></div></div>
-      <div class="step"><div class="step-n">2</div><div><h4>Paste kode Apps Script</h4><p>Hapus semua kode lama, paste seluruh isi file <code>Code.gs</code>. Klik Save.</p></div></div>
-      <div class="step"><div class="step-n">3</div><div><h4>Deploy sebagai Web App</h4><p>Klik <strong>Deploy → Manage deployments → Edit → New version → Deploy</strong>. Copy URL-nya.</p></div></div>
-      <div class="step"><div class="step-n">4</div><div><h4>Paste URL di sini</h4>
+      <div class="step"><div class="step-n">1</div><div><h4>Open your Google Sheets</h4><p>Open the <strong>Pawby's Sales</strong> file → click <strong>Extensions → Apps Script</strong>.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div><h4>Paste the Apps Script code</h4><p>Delete all existing code, paste the entire <code>Code.gs</code> file contents. Click Save.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div><h4>Deploy as Web App</h4><p>Click <strong>Deploy → Manage deployments → Edit → New version → Deploy</strong>. Copy the URL.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div><h4>Paste the URL here</h4>
         <div class="url-row">
           <input id="sheetsUrl" type="text" placeholder="https://script.google.com/macros/s/...">
-          <button class="btn-conn" onclick="connectSheets()">Hubungkan</button>
+          <button class="btn-conn" onclick="connectSheets()">Connect</button>
         </div>
       </div></div>
     </div>
-    <div class="m-footer"><button class="btn-cancel" onclick="closeSetup()">Tutup</button></div>
+    <div class="m-footer"><button class="btn-cancel" onclick="closeSetup()">Close</button></div>
   </div>
 </div>
 
@@ -365,7 +365,7 @@
         <div class="fg"><label>Bill ($)</label><input type="number" id="eBill" step="0.01"></div>
       </div>
       <div class="f2">
-        <div class="fg"><label>Metode Delivery</label>
+        <div class="fg"><label>Delivery Method</label>
           <select id="eDelivery">
             <option value="DELIVERY by PD">DELIVERY by PD</option>
             <option value="COD - HP TOWER">COD - HP TOWER</option>
@@ -384,7 +384,7 @@
       </div>
       <div class="f2">
         <div class="fg"><label>Time</label><input type="time" id="eTime"></div>
-        <div class="fg"><label>Nama Anabul 🐾</label><input type="text" id="eAnabul" placeholder="Cth: Milo"></div>
+        <div class="fg"><label>Furbaby's Name 🐾</label><input type="text" id="eAnabul" placeholder="e.g. Milo"></div>
       </div>
     </div>
     <div class="m-footer">
