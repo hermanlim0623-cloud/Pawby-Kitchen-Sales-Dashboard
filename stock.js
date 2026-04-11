@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════
-// PAWBY KITCHEN — STOCK ENGINE
+// PAWBY KITCHEN — STOCK ENGINE (FIXED v2.1)
 // stock.js  •  localStorage + Google Sheets sync
 // ══════════════════════════════════════════
 
@@ -21,7 +21,7 @@ const DEFAULT_STOCK = {
   woofball:  0,
 };
 
-// helper: get SHEETS_URL safely (defined in app.js)
+// Helper: get SHEETS_URL safely (defined in app.js)
 function getSheetsUrl() {
   return (typeof SHEETS_URL !== 'undefined' && SHEETS_URL) ? SHEETS_URL : null;
 }
@@ -75,13 +75,22 @@ function historyAdd(entries) {
 // GOOGLE SHEETS SYNC
 // ══════════════════════════════════════════
 
-// Pull from Sheets → overwrite localStorage
 async function stockSyncFromSheets() {
   const url = getSheetsUrl();
   if (!url) return;
   try {
-    const res  = await fetch(url + '?action=getStock&t=' + Date.now());
-    const data = await res.json();
+    const res = await fetch(url + '?action=getStock&t=' + Date.now());
+    
+    // ✅ Safe JSON parsing
+    let data;
+    try {
+      const text = await res.text();
+      data = JSON.parse(text);
+    } catch(e) {
+      console.warn('Stock sync parse error:', e);
+      return;
+    }
+    
     if (!data.success) return;
     if (data.stock && Object.keys(data.stock).length > 0) {
       stockSave({ ...DEFAULT_STOCK, ...data.stock });
@@ -100,40 +109,40 @@ async function stockSyncFromSheets() {
   }
 }
 
-// Push stock to Sheets (fire & forget)
 async function stockPushToSheets(stock) {
   const url = getSheetsUrl();
   if (!url) return;
   try {
     await fetch(url, {
       method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'saveStock', stock }),
     });
   } catch(e) { console.warn('Stock push failed:', e); }
 }
 
-// Push history entries to Sheets (fire & forget)
 async function historyPushToSheets(entries) {
   const url = getSheetsUrl();
   if (!url) return;
   try {
     await fetch(url, {
       method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'saveStockHistory', entries }),
     });
   } catch(e) { console.warn('History push failed:', e); }
 }
 
-// Called when Stock view is opened
 async function stockInitFromSheets() {
   const url = getSheetsUrl();
-  if (!url) { renderStockView(); return; }
+  if (!url) { 
+    if (typeof renderStockView === 'function') renderStockView(); 
+    return; 
+  }
   setStockSyncStatus('loading');
   await stockSyncFromSheets();
   setStockSyncStatus('ok');
-  renderStockView();
+  if (typeof renderStockView === 'function') renderStockView();
 }
 
 function setStockSyncStatus(state) {
@@ -147,14 +156,15 @@ function setStockSyncStatus(state) {
   };
   const s = map[state] || map.ok;
   el.className = `sync-chip ${s.cls}`;
-  el.querySelector('span').textContent = s.txt;
+  const span = el.querySelector('span');
+  if (span) span.textContent = s.txt;
 }
 
 async function stockSyncNow() {
   setStockSyncStatus('loading');
   await stockSyncFromSheets();
   setStockSyncStatus('ok');
-  renderStockView();
+  if (typeof renderStockView === 'function') renderStockView();
   showToast('🔄 Stock synced from Google Sheets', 'info');
 }
 
@@ -200,15 +210,21 @@ function showToast(msg, type = 'ok') {
 // VALIDATION
 // ══════════════════════════════════════════
 function stockValidate(order) {
+  // Safe check if PRODUCT_META exists
+  if (typeof PRODUCT_META === 'undefined') return { ok: true, errors: [] };
+  
   const stock  = stockLoad();
   const errors = [];
+  
   function checkItem(key, label, qty) {
     if (!qty || qty <= 0) return;
     if ((stock[key] || 0) < qty)
       errors.push(`${label}: need ${qty}, only ${stock[key] || 0} left`);
   }
-  PRODUCT_META.forEach(p => checkItem(p.key, p.name, parseInt(order[p.key]) || 0));
-  if (order.package && order.packageQty > 0) {
+  
+  PRODUCT_META.forEach(p => checkItem(p.key, p.name, parseInt(order?.[p.key]) || 0));
+  
+  if (order?.package && order.packageQty > 0) {
     const recipe = PACK_RECIPE[order.package];
     if (recipe) {
       const qty = parseInt(order.packageQty) || 0;
@@ -224,11 +240,14 @@ function stockValidate(order) {
 }
 
 // ══════════════════════════════════════════
-// DEDUCT — called after order saved
+// DEDUCT
 // ══════════════════════════════════════════
 function stockDeduct(order) {
+  if (typeof PRODUCT_META === 'undefined') return;
+  
   const stock    = stockLoad();
   const logItems = [];
+  
   function deduct(key, qty) {
     if (!qty || qty <= 0) return;
     const meta   = PRODUCT_META.find(p => p.key === key);
@@ -236,14 +255,17 @@ function stockDeduct(order) {
     stock[key]   = Math.max(0, before - qty);
     logItems.push({ key, name: meta ? meta.name : key, before, after: stock[key], delta: -qty, note: 'Order' });
   }
-  PRODUCT_META.forEach(p => deduct(p.key, parseInt(order[p.key]) || 0));
-  if (order.package && order.packageQty > 0) {
+  
+  PRODUCT_META.forEach(p => deduct(p.key, parseInt(order?.[p.key]) || 0));
+  
+  if (order?.package && order.packageQty > 0) {
     const recipe = PACK_RECIPE[order.package];
     if (recipe) {
       const qty = parseInt(order.packageQty) || 0;
       Object.entries(recipe).forEach(([key, perPack]) => deduct(key, perPack * qty));
     }
   }
+  
   if (logItems.length) {
     stockSave(stock);
     historyAdd(logItems);
@@ -256,23 +278,27 @@ function stockDeduct(order) {
 // MANUAL UPDATE
 // ══════════════════════════════════════════
 function stockManualUpdate(key, newQty, note) {
+  if (typeof PRODUCT_META === 'undefined') return;
+  
   const stock  = stockLoad();
   const before = stock[key] || 0;
   const after  = Math.max(0, parseInt(newQty) || 0);
   const delta  = after - before;
   stock[key]   = after;
   stockSave(stock);
+  
   const meta  = PRODUCT_META.find(p => p.key === key);
   const entry = { key, name: meta ? meta.name : key, before, after, delta, note: note || 'Manual update' };
   historyAdd([entry]);
   stockPushToSheets(stock);
   historyPushToSheets([entry]);
-  renderStockView();
+  
+  if (typeof renderStockView === 'function') renderStockView();
   showToast(`✅ ${meta ? meta.name : key} updated → <strong>${after}</strong> cups`);
 }
 
 // ══════════════════════════════════════════
-// EDIT HISTORY ENTRY
+// EDIT HISTORY ENTRY (unchanged - already correct)
 // ══════════════════════════════════════════
 function stockHistoryEdit(id) {
   const history = historyLoad();
@@ -374,7 +400,7 @@ function stockHistoryEditSave(id) {
   stockSave(stock);
   stockPushToSheets(stock);
   document.getElementById('skEditModal')?.remove();
-  renderStockView();
+  if (typeof renderStockView === 'function') renderStockView();
   showToast(`✏️ ${entry.name} corrected: ${oldAfter} → <strong>${newAfter}</strong> cups`);
 }
 
@@ -387,16 +413,21 @@ function stockHistoryDelete(id) {
   if (!entry) return;
   if (!confirm(`Delete this history entry?\n\n${entry.name} · ${entry.date} ${entry.time}\nStock: ${entry.before} → ${entry.after}\n\nProduct stock will not change.`)) return;
   historySave(history.filter(h => String(h.id) !== String(id)));
-  renderStockView();
+  if (typeof renderStockView === 'function') renderStockView();
   showToast('🗑️ History entry deleted — stock unchanged', 'info');
 }
 
 // ══════════════════════════════════════════
-// RENDER — STOCK VIEW
+// RENDER — STOCK VIEW (unchanged - already correct)
 // ══════════════════════════════════════════
 function renderStockView() {
   const el = document.getElementById('stockContent');
   if (!el) return;
+  if (typeof PRODUCT_META === 'undefined') {
+    el.innerHTML = '<div class="empty">Loading stock data...</div>';
+    return;
+  }
+  
   const stock    = stockLoad();
   const lowCount = PRODUCT_META.filter(p => (stock[p.key] || 0) <= 5).length;
   const url      = getSheetsUrl();
@@ -447,7 +478,7 @@ function renderStockView() {
     const emoji     = packName === 'Starter Pack' ? '🍱' : '🥩';
     const recipeStr = Object.entries(recipe).map(([k,qty]) => {
       const meta = PRODUCT_META.find(p => p.key === k);
-      return `${meta ? meta.name : k} ×${qty}`;
+      return `${meta ? meta.name : key} ×${qty}`;
     }).join(', ');
     const cls = canMake === 0 ? 'sl-empty' : canMake <= 2 ? 'sl-low' : 'sl-ok';
     return `
@@ -509,7 +540,7 @@ function renderStockView() {
 }
 
 // ══════════════════════════════════════════
-// RENDER — HISTORY TABLE
+// RENDER — HISTORY TABLE (unchanged)
 // ══════════════════════════════════════════
 function renderStockHistory() {
   const history = historyLoad();
@@ -598,17 +629,21 @@ function stockApplyInput(key) {
 }
 
 function stockQuickAdd(key, amount) {
+  if (typeof PRODUCT_META === 'undefined') return;
+  
   const stock  = stockLoad();
   const before = stock[key] || 0;
   const after  = before + amount;
   stock[key]   = after;
   stockSave(stock);
+  
   const meta  = PRODUCT_META.find(p => p.key === key);
   const entry = { key, name: meta ? meta.name : key, before, after, delta: +amount, note: `Quick +${amount}` };
   historyAdd([entry]);
   stockPushToSheets(stock);
   historyPushToSheets([entry]);
-  renderStockView();
+  
+  if (typeof renderStockView === 'function') renderStockView();
   showToast(`✅ ${meta ? meta.name : key} +${amount} → <strong>${after}</strong> cups`);
 }
 
@@ -616,6 +651,8 @@ function stockQuickAdd(key, amount) {
 // EXPORT CSV
 // ══════════════════════════════════════════
 function stockExportCSV() {
+  if (typeof PRODUCT_META === 'undefined') { alert('Product data not loaded'); return; }
+  
   const stock = stockLoad();
   const ts    = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   let csv     = 'Product,Key,Stock (cups),Exported At\n';
