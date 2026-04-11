@@ -59,8 +59,12 @@ async function doLogin() {
     const res = await fetch(SHEETS_URL +
       '?action=login&username=' + encodeURIComponent(username) +
       '&password=' + encodeURIComponent(password) +
-      '&t=' + Date.now());
-    const data = await res.json();
+      '&t=' + Date.now(), {
+        method: 'GET',
+        redirect: 'follow'
+    });
+    const text = await res.text();
+    const data = JSON.parse(text);
     if (data.success) {
       localStorage.setItem(SESSION_KEY, JSON.stringify({
         token:   data.token,
@@ -266,8 +270,13 @@ async function doSync() {
   if(!SHEETS_URL){openSetup();return;}
   setSync('loading','Fetching data...');
   try {
-    const res=await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now());
-    const data=await res.json();
+    const res = await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now(), {
+      method: 'GET',
+      redirect: 'follow'
+    });
+
+    const text = await res.text();
+    const data = JSON.parse(text);
     if(data.success&&data.orders){
       orders=data.orders; saveLocal();
       const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -284,8 +293,9 @@ async function postSheets(body) {
   if(!SHEETS_URL)return;
   try {
     await fetch(SHEETS_URL,{
-      method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
+      method:'POST',
+      redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify(body)
     });
     setSync('ok','Saved ✓');
