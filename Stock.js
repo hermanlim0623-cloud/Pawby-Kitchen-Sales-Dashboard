@@ -1,19 +1,16 @@
 // ══════════════════════════════════════════
 // PAWBY KITCHEN — STOCK ENGINE
-// stock.js  •  localStorage only
+// stock.js  •  localStorage + Google Sheets sync
 // ══════════════════════════════════════════
 
-// ── Keys ──────────────────────────────────
 const STOCK_KEY   = 'pawby_stock';
 const HISTORY_KEY = 'pawby_stock_history';
 
-// ── Pack compositions ─────────────────────
 const PACK_RECIPE = {
   'Starter Pack':      { pawbeefy: 2, chickipaw: 2, pawporkby: 3 },
   'Weekly Pawby Pack': { pawbeefy: 5, chickipaw: 4, pawporkby: 5 },
 };
 
-// ── Default stock structure ───────────────
 const DEFAULT_STOCK = {
   pawbeefy:  0,
   pawporkby: 0,
@@ -24,8 +21,13 @@ const DEFAULT_STOCK = {
   woofball:  0,
 };
 
+// helper: get SHEETS_URL safely (defined in app.js)
+function getSheetsUrl() {
+  return (typeof SHEETS_URL !== 'undefined' && SHEETS_URL) ? SHEETS_URL : null;
+}
+
 // ══════════════════════════════════════════
-// LOAD / SAVE
+// LOCAL STORAGE
 // ══════════════════════════════════════════
 function stockLoad() {
   try {
@@ -70,18 +72,102 @@ function historyAdd(entries) {
 }
 
 // ══════════════════════════════════════════
+// GOOGLE SHEETS SYNC
+// ══════════════════════════════════════════
+
+// Pull from Sheets → overwrite localStorage
+async function stockSyncFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) return;
+  try {
+    const res  = await fetch(url + '?action=getStock&t=' + Date.now());
+    const data = await res.json();
+    if (!data.success) return;
+    if (data.stock && Object.keys(data.stock).length > 0) {
+      stockSave({ ...DEFAULT_STOCK, ...data.stock });
+    }
+    if (Array.isArray(data.history) && data.history.length > 0) {
+      const normalized = data.history.map(h => ({
+        ...h,
+        before: parseInt(h.before) || 0,
+        after:  parseInt(h.after)  || 0,
+        delta:  parseInt(h.delta)  || 0,
+      }));
+      historySave(normalized);
+    }
+  } catch(e) {
+    console.warn('Stock sync from Sheets failed:', e);
+  }
+}
+
+// Push stock to Sheets (fire & forget)
+async function stockPushToSheets(stock) {
+  const url = getSheetsUrl();
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'saveStock', stock }),
+    });
+  } catch(e) { console.warn('Stock push failed:', e); }
+}
+
+// Push history entries to Sheets (fire & forget)
+async function historyPushToSheets(entries) {
+  const url = getSheetsUrl();
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'saveStockHistory', entries }),
+    });
+  } catch(e) { console.warn('History push failed:', e); }
+}
+
+// Called when Stock view is opened
+async function stockInitFromSheets() {
+  const url = getSheetsUrl();
+  if (!url) { renderStockView(); return; }
+  setStockSyncStatus('loading');
+  await stockSyncFromSheets();
+  setStockSyncStatus('ok');
+  renderStockView();
+}
+
+function setStockSyncStatus(state) {
+  const el = document.getElementById('skSyncBadge');
+  if (!el) return;
+  const map = {
+    loading: { cls:'loading', txt:'Syncing...' },
+    ok:      { cls:'ok',      txt:'Synced ✓'  },
+    err:     { cls:'err',     txt:'Sync failed'},
+    warn:    { cls:'warn',    txt:'Offline mode'},
+  };
+  const s = map[state] || map.ok;
+  el.className = `sync-chip ${s.cls}`;
+  el.querySelector('span').textContent = s.txt;
+}
+
+async function stockSyncNow() {
+  setStockSyncStatus('loading');
+  await stockSyncFromSheets();
+  setStockSyncStatus('ok');
+  renderStockView();
+  showToast('🔄 Stock synced from Google Sheets', 'info');
+}
+
+// ══════════════════════════════════════════
 // TOAST NOTIFICATION
 // ══════════════════════════════════════════
 function showToast(msg, type = 'ok') {
-  // remove existing
   document.getElementById('skToast')?.remove();
-
   const colors = {
     ok:   'background:#D4F0E8;color:#0E7045;border-color:#6EE0A8;',
     err:  'background:#FCE8F0;color:#9A1E30;border-color:#F0B8C2;',
     info: 'background:#E0F5F5;color:#35A0A0;border-color:#C2EDED;',
   };
-
   const el = document.createElement('div');
   el.id = 'skToast';
   el.style.cssText = `
@@ -90,24 +176,20 @@ function showToast(msg, type = 'ok') {
     font-family:var(--font);font-size:.82rem;font-weight:600;
     box-shadow:0 6px 24px rgba(11,18,30,.15);
     display:flex;align-items:center;gap:8px;
-    animation:toastIn .25s ease;
-    max-width:320px;
+    animation:toastIn .25s ease;max-width:320px;
     ${colors[type] || colors.ok}
   `;
   el.innerHTML = msg;
   document.body.appendChild(el);
-
-  // inject keyframe once
   if (!document.getElementById('toastStyle')) {
     const s = document.createElement('style');
     s.id = 'toastStyle';
     s.textContent = `
-      @keyframes toastIn  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-      @keyframes toastOut { from{opacity:1;transform:translateY(0)}    to{opacity:0;transform:translateY(12px)} }
+      @keyframes toastIn  {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+      @keyframes toastOut {from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(12px)}}
     `;
     document.head.appendChild(s);
   }
-
   setTimeout(() => {
     el.style.animation = 'toastOut .25s ease forwards';
     setTimeout(() => el.remove(), 260);
@@ -120,15 +202,12 @@ function showToast(msg, type = 'ok') {
 function stockValidate(order) {
   const stock  = stockLoad();
   const errors = [];
-
   function checkItem(key, label, qty) {
     if (!qty || qty <= 0) return;
     if ((stock[key] || 0) < qty)
       errors.push(`${label}: need ${qty}, only ${stock[key] || 0} left`);
   }
-
   PRODUCT_META.forEach(p => checkItem(p.key, p.name, parseInt(order[p.key]) || 0));
-
   if (order.package && order.packageQty > 0) {
     const recipe = PACK_RECIPE[order.package];
     if (recipe) {
@@ -136,23 +215,20 @@ function stockValidate(order) {
       Object.entries(recipe).forEach(([key, perPack]) => {
         const needed = perPack * qty;
         const meta   = PRODUCT_META.find(p => p.key === key);
-        const label  = meta ? meta.name : key;
         if ((stock[key] || 0) < needed)
-          errors.push(`${label} (for ${order.package} ×${qty}): need ${needed}, only ${stock[key] || 0} left`);
+          errors.push(`${meta ? meta.name : key} (for ${order.package} ×${qty}): need ${needed}, only ${stock[key] || 0} left`);
       });
     }
   }
-
   return { ok: errors.length === 0, errors };
 }
 
 // ══════════════════════════════════════════
-// DEDUCT
+// DEDUCT — called after order saved
 // ══════════════════════════════════════════
 function stockDeduct(order) {
   const stock    = stockLoad();
   const logItems = [];
-
   function deduct(key, qty) {
     if (!qty || qty <= 0) return;
     const meta   = PRODUCT_META.find(p => p.key === key);
@@ -160,9 +236,7 @@ function stockDeduct(order) {
     stock[key]   = Math.max(0, before - qty);
     logItems.push({ key, name: meta ? meta.name : key, before, after: stock[key], delta: -qty, note: 'Order' });
   }
-
   PRODUCT_META.forEach(p => deduct(p.key, parseInt(order[p.key]) || 0));
-
   if (order.package && order.packageQty > 0) {
     const recipe = PACK_RECIPE[order.package];
     if (recipe) {
@@ -170,8 +244,12 @@ function stockDeduct(order) {
       Object.entries(recipe).forEach(([key, perPack]) => deduct(key, perPack * qty));
     }
   }
-
-  if (logItems.length) { stockSave(stock); historyAdd(logItems); }
+  if (logItems.length) {
+    stockSave(stock);
+    historyAdd(logItems);
+    stockPushToSheets(stock);
+    historyPushToSheets(logItems);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -184,24 +262,24 @@ function stockManualUpdate(key, newQty, note) {
   const delta  = after - before;
   stock[key]   = after;
   stockSave(stock);
-  const meta   = PRODUCT_META.find(p => p.key === key);
-  historyAdd([{ key, name: meta ? meta.name : key, before, after, delta, note: note || 'Manual update' }]);
+  const meta  = PRODUCT_META.find(p => p.key === key);
+  const entry = { key, name: meta ? meta.name : key, before, after, delta, note: note || 'Manual update' };
+  historyAdd([entry]);
+  stockPushToSheets(stock);
+  historyPushToSheets([entry]);
   renderStockView();
-  showToast(`✅ ${meta ? meta.name : key} updated → <strong>${after}</strong> packs`);
+  showToast(`✅ ${meta ? meta.name : key} updated → <strong>${after}</strong> cups`);
 }
 
 // ══════════════════════════════════════════
-// EDIT HISTORY ENTRY  (Opsi A — direct set)
+// EDIT HISTORY ENTRY
 // ══════════════════════════════════════════
 function stockHistoryEdit(id) {
   const history = historyLoad();
   const idx     = history.findIndex(h => String(h.id) === String(id));
   if (idx === -1) return;
   const entry   = history[idx];
-
-  // build inline edit modal
-  const old = document.getElementById('skEditModal');
-  if (old) old.remove();
+  document.getElementById('skEditModal')?.remove();
 
   const modal = document.createElement('div');
   modal.id    = 'skEditModal';
@@ -211,123 +289,93 @@ function stockHistoryEdit(id) {
     display:flex;align-items:center;justify-content:center;padding:16px;
   `;
   modal.innerHTML = `
-    <div style="
-      background:#fff;border-radius:20px;width:100%;max-width:400px;
-      box-shadow:0 16px 48px rgba(11,18,30,.2);
-      border:1.5px solid var(--border);
-      animation:mIn .22s ease;
-      overflow:hidden;
-    ">
-      <!-- header -->
-      <div style="padding:18px 22px 14px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;
+      box-shadow:0 16px 48px rgba(11,18,30,.2);border:1.5px solid var(--border);
+      animation:mIn .22s ease;overflow:hidden;">
+      <div style="padding:18px 22px 14px;border-bottom:1.5px solid var(--border);
+        display:flex;align-items:center;justify-content:space-between;">
         <div>
           <div style="font-size:.95rem;font-weight:800;color:var(--navy);">✏️ Edit History Entry</div>
           <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">${entry.name} · ${entry.date} ${entry.time}</div>
         </div>
         <button onclick="document.getElementById('skEditModal').remove()"
-          style="width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);color:var(--muted);cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;">✕</button>
+          style="width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);
+          color:var(--muted);cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
-
-      <!-- body -->
       <div style="padding:20px 22px;">
-
-        <!-- current info pill -->
-        <div style="background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:.78rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:16px;
+          font-size:.78rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;">
           <span>Before: <strong style="color:var(--navy)">${entry.before}</strong></span>
           <span>Previous after: <strong style="color:var(--navy)">${entry.after}</strong></span>
           <span>Delta: <strong style="color:${entry.delta >= 0 ? '#0E7045' : '#9A1E30'}">${entry.delta >= 0 ? '+' : ''}${entry.delta}</strong></span>
         </div>
-
-        <!-- new after qty -->
         <div style="margin-bottom:12px;">
-          <label style="display:block;font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:6px;letter-spacing:.2px;">
+          <label style="display:block;font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:6px;">
             Correct Stock Value (After)
           </label>
           <input type="number" id="skEditAfter" min="0" value="${entry.after}"
-            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.9rem;font-weight:700;color:var(--navy);background:var(--bg);outline:none;box-sizing:border-box;"
+            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
+            font-family:var(--font);font-size:.9rem;font-weight:700;color:var(--navy);
+            background:var(--bg);outline:none;box-sizing:border-box;"
             onfocus="this.style.borderColor='var(--teal)';this.style.boxShadow='0 0 0 3px rgba(74,191,191,.12)'"
             onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
           <div style="font-size:.68rem;color:var(--muted);margin-top:5px;">
             💡 Stock for <strong>${entry.name}</strong> will be immediately updated to this value.
           </div>
         </div>
-
-        <!-- note -->
-        <div style="margin-bottom:4px;">
-          <label style="display:block;font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:6px;letter-spacing:.2px;">
-            Keterangan
-          </label>
+        <div>
+          <label style="display:block;font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:6px;">Note</label>
           <input type="text" id="skEditNote" value="${entry.note || ''}" placeholder="Reason for correction..."
-            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.83rem;color:var(--text);background:var(--bg);outline:none;box-sizing:border-box;"
+            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
+            font-family:var(--font);font-size:.83rem;color:var(--text);
+            background:var(--bg);outline:none;box-sizing:border-box;"
             onfocus="this.style.borderColor='var(--teal)';this.style.boxShadow='0 0 0 3px rgba(74,191,191,.12)'"
             onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"
             onkeydown="if(event.key==='Enter')stockHistoryEditSave('${id}')">
         </div>
       </div>
-
-      <!-- footer -->
       <div style="padding:12px 22px 18px;display:flex;gap:8px;justify-content:flex-end;border-top:1.5px solid var(--border);">
         <button onclick="document.getElementById('skEditModal').remove()"
-          style="padding:8px 18px;border:1.5px solid var(--border2);border-radius:99px;background:none;font-family:var(--font);font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;">
+          style="padding:8px 18px;border:1.5px solid var(--border2);border-radius:99px;background:none;
+          font-family:var(--font);font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;">
           Cancel
         </button>
         <button onclick="stockHistoryEditSave('${id}')"
-          style="padding:8px 22px;background:linear-gradient(135deg,var(--teal-dark),var(--teal));border:none;border-radius:99px;color:#fff;font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer;box-shadow:var(--sh-teal);">
+          style="padding:8px 22px;background:linear-gradient(135deg,var(--teal-dark),var(--teal));
+          border:none;border-radius:99px;color:#fff;font-family:var(--font);
+          font-size:.8rem;font-weight:700;cursor:pointer;box-shadow:var(--sh-teal);">
           💾 Save Correction
         </button>
       </div>
     </div>`;
 
-  // close on backdrop click
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
   document.body.appendChild(modal);
-
-  // focus input
   setTimeout(() => document.getElementById('skEditAfter')?.focus(), 50);
 }
 
-// ── Save edit ──────────────────────────────
 function stockHistoryEditSave(id) {
   const history  = historyLoad();
   const idx      = history.findIndex(h => String(h.id) === String(id));
   if (idx === -1) return;
-
   const newAfter = parseInt(document.getElementById('skEditAfter')?.value);
   const newNote  = document.getElementById('skEditNote')?.value?.trim() || history[idx].note;
-
   if (isNaN(newAfter) || newAfter < 0) {
     const inp = document.getElementById('skEditAfter');
-    if (inp) {
-      inp.style.borderColor = 'var(--red)';
-      inp.style.boxShadow   = '0 0 0 3px rgba(232,68,90,.12)';
-      inp.focus();
-    }
+    if (inp) { inp.style.borderColor='var(--red)'; inp.style.boxShadow='0 0 0 3px rgba(232,68,90,.12)'; inp.focus(); }
     return;
   }
-
   const entry    = history[idx];
   const oldAfter = entry.after;
-
-  // update history entry
-  history[idx] = {
-    ...entry,
-    after: newAfter,
-    delta: newAfter - entry.before,
-    note:  newNote,
-  };
+  history[idx]   = { ...entry, after: newAfter, delta: newAfter - entry.before, note: newNote };
   historySave(history);
-
-  // update stock (Option A — direct set)
   const stock = stockLoad();
   stock[entry.key] = newAfter;
   stockSave(stock);
-
-  // close modal
+  stockPushToSheets(stock);
   document.getElementById('skEditModal')?.remove();
-
-  // re-render & toast
   renderStockView();
-  showToast(`✏️ ${entry.name} corrected: ${oldAfter} → <strong>${newAfter}</strong> packs`);
+  showToast(`✏️ ${entry.name} corrected: ${oldAfter} → <strong>${newAfter}</strong> cups`);
 }
 
 // ══════════════════════════════════════════
@@ -337,13 +385,10 @@ function stockHistoryDelete(id) {
   const history = historyLoad();
   const entry   = history.find(h => String(h.id) === String(id));
   if (!entry) return;
-
-  if (!confirm(`Delete this history entry?\n\n${entry.name} · ${entry.date} ${entry.time}\nStok: ${entry.before} → ${entry.after}\n\nProduct stock will not change.`)) return;
-
-  const filtered = history.filter(h => String(h.id) !== String(id));
-  historySave(filtered);
+  if (!confirm(`Delete this history entry?\n\n${entry.name} · ${entry.date} ${entry.time}\nStock: ${entry.before} → ${entry.after}\n\nProduct stock will not change.`)) return;
+  historySave(history.filter(h => String(h.id) !== String(id)));
   renderStockView();
-  showToast(`🗑️ History entry deleted — stock unchanged`, 'info');
+  showToast('🗑️ History entry deleted — stock unchanged', 'info');
 }
 
 // ══════════════════════════════════════════
@@ -354,17 +399,17 @@ function renderStockView() {
   if (!el) return;
   const stock    = stockLoad();
   const lowCount = PRODUCT_META.filter(p => (stock[p.key] || 0) <= 5).length;
+  const url      = getSheetsUrl();
 
   const items = PRODUCT_META.map(p => {
     const qty        = stock[p.key] || 0;
     const level      = qty === 0 ? 'empty' : qty <= 5 ? 'low' : qty <= 15 ? 'mid' : 'ok';
     const levelLabel = { empty:'❌ Out of stock', low:'⚠️ Running low', mid:'🔵 Sufficient', ok:'✅ In stock' };
     const levelClass = { empty:'sl-empty', low:'sl-low', mid:'sl-mid', ok:'sl-ok' };
-
-    const packInfo = Object.entries(PACK_RECIPE).map(([packName, recipe]) => {
+    const packInfo   = Object.entries(PACK_RECIPE).map(([packName, recipe]) => {
       if (!recipe[p.key]) return null;
       const canMake = Math.floor(qty / recipe[p.key]);
-      return `${packName.replace(' Pawby Pack','')}: ${canMake} pack`;
+      return `${packName.replace(' Pawby Pack','')}: ${canMake} packs`;
     }).filter(Boolean).join(' · ');
 
     return `
@@ -373,7 +418,7 @@ function renderStockView() {
         <div class="sk-emoji">${p.emoji}</div>
         <div class="sk-info">
           <div class="sk-name">${p.name}</div>
-          <div class="sk-price">$${p.price.toFixed(2)} / cups</div>
+          <div class="sk-price">$${p.price.toFixed(2)} / cup</div>
           ${packInfo ? `<div class="sk-pack-hint">📦 ${packInfo}</div>` : ''}
         </div>
         <div class="sk-right">
@@ -384,13 +429,11 @@ function renderStockView() {
       </div>
       <div class="sk-bar-wrap">
         <div class="sk-bar-bg">
-          <div class="sk-bar-fill ${levelClass[level]}" style="width:${Math.min(100, qty/30*100).toFixed(1)}%"></div>
+          <div class="sk-bar-fill ${levelClass[level]}" style="width:${Math.min(100,qty/30*100).toFixed(1)}%"></div>
         </div>
       </div>
       <div class="sk-input-row">
-        <input type="number" min="0" id="skinput-${p.key}"
-          placeholder="Set new qty..."
-          class="sk-input"
+        <input type="number" min="0" id="skinput-${p.key}" placeholder="Set new qty..." class="sk-input"
           onkeydown="if(event.key==='Enter')stockApplyInput('${p.key}')">
         <input type="text" id="sknote-${p.key}" placeholder="Note (optional)" class="sk-note-input">
         <button class="sk-btn" onclick="stockApplyInput('${p.key}')">Update</button>
@@ -400,10 +443,9 @@ function renderStockView() {
   }).join('');
 
   const packRows = Object.entries(PACK_RECIPE).map(([packName, recipe]) => {
-    const s       = stockLoad();
-    const canMake = Math.min(...Object.entries(recipe).map(([k, qty]) => Math.floor((s[k]||0)/qty)));
-    const emoji   = packName === 'Starter Pack' ? '🍱' : '🥩';
-    const recipeStr = Object.entries(recipe).map(([k, qty]) => {
+    const canMake   = Math.min(...Object.entries(recipe).map(([k,qty]) => Math.floor((stock[k]||0)/qty)));
+    const emoji     = packName === 'Starter Pack' ? '🍱' : '🥩';
+    const recipeStr = Object.entries(recipe).map(([k,qty]) => {
       const meta = PRODUCT_META.find(p => p.key === k);
       return `${meta ? meta.name : k} ×${qty}`;
     }).join(', ');
@@ -426,14 +468,22 @@ function renderStockView() {
 
   el.innerHTML = `
   ${lowCount > 0
-    ? `<div class="sk-alert">⚠️ <strong>${lowCount} products</strong> are running low or out of stock. Please restock!</div>`
+    ? `<div class="sk-alert">⚠️ <strong>${lowCount} product${lowCount>1?'s':''}</strong> running low or out of stock. Please restock!</div>`
     : `<div class="sk-alert ok">✅ All stock levels are healthy.</div>`
   }
 
   <div class="sk-section">
     <div class="sk-section-hdr">
       <h3>📦 Pack Availability</h3>
-      <span class="sk-section-sub">Based on current ingredient stock</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="sk-section-sub">Based on current ingredient stock</span>
+        ${url
+          ? `<button id="skSyncBadge" class="sync-chip ok" onclick="stockSyncNow()" style="cursor:pointer;font-size:.68rem;padding:4px 10px;">
+               <div class="sync-dot"></div><span>Synced ✓</span>
+             </button>`
+          : `<span class="sk-section-sub" style="color:var(--orange);">⚠️ Sheets not connected — local only</span>`
+        }
+      </div>
     </div>
     <div class="sk-pack-list">${packRows}</div>
   </div>
@@ -459,14 +509,13 @@ function renderStockView() {
 }
 
 // ══════════════════════════════════════════
-// RENDER — STOCK HISTORY TABLE
+// RENDER — HISTORY TABLE
 // ══════════════════════════════════════════
 function renderStockHistory() {
   const history = historyLoad();
   if (!history.length) {
     return `<div class="empty"><div class="e-ico">📋</div><p>No stock history yet.</p></div>`;
   }
-
   const filterHtml = `
   <div class="sk-hist-filter">
     <input type="text" id="skHistSearch" placeholder="🔍 Search product..." class="sk-hist-search" oninput="filterStockHistory()">
@@ -474,27 +523,21 @@ function renderStockHistory() {
       <option value="">All types</option>
       <option value="order">Order (deduct)</option>
       <option value="manual">Manual update</option>
-      <option value="koreksi">Correction</option>
+      <option value="correction">Correction</option>
     </select>
   </div>`;
 
   const rows = history.slice(0, 100).map(h => {
-    const deltaClass = h.delta > 0 ? 'hist-pos' : h.delta < 0 ? 'hist-neg' : '';
-    const deltaStr   = h.delta > 0 ? `+${h.delta}` : `${h.delta}`;
-    // note badge color — koreksi gets special color
-    const isCorrection  = (h.note||'').toLowerCase().includes('koreksi') || (h.note||'').toLowerCase().includes('edit');
-    const noteBadgeStyle = isCorrection
-      ? 'background:var(--pastel-amber);color:#8A5E00;border-color:#F5C842;'
-      : '';
-
+    const deltaClass   = h.delta > 0 ? 'hist-pos' : h.delta < 0 ? 'hist-neg' : '';
+    const deltaStr     = h.delta > 0 ? `+${h.delta}` : `${h.delta}`;
+    const isCorrection = (h.note||'').toLowerCase().includes('correction') || (h.note||'').toLowerCase().includes('edit');
+    const badgeStyle   = isCorrection ? 'background:var(--pastel-amber);color:#8A5E00;border-color:#F5C842;' : '';
     return `
     <tr data-name="${h.name.toLowerCase()}" data-note="${(h.note||'').toLowerCase()}" id="histrow-${h.id}">
       <td><strong>${h.name}</strong></td>
       <td><span class="hist-delta ${deltaClass}">${deltaStr}</span></td>
       <td class="hist-nums">${h.before} → ${h.after}</td>
-      <td class="hide-sm">
-        <span class="sk-note-badge" style="${noteBadgeStyle}">${h.note || '—'}</span>
-      </td>
+      <td class="hide-sm"><span class="sk-note-badge" style="${badgeStyle}">${h.note || '—'}</span></td>
       <td class="hist-date hide-sm">${h.date}</td>
       <td class="hist-date">${h.time}</td>
       <td>
@@ -511,12 +554,9 @@ function renderStockHistory() {
   <div class="tbl-wrap sk-hist-wrap">
     <table class="tbl sk-hist-tbl" id="skHistTable">
       <thead><tr>
-        <th>Produk</th>
-        <th>Delta</th>
-        <th>Stock</th>
-        <th class="hide-sm">Keterangan</th>
-        <th class="hide-sm">Tanggal</th>
-        <th>Waktu</th>
+        <th>Product</th><th>Delta</th><th>Stock</th>
+        <th class="hide-sm">Note</th>
+        <th class="hide-sm">Date</th><th>Time</th>
         <th style="width:72px"></th>
       </tr></thead>
       <tbody id="skHistBody">${rows}</tbody>
@@ -563,19 +603,22 @@ function stockQuickAdd(key, amount) {
   const after  = before + amount;
   stock[key]   = after;
   stockSave(stock);
-  const meta   = PRODUCT_META.find(p => p.key === key);
-  historyAdd([{ key, name: meta ? meta.name : key, before, after, delta: +amount, note: `Quick +${amount}` }]);
+  const meta  = PRODUCT_META.find(p => p.key === key);
+  const entry = { key, name: meta ? meta.name : key, before, after, delta: +amount, note: `Quick +${amount}` };
+  historyAdd([entry]);
+  stockPushToSheets(stock);
+  historyPushToSheets([entry]);
   renderStockView();
-  showToast(`✅ ${meta ? meta.name : key} +${amount} → <strong>${after}</strong> packs`);
+  showToast(`✅ ${meta ? meta.name : key} +${amount} → <strong>${after}</strong> cups`);
 }
 
 // ══════════════════════════════════════════
-// EXPORT CSV — current stock
+// EXPORT CSV
 // ══════════════════════════════════════════
 function stockExportCSV() {
   const stock = stockLoad();
   const ts    = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  let csv     = 'Product,Key,Stock (packs),Exported At\n';
+  let csv     = 'Product,Key,Stock (cups),Exported At\n';
   PRODUCT_META.forEach(p => {
     csv += `"${p.name}","${p.key}",${stock[p.key]||0},"${ts}"\n`;
   });
@@ -591,9 +634,6 @@ function stockExportCSV() {
   downloadCSV(csv, `pawby-stock-${Date.now()}.csv`);
 }
 
-// ══════════════════════════════════════════
-// EXPORT CSV — history log
-// ══════════════════════════════════════════
 function stockExportHistory() {
   const history = historyLoad();
   if (!history.length) { alert('No stock history yet.'); return; }
@@ -608,8 +648,6 @@ function downloadCSV(content, filename) {
   const blob = new Blob([content], { type:'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.click();
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
