@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pawby Kitchen — Sales Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js" onload="try{lucide.createIcons();}catch(e){}"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="logo.png" alt="Pawby Kitchen" style="width:100px;object-fit:contain;margin-bottom:10px;filter:drop-shadow(0 4px 16px rgba(74,191,191,.3));display:block;margin-left:auto;margin-right:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <span class="paw" style="display:none">🐾</span>
+      <p>Sales Dashboard — Admin Only</p>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label>Username</label>
+      <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
+    <p class="login-footer">Pawby Kitchen © 2026 · Phnom Penh, Cambodia 🇰🇭</p>
+  </div>
+</div>
+
+<!-- ══ SIDEBAR OVERLAY (mobile) ══ -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <img src="logo.png" alt="Pawby Kitchen" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="sb-logo-fallback" style="display:none">🐾</div>
+    <div class="sb-logo-text"><span>Pawby Kitchen</span><small>Sales Dashboard</small></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">Menu</div>
+    <button class="ni active" onclick="switchView('dashboard',this)"><span class="ico">📊</span>Dashboard</button>
+    <button class="ni" onclick="switchView('orders',this)"><span class="ico">🛍️</span>All Orders</button>
+    <button class="ni" onclick="switchView('customers',this)"><span class="ico">👥</span>Customers</button>
+    <button class="ni" onclick="switchView('products',this)"><span class="ico">📦</span>Products</button>
+    <button class="ni" onclick="switchView('stock',this)"><span class="ico">🏪</span>Stock</button>
+    <div class="nav-lbl">Connection</div>
+    <button class="ni" onclick="openSetup()"><span class="ico">🔗</span>Setup Sheets</button>
+    <button class="ni" onclick="doSync()"><span class="ico">🔄</span>Sync Data</button>
+    <button class="ni" onclick="window.open('https://pawbykitchen.com/')"><span class="ico">🌐</span>Visit Website</button>
+    <div class="nav-lbl">Account</div>
+    <button class="ni" onclick="doLogout()" style="color:rgba(239,68,68,.7)"><span class="ico">🚪</span>Logout</button>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-footer-info" id="lastSyncInfo">Never synced</div>
+    <div class="sb-footer-info" id="loginInfo"></div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1 id="vTitle">Dashboard Overview</h1>
+        <p id="vSub">Welcome back, Pawby Admin 🐾</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="sync-chip warn" id="syncChip" onclick="doSync()">
+        <div class="sync-dot"></div>
+        <span id="syncTxt">Not connected</span>
+      </button>
+      <div class="date-pill" id="datePill"></div>
+      <button class="btn-add" onclick="openOrder()">+ Add Order</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- Setup Banner -->
+    <div class="setup-banner hidden" id="setupBanner">
+      <div>
+        <h4>⚠️ Google Sheets not connected</h4>
+        <p>Click Setup Sheets and paste your Apps Script URL to load data from Sheets.</p>
+      </div>
+      <button class="btn-setup" onclick="openSetup()">Setup Now →</button>
+    </div>
+
+    <!-- ══ DASHBOARD VIEW ══ -->
+    <div class="view active" id="view-dashboard">
+
+      <!-- Date Range Picker -->
+      <div style="margin-bottom:16px;position:relative;display:inline-block;">
+        <button id="activePeriodLabel" onclick="toggleRangePicker()"
+          style="font-size:.75rem;font-weight:700;color:var(--navy);background:#fff;border:1.5px solid var(--border);padding:6px 14px;border-radius:99px;font-family:var(--mono);cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--sh);transition:all .2s;">
+          📅 — <span style="font-size:.6rem;opacity:.35">▼</span>
+        </button>
+        <div id="calDropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:400;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(10,22,48,.15);padding:12px;width:260px;">
+          <div id="calBody">
+            <div class="cal-wrap" id="calLeft"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);gap:6px;">
+            <span id="rangeSelectedLabel" style="font-size:.68rem;color:var(--muted);font-family:var(--mono);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+            <button onclick="resetToCurrentMonth()" style="font-size:.67rem;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;padding:3px 6px;font-family:var(--font);flex-shrink:0;">Clear</button>
+            <button onclick="goToday()" style="font-size:.67rem;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:3px 6px;font-family:var(--font);flex-shrink:0;">Today</button>
+            <button onclick="applyRange()" style="font-size:.68rem;font-weight:700;color:#fff;background:var(--navy);border:none;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:var(--font);flex-shrink:0;">OK</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat blue">
+          <div class="stat-ico">💰</div>
+          <div class="stat-val" id="sRev">$0</div>
+          <div class="stat-lbl">Total Revenue</div>
+          <div class="stat-sub up" id="sRevSub">from 0 orders</div>
+          <div class="stat-period" id="sRevPeriod"></div>
+        </div>
+        <div class="stat green">
+          <div class="stat-ico">🛍️</div>
+          <div class="stat-val" id="sOrders">0</div>
+          <div class="stat-lbl">Total Orders</div>
+          <div class="stat-sub up" id="sOrderSub">0 this month</div>
+          <div class="stat-period" id="sOrderPeriod"></div>
+        </div>
+        <div class="stat orange">
+          <div class="stat-ico">📦</div>
+          <div class="stat-val" id="sProd">0</div>
+          <div class="stat-lbl">Items Sold</div>
+          <div class="stat-sub neu" id="sProdSub">total qty</div>
+          <div class="stat-period" id="sProdPeriod"></div>
+        </div>
+        <div class="stat purple">
+          <div class="stat-ico">👥</div>
+          <div class="stat-val" id="sCust">0</div>
+          <div class="stat-lbl">Unique Customers</div>
+          <div class="stat-sub up" id="sCustSub">via Telegram</div>
+          <div class="stat-period" id="sCustPeriod"></div>
+        </div>
+      </div>
+
+      <!-- Dash Grid -->
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-hdr"><h3>Recent Orders</h3><span id="recentCnt">—</span></div>
+          <div id="recentTbl"><div class="empty"><div class="e-ico">📭</div><p>No data yet. Sync from Sheets first!</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><h3>🏆 Top Products</h3></div>
+          <div id="topProds"><div class="empty"><div class="e-ico">📊</div><p>No data yet</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ORDERS VIEW ══ -->
+    <div class="view" id="view-orders">
+      <div class="sec-hdr"><h2>All Orders</h2><span id="allCnt">—</span></div>
+      <div class="sheet-tabs" id="sheetTabs"></div>
+      <div class="card"><div id="allTbl"><div class="empty"><div class="e-ico">🛍️</div><p>No orders yet</p></div></div></div>
+    </div>
+
+    <!-- ══ CUSTOMERS VIEW ══ -->
+    <div class="view" id="view-customers">
+      <div class="sec-hdr"><h2>Customers</h2><span id="custCnt">—</span></div>
+      <div class="card"><div id="custList"><div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div></div></div>
+    </div>
+
+    <!-- ══ PRODUCTS VIEW ══ -->
+    <div class="view" id="view-products">
+      <div class="sec-hdr"><h2>Product Catalog</h2></div>
+      <div class="p-grid" id="prodGrid"></div>
+    </div>
+
+    <!-- ══ STOCK VIEW ══ -->
+    <div class="view" id="view-stock">
+      <div class="sec-hdr">
+        <h2>Stock Management</h2>
+        <span>Monitor & manage product stock</span>
+      </div>
+      <div id="stockContent">
+        <div class="empty"><div class="e-ico">📦</div><p>Loading stock...</p></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════════════════════════════════════
+     MODAL: ADD ORDER
+══════════════════════════════════════════ -->
+<div class="overlay" id="orderOverlay">
+  <div class="modal">
+    <div class="m-hdr"><h3>🛒 Add New Order</h3><button class="m-close" onclick="closeOrder()">✕</button></div>
+    <div class="m-body">
+      <div class="f2">
+        <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username"></div>
+        <div class="fg"><label>Furbaby's Name 🐾</label><input id="fAnabul" placeholder="e.g. Milo" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"></div>
+      </div>
+      <div class="fg"><label>Qty per Product</label>
+        <div class="qty-row">
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐄 Pawbeefy</label><input type="number" id="fPawbeefy" value="0" min="0" oninput="calcTotal()"></div>
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐷 Pawporkby</label><input type="number" id="fPawporkby" value="0" min="0" oninput="calcTotal()"></div>
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐔 Chickipaw</label><input type="number" id="fChickipaw" value="0" min="0" oninput="calcTotal()"></div>
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🫐 Blueberry Bliss</label><input type="number" id="fBlueberry" value="0" min="0" oninput="calcTotal()"></div>
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🍖 Collagen Broth</label><input type="number" id="fCollagen" value="0" min="0" oninput="calcTotal()"></div>
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🍝 Spawghetti</label><input type="number" id="fSpawghetti" value="0" min="0" oninput="calcTotal()"></div>
+          <div class="fg" style="margin:0"><label style="font-size:.68rem">🥣 Woofball</label><input type="number" id="fWoofball" value="0" min="0" oninput="calcTotal()"></div>
+        </div>
+      </div>
+      <!-- Package -->
+      <div class="fg">
+        <label>Package</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="fPackage" onchange="calcTotal()" style="flex:1;">
+            <option value="">— None —</option>
+            <option value="Starter Pack" data-price="10.99">Starter Pack ($10.99)</option>
+            <option value="Weekly Pawby Pack" data-price="21.99">Weekly Pawby Pack ($21.99)</option>
+          </select>
+          <input type="number" id="fPackageQty" value="0" min="0" oninput="calcTotal()" style="width:70px;text-align:center;" placeholder="Qty">
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Total ($)</label><input type="number" id="fTotal" placeholder="0.00" step="0.01" style="background:#f0fdf4;font-weight:700;color:#059669;width:100%;box-sizing:border-box;"></div>
+        <div class="fg"><label>Discount ($)</label><input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal()" placeholder="0.00" style="width:100%;box-sizing:border-box;"></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Delivery Method</label>
+          <select id="fDelivery">
+            <option value="DELIVERY by PD">DELIVERY by PD</option>
+            <option value="COD - HP TOWER">COD - HP TOWER</option>
+            <option value="PICK UP STAR BAY">PICK UP STAR BAY</option>
+            <option value="COD">COD</option>
+          </select>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Payment</label>
+          <select id="fPayment">
+            <option value="ABA">ABA</option>
+            <option value="Cash">Cash</option>
+            <option value="Wing">Wing</option>
+            <option value="ACLEDA">ACLEDA</option>
+          </select>
+        </div>
+        <div class="fg"><label>Date</label><input type="date" id="fDate"></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Time</label><input type="time" id="fTime"></div>
+        <div class="fg"><label>Target Sheet</label><select id="fSheet"></select></div>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn-cancel" onclick="closeOrder()">Cancel</button>
+      <button class="btn-save" onclick="saveOrder()">💾 Save Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: RECEIPT
+══════════════════════════════════════════ -->
+<div class="receipt-overlay" id="receiptOverlay">
+  <div class="receipt-modal">
+    <div class="receipt-print" id="receiptContent">
+      <div class="rc-logo">
+        <img src="logo.png" alt="Pawby Kitchen">
+      </div>
+      <hr class="rc-divider">
+      <div class="rc-info-row">
+        <span class="rc-label">Telegram ID</span>
+        <span class="rc-value" id="rcTg">—</span>
+      </div>
+      <div class="rc-info-row">
+        <span class="rc-label">Furbaby's Name</span>
+        <span class="rc-value" id="rcAnabul">—</span>
+      </div>
+      <div class="rc-info-row">
+        <span class="rc-label">Delivery Date</span>
+        <span class="rc-value" id="rcDate">—</span>
+      </div>
+      <div class="rc-info-row">
+        <span class="rc-label">Delivery Time</span>
+        <span class="rc-value" id="rcTime">—</span>
+      </div>
+      <hr class="rc-divider">
+      <div class="rc-section-lbl">Pawby Selections</div>
+      <div id="rcProducts"></div>
+      <hr class="rc-divider">
+      <div id="rcTotals"></div>
+      <hr class="rc-divider">
+      <div class="rc-info-row">
+        <span class="rc-label">Delivery Method</span>
+        <span class="rc-value" id="rcDelivery">—</span>
+      </div>
+      <div class="rc-info-row">
+        <span class="rc-label">Payment</span>
+        <span class="rc-value" id="rcPayment">—</span>
+      </div>
+      <div class="rc-footer" style="margin-top:20px;">
+        <p>Thank you for choosing Pawby Kitchen! 🐶</p>
+        <p>pawbykitchen.com</p>
+        <div class="rc-order-id" id="rcOrderId">—</div>
+      </div>
+    </div>
+    <div class="receipt-actions">
+      <button class="rc-btn-close" onclick="closeReceipt()">Close</button>
+      <button class="rc-btn-download" onclick="downloadReceipt()">⬇️ Download Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: SETUP SHEETS
+══════════════════════════════════════════ -->
+<div class="overlay" id="setupOverlay">
+  <div class="modal">
+    <div class="m-hdr"><h3>🔗 Connect Google Sheets</h3><button class="m-close" onclick="closeSetup()">✕</button></div>
+    <div class="m-body">
+      <div class="step"><div class="step-n">1</div><div><h4>Open your Google Sheets</h4><p>Open the <strong>Pawby's Sales</strong> file → click <strong>Extensions → Apps Script</strong>.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div><h4>Paste the Apps Script code</h4><p>Delete all existing code, paste the entire <code>Code.gs</code> file contents. Click Save.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div><h4>Deploy as Web App</h4><p>Click <strong>Deploy → Manage deployments → Edit → New version → Deploy</strong>. Copy the URL.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div><h4>Paste the URL here</h4>
+        <div class="url-row">
+          <input id="sheetsUrl" type="text" placeholder="https://script.google.com/macros/s/...">
+          <button class="btn-conn" onclick="connectSheets()">Connect</button>
+        </div>
+      </div></div>
+    </div>
+    <div class="m-footer"><button class="btn-cancel" onclick="closeSetup()">Close</button></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: EDIT ORDER
+══════════════════════════════════════════ -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <div class="m-hdr"><h3>✏️ Edit Order</h3><button class="m-close" onclick="closeEdit()">✕</button></div>
+    <div class="m-body">
+      <div id="editInfo" style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:.82rem;color:var(--muted)"></div>
+      <div class="f2">
+        <div class="fg"><label>Total ($)</label><input type="number" id="eTotal" step="0.01"></div>
+        <div class="fg"><label>Bill ($)</label><input type="number" id="eBill" step="0.01"></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Delivery Method</label>
+          <select id="eDelivery">
+            <option value="DELIVERY by PD">DELIVERY by PD</option>
+            <option value="COD - HP TOWER">COD - HP TOWER</option>
+            <option value="PICK UP STAR BAY">PICK UP STAR BAY</option>
+            <option value="COD">COD</option>
+          </select>
+        </div>
+        <div class="fg"><label>Payment</label>
+          <select id="ePayment">
+            <option value="ABA">ABA</option>
+            <option value="Cash">Cash</option>
+            <option value="Wing">Wing</option>
+            <option value="ACLEDA">ACLEDA</option>
+          </select>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Time</label><input type="time" id="eTime"></div>
+        <div class="fg"><label>Furbaby's Name 🐾</label><input type="text" id="eAnabul" placeholder="e.g. Milo"></div>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">💾 Update Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Load stock engine BEFORE app.js -->
+<script src="stock.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
