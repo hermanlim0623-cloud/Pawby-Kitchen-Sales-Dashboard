@@ -52,7 +52,7 @@ async function doLogin() {
   const btn      = document.getElementById('loginBtn');
   const errEl    = document.getElementById('loginError');
   if (!username || !password) { showLoginError('Username and password are required!'); return; }
-  btn.textContent = 'Verifying...';
+  btn.textContent = 'Memverifikasi...';
   btn.disabled = true;
   errEl.style.display = 'none';
   try {
@@ -87,7 +87,7 @@ function showLoginError(msg) {
 }
 
 function doLogout() {
-  if (!confirm('Are you sure you want to logout?')) return;
+  if (!confirm('Yakin mau logout?')) return;
   localStorage.removeItem(SESSION_KEY);
   location.reload();
 }
@@ -236,7 +236,7 @@ function pickDay(ds) {
 function updateRangeLabel() {
   const lbl=document.getElementById('rangeSelectedLabel');
   if(!lbl)return;
-  if(pickStep===1){lbl.textContent='→ select end date';return;}
+  if(pickStep===1){lbl.textContent='→ pilih akhir';return;}
   lbl.textContent=rangeFrom===rangeTo?rangeFrom:`${rangeFrom}  →  ${rangeTo}`;
 }
 
@@ -331,12 +331,12 @@ function switchView(name,btn){
     orders:    ['All Orders','Manage orders from all months'],
     customers: ['Customers','Telegram customer data'],
     products:  ['Product Catalog','Statistics per product'],
-    stock:     ['Stock Management','Monitor & update product stock 📦'],
+    stock:     ['Stock Management','Monitor & update stok produk 📦'],
   };
   document.getElementById('vTitle').textContent=map[name][0];
   document.getElementById('vSub').textContent=map[name][1];
   closeSidebar();
-  if(name==='stock') renderStockView();
+  if(name==='stock') stockInitFromSheets();
   else renderAll();
 }
 
@@ -392,14 +392,14 @@ function showStockAlert(errors) {
   <div id="stockAlertModal" class="stock-alert-overlay" onclick="if(event.target===this)closeStockAlert()">
     <div class="stock-alert-box">
       <div class="stock-alert-icon">📦</div>
-      <h3 class="stock-alert-title">Insufficient Stock!</h3>
-      <p class="stock-alert-sub">Order cannot be saved — the following items are out of stock:</p>
+      <h3 class="stock-alert-title">Stok Tidak Cukup!</h3>
+      <p class="stock-alert-sub">Order tidak dapat disimpan karena stok berikut kurang:</p>
       <ul class="stock-alert-list">
         ${errors.map(e=>`<li>⚠️ ${e}</li>`).join('')}
       </ul>
       <div class="stock-alert-actions">
         <button class="stock-alert-close" onclick="closeStockAlert()">Tutup</button>
-        <button class="stock-alert-go" onclick="closeStockAlert();switchView('stock',document.querySelector('.ni[onclick*=\\'stock\\']'))">Manage Stock →</button>
+        <button class="stock-alert-go" onclick="closeStockAlert();switchView('stock',document.querySelector('.ni[onclick*=\\'stock\\']'))">Kelola Stok →</button>
       </div>
     </div>
   </div>`;
@@ -563,7 +563,7 @@ async function downloadReceipt(){
 // DELETE ORDER
 // ══════════════════════════════════════════
 async function deleteOrder(rowId,sheetName){
-  if(!confirm('Delete this order?')) return;
+  if(!confirm('Hapus order ini?')) return;
   orders=orders.filter(o=>String(o.rowId)!==String(rowId));
   saveLocal(); renderAll();
   await postSheets({action:'deleteOrder',rowId,sheetName});
@@ -636,7 +636,7 @@ function renderOrderTable(elId,list,maxRows){
         <td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
         <td><div class="action-btns">
           <button class="edit-btn" onclick="openEdit('${o.rowId}','${o.sheetName||''}')" title="Edit">✏️</button>
-          <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Delete">🗑</button>
+          <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Hapus">🗑</button>
         </div></td>
       </tr>`;
     }).join('')}</tbody></table></div>`;
@@ -658,7 +658,7 @@ function getMonthsFromOrders(data){
 function renderMonthTabs(){
   const el=document.getElementById('sheetTabs');
   const months=getMonthsFromOrders(orders);
-  el.innerHTML=`<button class="stab ${activeSheet==='all'?'active':''}" onclick="filterSheet('all')">📋 All</button>`
+  el.innerHTML=`<button class="stab ${activeSheet==='all'?'active':''}" onclick="filterSheet('all')">📋 Semua</button>`
     +months.map(m=>{
       const[y,mo]=m.split('-');
       const name=new Date(y,mo-1).toLocaleString('en-US',{month:'long'});
@@ -751,7 +751,7 @@ function renderProducts(){
     if (p.stockKey) {
       const qty = stock[p.stockKey] || 0;
       const cls = qty === 0 ? 'sl-empty' : qty <= 5 ? 'sl-low' : 'sl-ok';
-      stockBadge = `<div class="p-stock-badge ${cls}">📦 ${qty} cups</div>`;
+      stockBadge = `<div class="p-stock-badge ${cls}">📦 ${qty} packs</div>`;
     } else {
       // pack — show how many can be made
       const recipe = PACK_RECIPE[p.name];
