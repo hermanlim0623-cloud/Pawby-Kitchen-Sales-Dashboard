@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pawby Kitchen — Sales Dashboard</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js" onload="try{lucide.createIcons();}catch(e){}"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -15,8 +15,7 @@
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
-      <img src="logo.png" alt="Pawby Kitchen" style="width:100px;object-fit:contain;margin-bottom:10px;filter:drop-shadow(0 4px 16px rgba(74,191,191,.3));display:block;margin-left:auto;margin-right:auto;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-      <span class="paw" style="display:none">🐾</span>
+      <span class="paw">🐾</span>
       <h2>Pawby Kitchen</h2>
       <p>Sales Dashboard — Admin Only</p>
     </div>
@@ -42,9 +41,8 @@
 <!-- ══ SIDEBAR ══ -->
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
-    <img src="logo.png" alt="Pawby Kitchen" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="sb-logo-fallback" style="display:none">🐾</div>
-    <div class="sb-logo-text"><span>Pawby Kitchen</span><small>Sales Dashboard</small></div>
+    <span>🐾</span>
+    <div><span>Pawby Kitchen</span><br><small>Sales Dashboard</small></div>
   </div>
   <nav class="sb-nav">
     <div class="nav-lbl">Menu</div>
@@ -52,7 +50,6 @@
     <button class="ni" onclick="switchView('orders',this)"><span class="ico">🛍️</span>All Orders</button>
     <button class="ni" onclick="switchView('customers',this)"><span class="ico">👥</span>Customers</button>
     <button class="ni" onclick="switchView('products',this)"><span class="ico">📦</span>Products</button>
-    <button class="ni" onclick="switchView('stock',this)"><span class="ico">🏪</span>Stock</button>
     <div class="nav-lbl">Connection</div>
     <button class="ni" onclick="openSetup()"><span class="ico">🔗</span>Setup Sheets</button>
     <button class="ni" onclick="doSync()"><span class="ico">🔄</span>Sync Data</button>
@@ -61,8 +58,8 @@
     <button class="ni" onclick="doLogout()" style="color:rgba(239,68,68,.7)"><span class="ico">🚪</span>Logout</button>
   </nav>
   <div class="sb-footer">
-    <div class="sb-footer-info" id="lastSyncInfo">Never synced</div>
-    <div class="sb-footer-info" id="loginInfo"></div>
+    <div style="padding:8px 12px;font-size:.68rem;color:rgba(255,255,255,.25);font-family:var(--mono)" id="lastSyncInfo">Never synced</div>
+    <div style="padding:4px 12px 8px;font-size:.65rem;color:rgba(255,255,255,.2);font-family:var(--mono)" id="loginInfo"></div>
   </div>
 </aside>
 
@@ -71,7 +68,7 @@
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-left">
+    <div style="display:flex;align-items:center;gap:10px;">
       <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title">
         <h1 id="vTitle">Dashboard Overview</h1>
@@ -186,17 +183,6 @@
       <div class="p-grid" id="prodGrid"></div>
     </div>
 
-    <!-- ══ STOCK VIEW ══ -->
-    <div class="view" id="view-stock">
-      <div class="sec-hdr">
-        <h2>Stock Management</h2>
-        <span>Monitor & manage product stock</span>
-      </div>
-      <div id="stockContent">
-        <div class="empty"><div class="e-ico">📦</div><p>Loading stock...</p></div>
-      </div>
-    </div>
-
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -276,11 +262,17 @@
 ══════════════════════════════════════════ -->
 <div class="receipt-overlay" id="receiptOverlay">
   <div class="receipt-modal">
+
+    <!-- Printable content -->
     <div class="receipt-print" id="receiptContent">
+
+      <!-- Logo -->
       <div class="rc-logo">
         <img src="logo.png" alt="Pawby Kitchen">
       </div>
       <hr class="rc-divider">
+
+      <!-- Customer Info -->
       <div class="rc-info-row">
         <span class="rc-label">Telegram ID</span>
         <span class="rc-value" id="rcTg">—</span>
@@ -297,12 +289,21 @@
         <span class="rc-label">Delivery Time</span>
         <span class="rc-value" id="rcTime">—</span>
       </div>
+
       <hr class="rc-divider">
+
+      <!-- Products -->
       <div class="rc-section-lbl">Pawby Selections</div>
       <div id="rcProducts"></div>
+
       <hr class="rc-divider">
+
+      <!-- Totals -->
       <div id="rcTotals"></div>
+
       <hr class="rc-divider">
+
+      <!-- Delivery & Payment -->
       <div class="rc-info-row">
         <span class="rc-label">Delivery Method</span>
         <span class="rc-value" id="rcDelivery">—</span>
@@ -311,16 +312,22 @@
         <span class="rc-label">Payment</span>
         <span class="rc-value" id="rcPayment">—</span>
       </div>
+
+      <!-- Footer -->
       <div class="rc-footer" style="margin-top:20px;">
         <p>Thank you for choosing Pawby Kitchen! 🐶</p>
         <p>pawbykitchen.com</p>
         <div class="rc-order-id" id="rcOrderId">—</div>
       </div>
-    </div>
+
+    </div><!-- /receipt-print -->
+
+    <!-- Action Buttons -->
     <div class="receipt-actions">
       <button class="rc-btn-close" onclick="closeReceipt()">Close</button>
       <button class="rc-btn-download" onclick="downloadReceipt()">⬇️ Download Receipt</button>
     </div>
+
   </div>
 </div>
 
@@ -387,8 +394,6 @@
   </div>
 </div>
 
-<!-- Load stock engine BEFORE app.js -->
-<script src="stock.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
