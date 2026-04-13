@@ -738,17 +738,35 @@ async function saveOrder(){
     order.rowId=Date.now();
     order._normalized = true;
 
-    // 1️⃣ Simpan lokal & update UI
+    // 🔍 1️⃣ VALIDASI STOK SEBELUM SAVE
+    if (isSupabaseConnected()) {
+        const insufficient = [];
+        PRODUCT_META.forEach(p => {
+            const qty = order[p.key] || 0;
+            if (qty > 0) {
+                const available = stocks[p.key]?.quantity || 0;
+                if (available < qty) {
+                    insufficient.push(`${p.emoji} ${p.name} (Butuh: ${qty} | Ada: ${available})`);
+                }
+            }
+        });
+
+        if (insufficient.length > 0) {
+            // 🚫 BLOKIR ORDER & TAMPILKAN NOTIFIKASI
+            showToast('❌ Stok tidak cukup: ' + insufficient.join(' • '), 'error');
+            return; // Hentikan fungsi di sini. Order TIDAK akan disimpan.
+        }
+    }
+
+    // ✅ 2️⃣ STOK CUKUP / SUPABASE OFFLINE → LANJUTKAN SAVE
     orders.unshift(order);
     saveLocal();
     closeOrder();
     renderAll();
     showReceipt(order);
-
-    // 2️⃣ Kirim ke Sheets
     await postSheets({action:'addOrder',order,sheetName:order.sheetName});
 
-    // 🔹 3️⃣ AUTO DEDUCT STOCK (SUPABASE)
+    // 📦 3️⃣ AUTO DEDUCT STOCK (Hanya jalan jika validasi lolos)
     if (isSupabaseConnected()) {
         const stockTasks = [];
         PRODUCT_META.forEach(p => {
@@ -759,22 +777,20 @@ async function saveOrder(){
         });
 
         if (stockTasks.length > 0) {
-            // Tampilkan loading sementara
-            showToast('📦 Memotong stok...', 'info');
+            showToast('📦 Memproses pengurangan stok...', 'info');
             const results = await Promise.all(stockTasks);
             const failed = results.filter(r => r === false);
             
             if (failed.length > 0) {
-                showToast('⚠️ Gagal memotong beberapa stok (mungkin stok tidak cukup)', 'warning');
+                showToast('⚠️ Order tersimpan, tapi gagal kurangi sebagian stok', 'warning');
             } else {
-                showToast('✅ Stok otomatis terpotong di Supabase', 'success');
+                showToast('✅ Order berhasil & stok otomatis terpotong', 'success');
             }
-            // Refresh view stock jika sedang terbuka
             if (document.getElementById('view-stock').classList.contains('active')) renderStockView();
         }
     }
 
-    // 4️⃣ Reset Form
+    // 🔄 4️⃣ RESET FORM
     ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
     ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fPackageQty','fDisc']
         .forEach(id=>document.getElementById(id).value=0);
