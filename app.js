@@ -114,8 +114,8 @@ function toFloat(v) { return parseFloat(v) || 0; }
 // ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
-let SUPABASE_URL = localStorage.getItem('pawby_supabase_url') || '';
-let SUPABASE_KEY = localStorage.getItem('pawby_supabase_key') || '';
+let SUPABASE_URL = localStorage.getItem('pawby_supabase_url') || 'https://cqghlxtuuxqggiqxtjbl.supabase.co';
+let SUPABASE_KEY = localStorage.getItem('pawby_supabase_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxZ2hseHR1dXhxZ2dpcXh0amJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTU5NzAsImV4cCI6MjA5MTY3MTk3MH0.KHwuEpwUZwRBvj6lN4I_LVX7xWB5eMnZd1w2Bu_W9UU';
 
 async function sbFetch(path, opts = {}) {
   if (!SUPABASE_URL || !SUPABASE_KEY) return null;
