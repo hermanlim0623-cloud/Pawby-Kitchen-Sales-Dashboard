@@ -711,49 +711,74 @@ function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 // SAVE ORDER
 // ══════════════════════════════════════════
 async function saveOrder(){
-  let tgId=document.getElementById('fTg').value.trim();
-  if(tgId&&!tgId.startsWith('@')) tgId='@'+tgId;
-  const disc=parseFloat(document.getElementById('fDisc').value)||0;
+    let tgId=document.getElementById('fTg').value.trim();
+    if(tgId&&!tgId.startsWith('@')) tgId='@'+tgId;
+    const disc=parseFloat(document.getElementById('fDisc').value)||0;
+    const orderDate = document.getElementById('fDate').value;
+    const sheetName = getSheetNameForDate(orderDate);
+    
+    const order={
+        tgId, anabul:document.getElementById('fAnabul').value.trim(),
+        pawbeefy:parseInt(document.getElementById('fPawbeefy').value)||0,
+        pawporkby:parseInt(document.getElementById('fPawporkby').value)||0,
+        chickipaw:parseInt(document.getElementById('fChickipaw').value)||0,
+        blueberry:parseInt(document.getElementById('fBlueberry').value)||0,
+        collagen:parseInt(document.getElementById('fCollagen').value)||0,
+        spawghetti:parseInt(document.getElementById('fSpawghetti').value)||0,
+        woofball:parseInt(document.getElementById('fWoofball').value)||0,
+        special:0, package:document.getElementById('fPackage').value,
+        packageQty:parseInt(document.getElementById('fPackageQty').value)||0,
+        disc, total:parseFloat(document.getElementById('fTotal').value)||0,
+        delivery:document.getElementById('fDelivery').value,
+        payment:document.getElementById('fPayment').value,
+        date:orderDate, time:document.getElementById('fTime').value,
+        sheetName: sheetName,
+    };
+    order.bill=order.total;
+    order.rowId=Date.now();
+    order._normalized = true;
 
-  // Determine target sheet name based on selected date
-  const orderDate = document.getElementById('fDate').value;
-  const sheetName = getSheetNameForDate(orderDate);
+    // 1️⃣ Simpan lokal & update UI
+    orders.unshift(order);
+    saveLocal();
+    closeOrder();
+    renderAll();
+    showReceipt(order);
 
-  const order={
-    tgId,
-    anabul:document.getElementById('fAnabul').value.trim(),
-    pawbeefy:parseInt(document.getElementById('fPawbeefy').value)||0,
-    pawporkby:parseInt(document.getElementById('fPawporkby').value)||0,
-    chickipaw:parseInt(document.getElementById('fChickipaw').value)||0,
-    blueberry:parseInt(document.getElementById('fBlueberry').value)||0,
-    collagen:parseInt(document.getElementById('fCollagen').value)||0,
-    spawghetti:parseInt(document.getElementById('fSpawghetti').value)||0,
-    woofball:parseInt(document.getElementById('fWoofball').value)||0,
-    special:0,
-    package:document.getElementById('fPackage').value,
-    packageQty:parseInt(document.getElementById('fPackageQty').value)||0,
-    disc,
-    total:parseFloat(document.getElementById('fTotal').value)||0,
-    delivery:document.getElementById('fDelivery').value,
-    payment:document.getElementById('fPayment').value,
-    date:orderDate,
-    time:document.getElementById('fTime').value,
-    sheetName: sheetName,
-  };
-  order.bill=order.total;
-  order.rowId=Date.now();
-  order._normalized = true;
-  orders.unshift(order);
-  saveLocal();
-  closeOrder();
-  renderAll();
-  showReceipt(order);
-  await postSheets({action:'addOrder',order,sheetName:order.sheetName});
-  // Reset form
-  ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
-  ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fPackageQty','fDisc']
-    .forEach(id=>document.getElementById(id).value=0);
-  document.getElementById('fPackage').value='';
+    // 2️⃣ Kirim ke Sheets
+    await postSheets({action:'addOrder',order,sheetName:order.sheetName});
+
+    // 🔹 3️⃣ AUTO DEDUCT STOCK (SUPABASE)
+    if (isSupabaseConnected()) {
+        const stockTasks = [];
+        PRODUCT_META.forEach(p => {
+            const qty = order[p.key] || 0;
+            if (qty > 0) {
+                stockTasks.push(reduceStock(p.key, qty, `Order #${order.rowId} | ${order.tgId}`));
+            }
+        });
+
+        if (stockTasks.length > 0) {
+            // Tampilkan loading sementara
+            showToast('📦 Memotong stok...', 'info');
+            const results = await Promise.all(stockTasks);
+            const failed = results.filter(r => r === false);
+            
+            if (failed.length > 0) {
+                showToast('⚠️ Gagal memotong beberapa stok (mungkin stok tidak cukup)', 'warning');
+            } else {
+                showToast('✅ Stok otomatis terpotong di Supabase', 'success');
+            }
+            // Refresh view stock jika sedang terbuka
+            if (document.getElementById('view-stock').classList.contains('active')) renderStockView();
+        }
+    }
+
+    // 4️⃣ Reset Form
+    ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
+    ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fPackageQty','fDisc']
+        .forEach(id=>document.getElementById(id).value=0);
+    document.getElementById('fPackage').value='';
 }
 
 // Generate sheet name from date: "Mar Pawby Sales", "Apr Pawby Sales"
