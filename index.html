@@ -50,6 +50,7 @@
     <button class="ni" onclick="switchView('orders',this)"><span class="ico">🛍️</span>All Orders</button>
     <button class="ni" onclick="switchView('customers',this)"><span class="ico">👥</span>Customers</button>
     <button class="ni" onclick="switchView('products',this)"><span class="ico">📦</span>Products</button>
+    <button class="ni" onclick="switchView('stock',this)"><span class="ico">📦</span>Stock</button>
     <div class="nav-lbl">Connection</div>
     <button class="ni" onclick="openSetup()"><span class="ico">🔗</span>Setup Sheets</button>
     <button class="ni" onclick="doSync()"><span class="ico">🔄</span>Sync Data</button>
@@ -182,7 +183,32 @@
       <div class="sec-hdr"><h2>Product Catalog</h2></div>
       <div class="p-grid" id="prodGrid"></div>
     </div>
+     <!-- ══ STOCK VIEW ══ -->
+     <div class="view" id="view-stock">
+       <div class="sec-hdr"><h2>📦 Stock Management</h2></div>
+       
+       <!-- Quick Add Card -->
+       <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;">
+         <div class="card-hdr" style="color:#fff;">
+           <h3>⚡ Quick Add Stock</h3>
+         </div>
+         <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+           <select id="stockProduct" style="padding:10px;border-radius:6px;border:none;background:#fff;color:#333;font-weight:600;">
+             <option value="">Select product...</option>
+           </select>
+           <input type="number" id="stockQty" placeholder="Quantity" min="1" style="padding:10px;border-radius:6px;border:none;background:#fff;color:#333;font-weight:600;">
+           <input type="text" id="stockNotes" placeholder="Notes (optional)" style="grid-column:1/-1;padding:10px;border-radius:6px;border:none;background:rgba(255,255,255,.9);color:#333;">
+           <button onclick="handleQuickAddStock()" style="grid-column:1/-1;padding:12px;background:#fff;color:#667eea;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;transition:all 0.2s;">➕ Add Stock Now</button>
+         </div>
+       </div>
 
+       <!-- Stock Levels Card -->
+       <div class="card">
+         <div class="card-hdr"><h3>📊 Current Stock Levels</h3></div>
+         <div id="stockTable"></div>
+       </div>
+     </div>
+    
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -393,7 +419,36 @@
     </div>
   </div>
 </div>
+<!-- ══════════════════════════════════════════
+     MODAL: EDIT STOCK
+══════════════════════════════════════════ -->
+<div class="overlay" id="editStockOverlay">
+  <div class="modal">
+    <div class="m-hdr"><h3>✏️ Edit Stock</h3><button class="m-close" onclick="closeStockEdit()">✕</button></div>
+    <div class="m-body">
+      <div id="editStockProduct" style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:.95rem;color:var(--navy);font-weight:600;"></div>
+      <div class="f2">
+        <div class="fg"><label>Current Quantity</label><input type="number" id="editStockQty" min="0" step="1"></div>
+        <div class="fg"><label>Min Stock Alert</label><input type="number" id="editStockMin" min="1" step="1" disabled style="background:#f3f4f6;cursor:not-allowed;"></div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="editStockNotes" placeholder="e.g. Restock from supplier" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;min-height:60px;"></textarea></div>
+    </div>
+    <div class="m-footer">
+      <button class="btn-cancel" onclick="closeStockEdit()">Cancel</button>
+      <button class="btn-save" onclick="saveStockEdit()">💾 Save Stock</button>
+    </div>
+  </div>
+</div>
 
+<style>
+  #editStockOverlay {
+    display:none;
+  }
+  #editStockOverlay.open {
+    display:flex;
+  }
+</style>
+  
 <script src="app.js"></script>
 </body>
 </html>
