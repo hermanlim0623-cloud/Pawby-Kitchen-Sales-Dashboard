@@ -14,7 +14,8 @@ const PRICES = {
   blueberry: 2.50,
   collagen: 3.00,
   spawghetti: 3.00,
-  woofball: 3.00
+  woofball: 3.00,
+  tilapaw: 2.00
 };
 
 const PRODUCT_META = [
@@ -25,6 +26,7 @@ const PRODUCT_META = [
   { key: 'collagen',  emoji: '🍖', name: 'Collagen Broth',       price: 3.00 },
   { key: 'spawghetti',emoji: '🍝', name: 'Spawghetti Beefonara', price: 3.00 },
   { key: 'woofball',  emoji: '🥣', name: 'Woofball',             price: 3.00 },
+  { key: 'tilapaw',   emoji: '🐟', name: 'Tilapaw',              price: 2.00 } 
 ];
 
 const PACKAGE_PRICES = {
@@ -739,6 +741,7 @@ async function saveOrder(){
         collagen:parseInt(document.getElementById('fCollagen').value)||0,
         spawghetti:parseInt(document.getElementById('fSpawghetti').value)||0,
         woofball:parseInt(document.getElementById('fWoofball').value)||0,
+        tilapaw: parseInt(document.getElementById('fTilapaw').value) || 0,
         special:0, package:document.getElementById('fPackage').value,
         packageQty:parseInt(document.getElementById('fPackageQty').value)||0,
         disc, total:parseFloat(document.getElementById('fTotal').value)||0,
@@ -837,7 +840,7 @@ async function saveOrder(){
 
     // 🔄 4️⃣ RESET FORM
     ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
-    ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fPackageQty','fDisc']
+    ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fTilapaw','fPackageQty','fDisc']
         .forEach(id=>document.getElementById(id).value=0);
     document.getElementById('fPackage').value='';
 }
@@ -972,7 +975,7 @@ function renderStats(){
   const qty=src.reduce((s,o)=>
     s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)+(parseInt(o.chickipaw)||0)
     +(parseInt(o.blueberry)||0)+(parseInt(o.collagen)||0)+(parseInt(o.spawghetti)||0)
-    +(parseInt(o.woofball)||0)+(parseInt(o.packageQty)||0),0);
+    + (parseInt(o.tilapaw)||0)+(parseInt(o.woofball)||0)+(parseInt(o.packageQty)||0),0);
   const custs=[...new Set(src.map(o=>o.tgId).filter(Boolean))].length;
   const lbl=document.getElementById('activePeriodLabel');
   if(lbl) lbl.innerHTML=label + ' <span style="font-size:.65rem;opacity:.5">▼</span>';
@@ -1029,6 +1032,7 @@ function renderOrderTable(elId,list,maxRows){
     if(collagen) items.push('🍖×'+collagen);
     if(spawghetti) items.push('🍝×'+spawghetti);
     if(woofball) items.push('🥣×'+woofball);
+    if(tilapaw) items.push('🐟×' + tilapaw);
     if(package_){const qty=packageQty>1?'×'+packageQty:'';items.push('📦'+esc(package_)+qty);}
     
     const prod=items.length?items.join(' '):'—';
