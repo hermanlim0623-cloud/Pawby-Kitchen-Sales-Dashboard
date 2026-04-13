@@ -32,6 +32,19 @@ const PACKAGE_PRICES = {
   'Weekly Pawby Pack': 21.99
 };
 
+const PACKAGE_CONTENTS = {
+    'Starter Pack': {
+        pawbeefy: 2,
+        chickipaw: 2,
+        pawporkby: 3
+    },
+    'Weekly Pawby Pack': {
+        pawbeefy: 5,
+        chickipaw: 4,
+        pawporkby: 5
+    }
+};
+
 // ══════════════════════════════════════════
 // HTML SANITIZER (prevent XSS)
 // ══════════════════════════════════════════
@@ -738,9 +751,11 @@ async function saveOrder(){
     order.rowId=Date.now();
     order._normalized = true;
 
-    // 🔍 1️⃣ VALIDASI STOK SEBELUM SAVE
+    // 🔍 1️⃣ VALIDASI STOK (Produk + Paket)
     if (isSupabaseConnected()) {
         const insufficient = [];
+        
+        // Validasi produk individual
         PRODUCT_META.forEach(p => {
             const qty = order[p.key] || 0;
             if (qty > 0) {
@@ -750,15 +765,30 @@ async function saveOrder(){
                 }
             }
         });
+        
+        // Validasi komponen paket
+        if (order.package && order.packageQty > 0 && PACKAGE_CONTENTS[order.package]) {
+            const components = PACKAGE_CONTENTS[order.package];
+            Object.entries(components).forEach(([prodKey, qtyPerPack]) => {
+                const totalNeeded = qtyPerPack * order.packageQty;
+                const available = stocks[prodKey]?.quantity || 0;
+                const productMeta = PRODUCT_META.find(p => p.key === prodKey);
+                const emoji = productMeta ? productMeta.emoji : '📦';
+                const name = productMeta ? productMeta.name : prodKey;
+                
+                if (available < totalNeeded) {
+                    insufficient.push(`${emoji} ${name} untuk paket (Butuh: ${totalNeeded} | Ada: ${available})`);
+                }
+            });
+        }
 
         if (insufficient.length > 0) {
-            // 🚫 BLOKIR ORDER & TAMPILKAN NOTIFIKASI
-            showToast('❌ Stok tidak cukup: ' + insufficient.join(' • '), 'error');
-            return; // Hentikan fungsi di sini. Order TIDAK akan disimpan.
+            showToast('❌ Stok tidak cukup:\n' + insufficient.join('\n'), 'error');
+            return; // BLOKIR ORDER
         }
     }
 
-    // ✅ 2️⃣ STOK CUKUP / SUPABASE OFFLINE → LANJUTKAN SAVE
+    // ✅ 2️⃣ STOK CUKUP → LANJUTKAN SAVE
     orders.unshift(order);
     saveLocal();
     closeOrder();
@@ -766,15 +796,30 @@ async function saveOrder(){
     showReceipt(order);
     await postSheets({action:'addOrder',order,sheetName:order.sheetName});
 
-    // 📦 3️⃣ AUTO DEDUCT STOCK (Hanya jalan jika validasi lolos)
+    // 📦 3️⃣ AUTO DEDUCT STOCK (Produk + Paket)
     if (isSupabaseConnected()) {
         const stockTasks = [];
+        
+        // Deduct produk individual
         PRODUCT_META.forEach(p => {
             const qty = order[p.key] || 0;
             if (qty > 0) {
                 stockTasks.push(reduceStock(p.key, qty, `Order #${order.rowId} | ${order.tgId}`));
             }
         });
+        
+        // Deduct komponen paket
+        if (order.package && order.packageQty > 0 && PACKAGE_CONTENTS[order.package]) {
+            const components = PACKAGE_CONTENTS[order.package];
+            Object.entries(components).forEach(([prodKey, qtyPerPack]) => {
+                const totalQty = qtyPerPack * order.packageQty;
+                stockTasks.push(reduceStock(
+                    prodKey, 
+                    totalQty, 
+                    `Paket ${order.package} (${order.packageQty}x) | Order #${order.rowId}`
+                ));
+            });
+        }
 
         if (stockTasks.length > 0) {
             showToast('📦 Memproses pengurangan stok...', 'info');
