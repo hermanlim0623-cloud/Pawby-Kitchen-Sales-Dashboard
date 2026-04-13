@@ -33,6 +33,119 @@ const PACKAGE_PRICES = {
 };
 
 // ══════════════════════════════════════════
+// STOCK SYSTEM
+// ═══════════��══════════════════════════════
+let stocks = JSON.parse(localStorage.getItem('pawby_stocks') || '{}');
+
+const saveStocks = () => localStorage.setItem('pawby_stocks', JSON.stringify(stocks));
+
+function initializeStocks() {
+  PRODUCT_META.forEach(p => {
+    if (!stocks[p.key]) {
+      stocks[p.key] = {
+        key: p.key,
+        name: p.name,
+        emoji: p.emoji,
+        quantity: 0,
+        minStock: 5,
+        lastUpdated: new Date().toISOString(),
+        price: p.price
+      };
+    }
+  });
+  saveStocks();
+}
+
+// ══════════════════════════════════════════
+// STOCK SYNC WITH SHEETS
+// ══════════════════════════════════════════
+async function syncStocks() {
+  if(!SHEETS_URL) return;
+  try {
+    const res = await fetch(SHEETS_URL + '?action=getStocks&t=' + Date.now());
+    const data = await res.json();
+    if(data.success && data.stocks) {
+      stocks = data.stocks;
+      saveStocks();
+      return true;
+    }
+  } catch(e) {
+    console.error('Stock sync failed:', e);
+  }
+  return false;
+}
+
+async function postStocks(body) {
+  if(!SHEETS_URL) return;
+  try {
+    await fetch(SHEETS_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+  } catch(e) {
+    console.error('Stock post failed:', e);
+  }
+}
+
+// ══════════════════════════════════════════
+// STOCK MANAGEMENT FUNCTIONS
+// ══════════════════════════════════════════
+function updateStock(productKey, quantity, notes = '') {
+  if(!stocks[productKey]) return false;
+  stocks[productKey].quantity = Math.max(0, parseInt(quantity));
+  stocks[productKey].lastUpdated = new Date().toISOString();
+  saveStocks();
+  postStocks({
+    action: 'updateStock',
+    productKey: productKey,
+    quantity: stocks[productKey].quantity,
+    notes: notes
+  });
+  return true;
+}
+
+function addStock(productKey, quantity, notes = '') {
+  if(!stocks[productKey]) return false;
+  quantity = parseInt(quantity) || 0;
+  stocks[productKey].quantity += quantity;
+  stocks[productKey].lastUpdated = new Date().toISOString();
+  saveStocks();
+  postStocks({
+    action: 'updateStock',
+    productKey: productKey,
+    quantity: stocks[productKey].quantity,
+    notes: `Add ${quantity} - ${notes}`
+  });
+  return true;
+}
+
+function reduceStock(productKey, quantity, notes = '') {
+  if(!stocks[productKey]) return false;
+  quantity = parseInt(quantity) || 0;
+  if(stocks[productKey].quantity < quantity) return false;
+  stocks[productKey].quantity -= quantity;
+  stocks[productKey].lastUpdated = new Date().toISOString();
+  saveStocks();
+  postStocks({
+    action: 'updateStock',
+    productKey: productKey,
+    quantity: stocks[productKey].quantity,
+    notes: `Reduce ${quantity} - ${notes}`
+  });
+  return true;
+}
+
+function getStockStatus(productKey) {
+  if(!stocks[productKey]) return null;
+  const s = stocks[productKey];
+  if(s.quantity <= s.minStock) return 'low';
+  if(s.quantity > s.minStock * 2) return 'high';
+  return 'normal';
+}
+
+// ══════════════════════════════════════════
 // LOGIN SYSTEM
 // ══════════════════════════════════════════
 function checkSession() {
@@ -294,20 +407,27 @@ async function postSheets(body) {
 }
 
 function init() {
-  document.getElementById('datePill').textContent =
-    new Date().toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
-  const now=new Date();
-  document.getElementById('fDate').valueAsDate=now;
-  document.getElementById('fTime').value=now.toTimeString().slice(0,5);
-  if(SHEETS_URL){
-    document.getElementById('sheetsUrl').value=SHEETS_URL;
-    document.getElementById('setupBanner').classList.add('hidden');
-    setSync('ok','Connected to Sheets');
-    setTimeout(()=>doSync(),800);
-  } else {
-    document.getElementById('setupBanner').classList.remove('hidden');
-    renderAll();
-  }
+   document.getElementById('datePill').textContent =
+     new Date().toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+   const now=new Date();
+   document.getElementById('fDate').valueAsDate=now;
+   document.getElementById('fTime').value=now.toTimeString().slice(0,5);
+   
+   // Initialize stocks
+   initializeStocks();
+   
+   if(SHEETS_URL){
+     document.getElementById('sheetsUrl').value=SHEETS_URL;
+     document.getElementById('setupBanner').classList.add('hidden');
+     setSync('ok','Connected to Sheets');
+     setTimeout(()=>{
+       doSync();
+       syncStocks();
+     },800);
+   } else {
+     document.getElementById('setupBanner').classList.remove('hidden');
+     renderAll();
+   }
 }
 
 // ══════════════════════════════════════════
@@ -322,19 +442,22 @@ function closeSidebar(){
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
 function switchView(name,btn){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  btn.classList.add('active');
-  const map={
-    dashboard:['Dashboard Overview','Welcome back, Pawby Admin 🐾'],
-    orders:['All Orders','Manage orders from all months'],
-    customers:['Customers','Telegram customer data'],
-    products:['Product Catalog','Statistics per product'],
-  };
-  document.getElementById('vTitle').textContent=map[name][0];
-  document.getElementById('vSub').textContent=map[name][1];
-  closeSidebar(); renderAll();
+   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+   document.getElementById('view-'+name).classList.add('active');
+   btn.classList.add('active');
+   const map={
+     dashboard:['Dashboard Overview','Welcome back, Pawby Admin 🐾'],
+     orders:['All Orders','Manage orders from all months'],
+     customers:['Customers','Telegram customer data'],
+     products:['Product Catalog','Statistics per product'],
+     stock:['📦 Stock Management','Track inventory for all products'],
+   };
+   document.getElementById('vTitle').textContent=map[name][0];
+   document.getElementById('vSub').textContent=map[name][1];
+   closeSidebar();
+   if(name === 'stock') renderStockView();
+   else renderAll();
 }
 
 // ══════════════════════════════════════════
@@ -764,6 +887,114 @@ async function saveEdit(){
   }
   setSync('ok','Sheets updated ✓');
   setTimeout(()=>setSync('ok','Synced ✓'),3000);
+}
+
+// ══════════════════════════════════════════
+// RENDER — STOCK MANAGEMENT
+// ══════════════════════════════════════════
+let editingStockKey = null;
+
+function renderStockView() {
+  const select = document.getElementById('stockProduct');
+  select.innerHTML = '<option value="">Select product...</option>' +
+    PRODUCT_META.map(p => `<option value="${p.key}">${p.emoji} ${p.name}</option>`).join('');
+
+  const table = document.getElementById('stockTable');
+  const items = PRODUCT_META.map(p => {
+    const stock = stocks[p.key] || {};
+    const qty = stock.quantity || 0;
+    const minQty = stock.minStock || 5;
+    const status = getStockStatus(p.key);
+    const statusColor = status === 'low' ? '#ef4444' : status === 'high' ? '#10b981' : '#f59e0b';
+    const statusEmoji = status === 'low' ? '⚠️' : status === 'high' ? '✅' : '📦';
+    
+    const lastUpdate = stock.lastUpdated ? new Date(stock.lastUpdated).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '—';
+    
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--border);hover-effect:true">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;">
+          <span style="font-size:1.5rem;">${p.emoji}</span>
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--navy);">${p.name}</div>
+            <div style="font-size:.72rem;color:var(--muted);">Last: ${lastUpdate}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="text-align:right;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <div style="font-size:1.4rem;font-weight:700;color:${statusColor};">${qty}</div>
+              <div style="font-size:.75rem;color:var(--muted);">/ ${minQty}</div>
+            </div>
+            <div style="font-size:.68rem;color:var(--muted);">${statusEmoji} ${status}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="openStockEdit('${p.key}')" style="padding:6px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">Edit</button>
+            <button onclick="openStockHistory('${p.key}')" style="padding:6px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">History</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  table.innerHTML = items || '<div class="empty"><div class="e-ico">📭</div><p>No stock data</p></div>';
+}
+
+function handleQuickAddStock() {
+  const productKey = document.getElementById('stockProduct').value;
+  const quantity = parseInt(document.getElementById('stockQty').value) || 0;
+  const notes = document.getElementById('stockNotes').value;
+
+  if (!productKey || quantity <= 0) {
+    alert('⚠️ Please select product and enter quantity');
+    return;
+  }
+
+  addStock(productKey, quantity, notes);
+  document.getElementById('stockQty').value = '';
+  document.getElementById('stockNotes').value = '';
+  document.getElementById('stockProduct').value = '';
+  
+  renderStockView();
+  setSync('ok','Stock added ✓');
+  setTimeout(()=>setSync('ok','Synced ✓'),3000);
+}
+
+function openStockEdit(productKey) {
+  editingStockKey = productKey;
+  const stock = stocks[productKey];
+  document.getElementById('editStockProduct').textContent = `${stock.emoji} ${stock.name}`;
+  document.getElementById('editStockQty').value = stock.quantity;
+  document.getElementById('editStockMin').value = stock.minStock;
+  document.getElementById('editStockNotes').value = '';
+  document.getElementById('editStockOverlay').classList.add('open');
+}
+
+function closeStockEdit() {
+  document.getElementById('editStockOverlay').classList.remove('open');
+  editingStockKey = null;
+}
+
+function saveStockEdit() {
+  if (!editingStockKey) return;
+  const qty = parseInt(document.getElementById('editStockQty').value);
+  const notes = document.getElementById('editStockNotes').value;
+  
+  if (qty < 0) {
+    alert('⚠️ Quantity cannot be negative');
+    return;
+  }
+  
+  updateStock(editingStockKey, qty, notes);
+  closeStockEdit();
+  renderStockView();
+  setSync('ok','Stock updated ✓');
+  setTimeout(()=>setSync('ok','Synced ✓'),3000);
+}
+
+function openStockHistory(productKey) {
+  alert('📊 Stock history feature coming soon!\nProduct: ' + stocks[productKey].name);
 }
 
 // ══ AUTO REFRESH every 5 minutes ══
