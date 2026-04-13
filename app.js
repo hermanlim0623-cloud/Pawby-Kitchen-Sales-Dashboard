@@ -679,45 +679,65 @@ function renderStats(){
 }
 
 // ══════════════════════════════════════════
-// RENDER — ORDER TABLE
+// RENDER — ORDER TABLE (UPDATED)
 // ══════════════════════════════════════════
 function renderOrderTable(elId,list,maxRows){
   const el=document.getElementById(elId);
   const rows=maxRows?list.slice(0,maxRows):list;
   if(!rows.length){el.innerHTML=`<div class="empty"><div class="e-ico">📭</div><p>No orders yet</p></div>`;return;}
-  const delClass=d=>{if(!d)return'';const u=d.toUpperCase();if(u.includes('DELIVERY'))return'delivery';if(u.includes('PICK'))return'pickup';if(u.includes('COD'))return'cod';return'';};
+  
+  const delClass=d=>{if(!d)return'';const u=(d+'').toUpperCase();if(u.includes('DELIVERY'))return'delivery';if(u.includes('PICK'))return'pickup';if(u.includes('COD'))return'cod';return'';};
+  
   el.innerHTML=`<div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Customer</th><th>Products</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Date</th><th></th></tr></thead>
     <tbody>${rows.map(o=>{
+      // Map kolom dari Sheets yang punya emoji
+      const tgId = o['📱 Telegram ID'] || o.tgId || '?';
+      const anabul = o['Anabul'] || o.anabul || '';
+      const pawbeefy = parseInt(o['🥩 Pawbeefy'] || o.pawbeefy || 0) || 0;
+      const pawporkby = parseInt(o['🐖 Pawporkby'] || o.pawporkby || 0) || 0;
+      const chickipaw = parseInt(o['🐔 Chickipaw'] || o.chickipaw || 0) || 0;
+      const blueberry = parseInt(o['  🫐\nBlueberry Bliss'] || o.blueberry || 0) || 0;
+      const collagen = parseInt(o[' 🍲 \nCollagen Broth'] || o.collagen || 0) || 0;
+      const spawghetti = parseInt(o['🍜\nSpawghetti Beefonara'] || o.spawghetti || 0) || 0;
+      const woofball = parseInt(o[' 🍜\nWoofball'] || o.woofball || 0) || 0;
+      const package_ = o['📦 Package'] || o.package || '';
+      const packageQty = parseInt(o.packageQty || 0) || 0;
+      const total = parseFloat(o['💰 Bill'] || o.bill || o.total || 0);
+      const delivery = o['Delivery / Pick Up / COD'] || o.delivery || '—';
+      const date_ = o['Date'] || o.date || '—';
+      
       const items=[];
-      if(parseInt(o.pawbeefy))  items.push(`🐄×${o.pawbeefy}`);
-      if(parseInt(o.pawporkby)) items.push(`🐷×${o.pawporkby}`);
-      if(parseInt(o.chickipaw)) items.push(`🐔×${o.chickipaw}`);
-      if(parseInt(o.blueberry)) items.push(`🫐×${o.blueberry}`);
-      if(parseInt(o.collagen))  items.push(`🍖×${o.collagen}`);
-      if(parseInt(o.spawghetti))items.push(`🍝×${o.spawghetti}`);
-      if(parseInt(o.woofball))  items.push(`🥣×${o.woofball}`);
-      if(o.package){const qty=o.packageQty>1?`×${o.packageQty}`:'';items.push(`📦${o.package}${qty}`);}
+      if(pawbeefy) items.push(`🐄×${pawbeefy}`);
+      if(pawporkby) items.push(`🐷×${pawporkby}`);
+      if(chickipaw) items.push(`🐔×${chickipaw}`);
+      if(blueberry) items.push(`🫐×${blueberry}`);
+      if(collagen) items.push(`🍖×${collagen}`);
+      if(spawghetti) items.push(`🍝×${spawghetti}`);
+      if(woofball) items.push(`🥣×${woofball}`);
+      if(package_){const qty=packageQty>1?`×${packageQty}`:'';items.push(`📦${package_}${qty}`);}
+      
       const prod=items.length?items.join(' '):'—';
-      const del=o.delivery&&isNaN(parseFloat(o.delivery))?o.delivery:'—';
+      const del=delivery&&isNaN(parseFloat(delivery))?delivery:'—';
       const dc=delClass(del);
-      const total=parseFloat(o.bill||o.total||0);
+      
       return`<tr>
         <td><div style="display:flex;align-items:center;gap:8px">
-          <div class="av">${ini(o.tgId)}</div>
-          <div><div class="cname">${o.tgId||'—'}</div>
-          <div class="cphone">${o.anabul?'🐾 '+o.anabul:''}</div></div>
+          <div class="av">${ini(tgId)}</div>
+          <div><div class="cname">${tgId||'—'}</div>
+          <div class="cphone">${anabul?'🐾 '+anabul:''}</div></div>
         </div></td>
         <td style="font-size:.75rem">${prod}</td>
         <td><span class="price">${fmt$(total)}</span></td>
         <td class="hide-sm"><span class="del-badge ${dc}">${del}</span></td>
-        <td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${o.date||'—'}</td>
+        <td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${date_}</td>
         <td><div class="action-btns">
           <button class="edit-btn" onclick="openEdit('${o.rowId}','${o.sheetName||''}')" title="Edit">✏️</button>
           <button class="del-btn" onclick="deleteOrder('${o.rowId}','${o.sheetName||''}')" title="Hapus">🗑</button>
         </div></td>
       </tr>`;
     }).join('')}</tbody></table></div>`;
+  
   if(elId==='recentTbl'&&document.getElementById('recentCnt'))
     document.getElementById('recentCnt').textContent=rows.length<list.length?`${rows.length} of ${list.length}`:`${list.length} orders`;
   if(elId==='allTbl'&&document.getElementById('allCnt'))
