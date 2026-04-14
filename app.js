@@ -888,7 +888,10 @@ function showReceipt(order){
   document.getElementById('rcTime').textContent = timeDisplay || '—';
   document.getElementById('rcDelivery').textContent= order.delivery|| '—';
   document.getElementById('rcPayment').textContent = order.payment || '—';
-  document.getElementById('rcOrderId').textContent = 'Order #' + order.rowId;
+  const sortedIds = [...orders].reverse().map(o => String(o.rowId));
+  const orderIndex = sortedIds.indexOf(String(order.rowId));
+  const orderNum = 1001 + orderIndex;
+  document.getElementById('rcOrderId').textContent = 'Order #' + orderNum;
 
   let prodHTML = '';
   let subtotal = 0;
