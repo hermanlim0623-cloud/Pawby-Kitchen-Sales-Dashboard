@@ -1289,7 +1289,7 @@ function renderAll(){
       if(parts.length<2) return false;
       return parts[0]+'-'+parts[1]===activeSheet;
     });
-  renderOrderTable('recentTbl',filtered,8);
+  renderOrderTable('recentTbl',filtered,5);
   renderMonthTabs();
   renderTopProducts();
   renderCustomers();
