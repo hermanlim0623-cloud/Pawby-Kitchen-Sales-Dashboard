@@ -1016,6 +1016,7 @@ function renderOrderTable(elId,list,maxRows){
     const collagen = parseInt(o.collagen) || 0;
     const spawghetti = parseInt(o.spawghetti) || 0;
     const woofball = parseInt(o.woofball) || 0;
+    const tilapaw = parseInt(o.tilapaw) || 0;
     const package_ = o.package || '';
     const packageQty = parseInt(o.packageQty) || 0;
     const total = parseFloat(o.bill || o.total || 0);
