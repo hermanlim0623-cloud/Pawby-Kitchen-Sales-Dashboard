@@ -1230,11 +1230,57 @@ function renderProducts(){
   ).join('');
 }
 
+function toggleFilterPanel() {
+  const panel = document.getElementById('filterPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function resetFilters() {
+  document.getElementById('orderSearch').value = '';
+  document.getElementById('filterDelivery').value = '';
+  document.getElementById('filterPayment').value = '';
+  document.getElementById('filterActiveBadge').style.display = 'none';
+  applyOrderFilters();
+}
+
+function applyOrderFilters() {
+  const search = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
+  const delivery = document.getElementById('filterDelivery')?.value || '';
+  const payment = document.getElementById('filterPayment')?.value || '';
+
+  // Show badge if any filter active
+  const badge = document.getElementById('filterActiveBadge');
+  if (badge) badge.style.display = (search || delivery || payment) ? 'inline' : 'none';
+
+  const base = activeSheet === 'all'
+    ? orders
+    : orders.filter(o => {
+        if (!o.date) return false;
+        const parts = o.date.split('-');
+        return parts.length >= 2 && parts[0] + '-' + parts[1] === activeSheet;
+      });
+
+  const filtered = base.filter(o => {
+    if (search) {
+      const tg = (o.tgId || '').toLowerCase();
+      const anabul = (o.anabul || '').toLowerCase();
+      if (!tg.includes(search) && !anabul.includes(search)) return false;
+    }
+    if (delivery && (o.delivery || '') !== delivery) return false;
+    if (payment && (o.payment || '') !== payment) return false;
+    return true;
+  });
+
+  renderOrderTable('allTbl', filtered, null);
+  document.getElementById('allCnt').textContent = filtered.length + ' order';
+}
+
 // ══════════════════════════════════════════
 // RENDER ALL
 // ══════════════════════════════════════════
 function renderAll(){
   renderStats();
+  applyOrderFilters();
   const filtered=activeSheet==='all'
     ?orders
     :orders.filter(o=>{
@@ -1244,7 +1290,6 @@ function renderAll(){
       return parts[0]+'-'+parts[1]===activeSheet;
     });
   renderOrderTable('recentTbl',filtered,8);
-  renderOrderTable('allTbl',filtered,null);
   renderMonthTabs();
   renderTopProducts();
   renderCustomers();
