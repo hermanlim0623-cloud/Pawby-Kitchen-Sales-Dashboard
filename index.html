@@ -191,6 +191,16 @@
       <div class="card"><div id="custList"><div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div></div></div>
     </div>
 
+    <div class="overlay" id="custDetailOverlay">
+      <div class="modal" style="max-width:520px;">
+        <div class="m-hdr">
+          <h3 id="custDetailTitle">Customer Orders</h3>
+          <button class="m-close" onclick="closeCustDetail()">×</button>
+        </div>
+        <div class="m-body" id="custDetailBody" style="max-height:70vh;overflow-y:auto;"></div>
+      </div>
+    </div>
+
     <!-- ══ PRODUCTS VIEW ══ -->
     <div class="view" id="view-products">
       <div class="sec-hdr"><h2>Product Catalog</h2></div>
