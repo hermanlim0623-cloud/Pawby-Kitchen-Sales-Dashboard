@@ -2,6 +2,8 @@
 // STATE
 // ══════════════════════════════════════════
 let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
+const TG_BOT_TOKEN = '8776883021:AAGFWzgbS2kGKhIM_4Ja5M2ImKtH9hR0wms';
+const TG_CHAT_ID = '7678197283';
 let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
 let currentPage = 1;
 const PAGE_SIZE = 10;
@@ -970,6 +972,37 @@ async function downloadReceipt(){
     const w=window.open('','_blank');
     w.document.write('<html><head><title>Pawby Receipt</title></head><body style="margin:0;padding:20px;">'+el.outerHTML+'</body></html>');
     w.document.close(); w.print();
+  }
+}
+
+async function sendReceiptToTelegram() {
+  const btn = document.getElementById('tgSendBtn');
+  btn.textContent = '⏳ Sending...';
+  btn.disabled = true;
+  try {
+    const el = document.getElementById('receiptContent');
+    const canvas = await html2canvas(el, {scale:3, backgroundColor:'#ffffff', useCORS:true});
+    canvas.toBlob(async (blob) => {
+      const formData = new FormData();
+      formData.append('chat_id', TG_CHAT_ID);
+      formData.append('photo', blob, 'receipt.png');
+      const res = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendPhoto', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.ok) {
+        btn.textContent = '✅ Sent!';
+        setTimeout(() => { btn.textContent = '✈️ Send to Telegram'; btn.disabled = false; }, 2000);
+      } else {
+        btn.textContent = '❌ Failed';
+        btn.disabled = false;
+      }
+    }, 'image/png');
+  } catch(e) {
+    console.error(e);
+    btn.textContent = '❌ Error';
+    btn.disabled = false;
   }
 }
 
