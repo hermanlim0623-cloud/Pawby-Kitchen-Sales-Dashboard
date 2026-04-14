@@ -182,6 +182,35 @@
     <div class="view" id="view-orders">
       <div class="sec-hdr"><h2>All Orders</h2><span id="allCnt">—</span></div>
       <div class="sheet-tabs" id="sheetTabs"></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+        <input id="orderSearch" type="text" placeholder="🔍 Search customer or anabul..." 
+          oninput="applyOrderFilters()"
+          style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;outline:none;">
+        <div style="position:relative;">
+          <button onclick="toggleFilterPanel()" 
+            style="padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;">
+            ⚙️ Filter <span id="filterActiveBadge" style="display:none;background:#ef4444;color:#fff;border-radius:999px;padding:1px 6px;font-size:.7rem;">!</span>
+          </button>
+          <div id="filterPanel" style="display:none;position:absolute;right:0;top:110%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:14px;z-index:100;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,.1);">
+            <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;">DELIVERY</div>
+            <select id="filterDelivery" onchange="applyOrderFilters()" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;margin-bottom:10px;">
+              <option value="">All delivery</option>
+              <option>DELIVERY by PD</option>
+              <option>COD</option>
+              <option>COD - HP TOWER</option>
+              <option>PICKUP</option>
+            </select>
+            <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;">PAYMENT</div>
+            <select id="filterPayment" onchange="applyOrderFilters()" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;margin-bottom:12px;">
+              <option value="">All payment</option>
+              <option>ABA</option>
+              <option>CASH</option>
+              <option>ACLEDA</option>
+            </select>
+            <button onclick="resetFilters()" style="width:100%;padding:6px;background:#f1f5f9;border:none;border-radius:6px;font-size:.78rem;cursor:pointer;color:var(--muted);">Reset Filter</button>
+          </div>
+        </div>
+      </div>
       <div class="card"><div id="allTbl"><div class="empty"><div class="e-ico">🛍️</div><p>No orders yet</p></div></div></div>
     </div>
 
