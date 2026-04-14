@@ -241,20 +241,20 @@
       <div class="sec-hdr"><h2>🏪 Stock Management</h2></div>
       
       <!-- Quick Add Card -->
-      <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;">
-        <div class="card-hdr" style="color:#fff;">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-hdr">
           <h3>⚡ Quick Add Stock</h3>
         </div>
         <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <select id="stockProduct" style="padding:10px;border-radius:6px;border:none;background:#fff;color:#333;font-weight:600;">
+          <select id="stockProduct" style="padding:10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--navy);font-weight:600;font-size:.82rem;">
             <option value="">Select product...</option>
           </select>
-          <input type="number" id="stockQty" placeholder="Quantity" min="1" style="padding:10px;border-radius:6px;border:none;background:#fff;color:#333;font-weight:600;">
-          <input type="text" id="stockNotes" placeholder="Notes (optional)" style="grid-column:1/-1;padding:10px;border-radius:6px;border:none;background:rgba(255,255,255,.9);color:#333;">
-          <button onclick="handleQuickAddStock()" style="grid-column:1/-1;padding:12px;background:#fff;color:#667eea;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;transition:all 0.2s;">➕ Add Stock Now</button>
+          <input type="number" id="stockQty" placeholder="Quantity" min="1" style="padding:10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--navy);font-weight:600;font-size:.82rem;">
+          <input type="text" id="stockNotes" placeholder="Notes (optional)" style="grid-column:1/-1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--navy);font-size:.82rem;">
+          <button onclick="handleQuickAddStock()" style="grid-column:1/-1;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;">➕ Add Stock Now</button>
         </div>
       </div>
-
+      
       <!-- Stock Levels Card -->
       <div class="card">
         <div class="card-hdr"><h3>📊 Current Stock Levels</h3></div>
