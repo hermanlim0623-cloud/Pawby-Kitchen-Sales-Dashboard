@@ -1058,16 +1058,16 @@ function renderOrderTable(elId,list,maxRows){
     const dc=delClass(del);
     
     html += '<tr>' +
-      '<td><div style="display:flex;align-items:center;gap:8px">' +
+      '<td data-label="Customer"><div style="display:flex;align-items:center;gap:8px">' +
         '<div class="av">' + ini(tgId) + '</div>' +
         '<div><div class="cname">' + esc(tgId) + '</div>' +
         '<div class="cphone">' + (anabul?'🐾 '+esc(anabul):'') + '</div></div>' +
       '</div></td>' +
-      '<td style="font-size:.75rem">' + prod + '</td>' +
-      '<td><span class="price">' + fmt$(total) + '</span></td>' +
-      '<td class="hide-sm"><span class="del-badge ' + dc + '">' + esc(del) + '</span></td>' +
-      '<td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">' + esc(date_) + '</td>' +
-      '<td><div class="action-btns">' +
+      '<td data-label="Products" style="font-size:.75rem">' + prod + '</td>' +
+      '<td data-label="Total"><span class="price">' + fmt$(total) + '</span></td>' +
+      '<td data-label="Delivery" class="hide-sm"><span class="del-badge ' + dc + '">' + esc(del) + '</span></td>' +
+      '<td data-label="Date" class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">' + esc(date_) + '</td>' +
+      '<td data-label=""><div class="action-btns">' +
         '<button class="edit-btn" onclick="openEdit(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Edit">✏️</button>' +
         '<button class="edit-btn" onclick="showReceiptById(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Receipt">🧾</button>' +
         '<button class="del-btn" onclick="deleteOrder(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Hapus">🗑</button>' +
