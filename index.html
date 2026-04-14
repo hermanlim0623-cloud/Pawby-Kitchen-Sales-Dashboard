@@ -234,7 +234,8 @@
     <div class="m-hdr"><h3>🛒 Add New Order</h3><button class="m-close" onclick="closeOrder()">✕</button></div>
     <div class="m-body">
       <div class="f2">
-        <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username"></div>
+        <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username" list="tgSuggestions" autocomplete="off"></div>
+          <datalist id="tgSuggestions"></datalist>
         <div class="fg"><label>Furbaby's Name 🐾</label><input id="fAnabul" placeholder="e.g. Milo" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"></div>
       </div>
       <div class="fg"><label>Qty per Product</label>
