@@ -1420,8 +1420,8 @@ function renderStockView() {
           '<div style="font-size:.68rem;color:var(--muted);">' + statusEmoji + ' ' + statusLabel + '</div>' +
         '</div>' +
         '<div style="display:flex;gap:6px;">' +
-          '<button onclick="openStockEdit(\'' + p.key + '\')" style="padding:6px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">Edit</button>' +
-          '<button onclick="openStockHistory(\'' + p.key + '\')" style="padding:6px 12px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">History</button>' +
+          '<button onclick="openStockEdit(\'' + p.key + '\')" style="padding:6px 12px;background:#fff;color:var(--blue);border:1.5px solid var(--blue);border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">Edit</button>' +
+          '<button onclick="openStockHistory(\'' + p.key + '\')" style="padding:6px 12px;background:#fff;color:#8b5cf6;border:1.5px solid #8b5cf6;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">History</button>' +
         '</div>' +
       '</div>' +
     '</div>';
