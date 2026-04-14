@@ -880,7 +880,9 @@ function showReceipt(order){
   document.getElementById('rcTg').textContent     = order.tgId   || '—';
   document.getElementById('rcAnabul').textContent  = order.anabul || '—';
   document.getElementById('rcDate').textContent    = order.date   || '—';
-  document.getElementById('rcTime').textContent    = order.time   || '—';
+  const rawTime = order.time || '';
+  const timeDisplay = rawTime.length > 8 ? rawTime.slice(16, 21) : rawTime;
+  document.getElementById('rcTime').textContent = timeDisplay || '—';
   document.getElementById('rcDelivery').textContent= order.delivery|| '—';
   document.getElementById('rcPayment').textContent = order.payment || '—';
   document.getElementById('rcOrderId').textContent = 'Order #' + order.rowId;
@@ -906,16 +908,17 @@ function showReceipt(order){
   });
 
   // Package
-  if (order.package && order.packageQty > 0) {
+  if (order.package && order.package.trim()) {
+    const pkgQty = parseInt(order.packageQty) || 1;
     const pkgPrice = PACKAGE_PRICES[order.package] || 0;
-    const pkgTotal = pkgPrice * order.packageQty;
+    const pkgTotal = pkgPrice * pkgQty;
     subtotal += pkgTotal;
     prodHTML += '<div class="rc-prod-row">' +
       '<div class="rc-prod-left">' +
         '<span class="rc-prod-emoji">📦</span>' +
         '<div>' +
           '<div class="rc-prod-name">' + esc(order.package) + '</div>' +
-          '<div class="rc-prod-qty">x' + order.packageQty + ' @ $' + pkgPrice.toFixed(2) + '</div>' +
+          '<div class="rc-prod-qty">x' + pkgQty + ' @ $' + pkgPrice.toFixed(2) + '</div>' +
         '</div>' +
       '</div>' +
       '<div class="rc-prod-price">$' + pkgTotal.toFixed(2) + '</div>' +
