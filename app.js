@@ -939,6 +939,12 @@ function showReceipt(order){
   document.getElementById('receiptOverlay').classList.add('open');
 }
 
+function showReceiptById(rowId, sheetName) {
+  const o = orders.find(x => String(x.rowId) === String(rowId) && x.sheetName === sheetName);
+  if (!o) return;
+  showReceipt(o);
+}
+
 function closeReceipt(){
   document.getElementById('receiptOverlay').classList.remove('open');
 }
@@ -1059,6 +1065,7 @@ function renderOrderTable(elId,list,maxRows){
       '<td class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">' + esc(date_) + '</td>' +
       '<td><div class="action-btns">' +
         '<button class="edit-btn" onclick="openEdit(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Edit">✏️</button>' +
+        '<button class="edit-btn" onclick="showReceiptById(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Receipt">🧾</button>' +
         '<button class="del-btn" onclick="deleteOrder(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Hapus">🗑</button>' +
       '</div></td>' +
     '</tr>';
