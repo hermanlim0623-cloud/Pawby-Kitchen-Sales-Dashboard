@@ -3,6 +3,8 @@
 // ══════════════════════════════════════════
 let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
 let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
+let currentPage = 1;
+const PAGE_SIZE = 10;
 let activeSheet = 'all';
 const SESSION_KEY = 'pawby_session';
 const SESSION_HOURS = 12;
@@ -1110,7 +1112,7 @@ function renderMonthTabs(){
   el.innerHTML = html;
 }
 
-function filterSheet(month){ activeSheet=month; renderAll(); }
+function filterSheet(month){ activeSheet=month; currentPage=1; renderAll(); }
 
 // ══════════════════════════════════════════
 // RENDER - TOP PRODUCTS
@@ -1271,8 +1273,39 @@ function applyOrderFilters() {
     return true;
   });
 
-  renderOrderTable('allTbl', filtered, null);
+  renderOrderTablePaged('allTbl', filtered);
   document.getElementById('allCnt').textContent = filtered.length + ' order';
+}
+
+function renderOrderTablePaged(elId, list) {
+  const total = list.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = 1;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = list.slice(start, start + PAGE_SIZE);
+
+  renderOrderTable(elId, pageItems, null);
+
+  // Pagination controls
+  const el = document.getElementById(elId);
+  if (totalPages <= 1) return;
+
+  const nav = document.createElement('div');
+  nav.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 4px 4px;gap:8px;';
+  nav.innerHTML =
+    '<button onclick="changePage(-1)" ' + (currentPage===1?'disabled':'') + ' style="padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);">← Prev</button>' +
+    '<span style="font-size:.75rem;color:var(--muted);">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+    '<button onclick="changePage(1)" ' + (currentPage===totalPages?'disabled':'') + ' style="padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);">Next →</button>';
+  el.appendChild(nav);
+
+  document.getElementById('allCnt').textContent = total + ' order · page ' + currentPage + '/' + totalPages;
+}
+
+function changePage(dir) {
+  currentPage += dir;
+  applyOrderFilters();
+  document.getElementById('view-orders').scrollIntoView({behavior:'smooth'});
 }
 
 // ══════════════════════════════════════════
