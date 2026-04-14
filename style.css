@@ -456,6 +456,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .stat-ico{width:28px;height:28px;font-size:.85rem;margin-bottom:6px;}
   .p-grid{grid-template-columns:1fr 1fr;gap:8px;}
   .tbl th,.tbl td{padding:8px 8px;font-size:.7rem;}
+  .tbl thead{display:none;}
+  .tbl tr{display:block;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;padding:10px 12px;background:#fff;}
+  .tbl td{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f6ff;font-size:.76rem;}
+  .tbl td:last-child{border-bottom:none;}
+  .tbl td:before{content:attr(data-label);font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-right:8px;white-space:nowrap;}
+  .tbl-wrap{overflow-x:unset;}
+  .cname{font-size:.78rem;max-width:unset;}
+  .action-btns{justify-content:flex-end;}
   .cname{font-size:.74rem;max-width:80px;}
   .price{font-size:.7rem;}
   .av{width:24px;height:24px;font-size:.54rem;}
