@@ -699,6 +699,7 @@ document.getElementById('orderOverlay').addEventListener('click',function(e){if(
 document.getElementById('setupOverlay').addEventListener('click',function(e){if(e.target===this)closeSetup();});
 document.getElementById('editStockOverlay').addEventListener('click',function(e){if(e.target===this)closeStockEdit();});
 document.getElementById('stockHistoryOverlay').addEventListener('click',function(e){if(e.target===this)closeStockHistory();});
+document.getElementById('custDetailOverlay').addEventListener('click',function(e){if(e.target===this)closeCustDetail();});
 
 // ══════════════════════════════════════════
 // ORDER FORM - CALC TOTAL
@@ -1155,12 +1156,43 @@ function renderCustomers(){
   document.getElementById('custCnt').textContent=list.length+' customers';
   if(!list.length){el.innerHTML='<div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div>';return;}
   el.innerHTML=list.map(c=>
-    '<div class="cust-item">' +
+    '<div class="cust-item" style="cursor:pointer;" onclick="openCustDetail(\'' + esc(c.tgId) + '\')">' +
       '<div class="cust-av">' + ini(c.tgId) + '</div>' +
       '<div><div class="cust-name">' + esc(c.tgId) + '</div><div class="cust-sub">' + (c.anabul?'🐾 '+esc(c.anabul)+' · ':'') + c.orders + ' order</div></div>' +
       '<div class="cust-total">' + fmt$(c.total) + '</div>' +
     '</div>'
   ).join('');
+}
+
+function openCustDetail(tgId) {
+  const custOrders = orders.filter(o => o.tgId === tgId);
+  document.getElementById('custDetailTitle').textContent = tgId + ' — ' + custOrders.length + ' order';
+  
+  if (!custOrders.length) {
+    document.getElementById('custDetailBody').innerHTML = '<div class="empty"><p>No orders found</p></div>';
+  } else {
+    document.getElementById('custDetailBody').innerHTML = custOrders.map(o => {
+      const items = [];
+      PRODUCT_META.forEach(p => { if (parseInt(o[p.key])) items.push(p.emoji + '×' + o[p.key]); });
+      if (o.package && o.package.trim()) items.push('📦 ' + o.package);
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">' +
+        '<div>' +
+          '<div style="font-size:.82rem;font-weight:600;color:var(--navy);">' + esc(o.date) + '</div>' +
+          '<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">' + (items.join(' · ') || '—') + '</div>' +
+          '<div style="font-size:.72rem;color:var(--muted);margin-top:2px;">' + esc(o.delivery || '—') + ' · ' + esc(o.payment || '—') + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<span style="font-weight:700;color:var(--navy);">$' + parseFloat(o.total||0).toFixed(2) + '</span>' +
+          '<button class="edit-btn" onclick="showReceiptById(\'' + esc(o.rowId) + '\',\'' + esc(o.sheetName) + '\')" title="Receipt">🧾</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  document.getElementById('custDetailOverlay').classList.add('open');
+}
+
+function closeCustDetail() {
+  document.getElementById('custDetailOverlay').classList.remove('open');
 }
 
 // ══════════════════════════════════════════
