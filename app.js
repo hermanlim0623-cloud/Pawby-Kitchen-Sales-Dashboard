@@ -690,7 +690,7 @@ function switchView(name,btn){
 // ══════════════════════════════════════════
 // MODAL HELPERS
 // ══════════════════════════════════════════
-function openOrder(){ document.getElementById('orderOverlay').classList.add('open'); closeSidebar(); }
+function openOrder(){ document.getElementById('orderOverlay').classList.add('open'); closeSidebar(); populateTgSuggestions(); }
 function closeOrder(){ document.getElementById('orderOverlay').classList.remove('open'); }
 function openSetup(){ document.getElementById('setupOverlay').classList.add('open'); closeSidebar(); }
 function closeSetup(){ document.getElementById('setupOverlay').classList.remove('open'); }
@@ -721,6 +721,13 @@ function calcTotal(){
 }
 
 function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function populateTgSuggestions() {
+  const dl = document.getElementById('tgSuggestions');
+  if (!dl) return;
+  const unique = [...new Set(orders.map(o => o.tgId).filter(Boolean))].sort();
+  dl.innerHTML = unique.map(id => '<option value="' + esc(id) + '">').join('');
+}
 
 // ══════════════════════════════════════════
 // SAVE ORDER
