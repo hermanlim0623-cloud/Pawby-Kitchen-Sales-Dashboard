@@ -1013,7 +1013,12 @@ async function deleteOrder(rowId,sheetName){
   if(!confirm('Hapus order ini?')) return;
   orders=orders.filter(o=>String(o.rowId)!==String(rowId));
   saveLocal(); renderAll();
+  setSync('loading','Deleting...');
   await postSheets({action:'deleteOrder',rowId,sheetName});
+  // Wait 3 seconds then re-sync to confirm deletion
+  setTimeout(async()=>{
+    await doSync();
+  }, 3000);
 }
 
 // ══════════════════════════════════════════
