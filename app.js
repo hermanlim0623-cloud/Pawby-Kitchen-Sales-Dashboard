@@ -2,6 +2,7 @@
 // STATE
 // ══════════════════════════════════════════
 let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
+let pendingDeletedIds = new Set();
 const TG_BOT_TOKEN = '8776883021:AAGFWzgbS2kGKhIM_4Ja5M2ImKtH9hR0wms';
 const TG_CHAT_ID = '7678197283';
 let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
@@ -607,7 +608,7 @@ async function doSync() {
     const data=await res.json();
     if(data.success && data.orders){
       // Normalize all orders from backend
-      orders = data.orders.map(normalizeOrder);
+      orders = data.orders.map(normalizeOrder).filter(o => !pendingDeletedIds.has(String(o.rowId)));
       saveLocal();
       const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       document.getElementById('lastSyncInfo').textContent='Last sync: '+now;
@@ -890,11 +891,14 @@ function showReceipt(order){
   document.getElementById('rcTime').textContent = timeDisplay || '—';
   document.getElementById('rcDelivery').textContent= order.delivery|| '—';
   document.getElementById('rcPayment').textContent = order.payment || '—';
-  const sortedIds = [...orders].reverse().map(o => String(o.rowId));
-  const orderIndex = sortedIds.indexOf(String(order.rowId));
-  const orderNum = 1001 + orderIndex;
+  const orderNum = (function(id) {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) {
+      h = Math.imul(31, h) + id.charCodeAt(i) | 0;
+    }
+    return 1000 + (Math.abs(h) % 9000);
+  })(String(order.rowId));
   document.getElementById('rcOrderId').textContent = 'Order #' + orderNum;
-
   let prodHTML = '';
   let subtotal = 0;
 
@@ -1011,16 +1015,46 @@ async function sendReceiptToTelegram() {
 // ══════════════════════════════════════════
 async function deleteOrder(rowId,sheetName){
   if(!confirm('Hapus order ini?')) return;
-  orders=orders.filter(o=>String(o.rowId)!==String(rowId));
-  saveLocal(); renderAll();
-  setSync('loading','Deleting...');
-  await postSheets({action:'deleteOrder',rowId,sheetName});
-  // Wait 3 seconds then re-sync to confirm deletion
-  setTimeout(async()=>{
-    await doSync();
-  }, 3000);
-}
 
+  // Rollback stock sebelum dihapus
+  const o = orders.find(x => String(x.rowId) === String(rowId));
+  console.log('Order found:', o);           // ← ini ada?
+  console.log('Stocks state:', stocks);     // ← ini ada?
+  console.log('isSupabaseConnected:', isSupabaseConnected()); // ← ini ada?
+
+  if (o && isSupabaseConnected()) {
+    const stockTasks = [];
+    PRODUCT_META.forEach(p => {
+      const qty = parseInt(o[p.key]) || 0;
+      if (qty > 0) stockTasks.push(addStock(p.key, qty, `Rollback delete Order #${rowId}`));
+    });
+    if (o.package && o.package.trim() && PACKAGE_CONTENTS[o.package]) {
+      const pkgQty = o.packageQty > 0 ? o.packageQty : 1;
+      Object.entries(PACKAGE_CONTENTS[o.package]).forEach(([prodKey, qtyPerPack]) => {
+        const totalQty = qtyPerPack * pkgQty;
+        stockTasks.push(addStock(prodKey, totalQty, `Rollback paket ${o.package} Order #${rowId}`));
+      });
+    }
+    if (stockTasks.length > 0) await Promise.all(stockTasks);
+    showToast('🔄 Stok dikembalikan', 'success');
+  }
+
+pendingDeletedIds.add(String(rowId));
+orders=orders.filter(o=>String(o.rowId)!==String(rowId));
+saveLocal(); renderAll();
+setSync('loading','Deleting...');
+await postSheets({action:'deleteOrder',rowId,sheetName});
+setTimeout(async()=>{
+  const res = await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now());
+  const data = await res.json();
+  if(data.success && data.orders){
+    orders = data.orders.map(normalizeOrder).filter(o => !pendingDeletedIds.has(String(o.rowId)));
+    pendingDeletedIds.delete(String(rowId));
+    saveLocal(); renderAll();
+    setSync('ok','Synced ✓');
+  }
+}, 5000);
+} 
 // ══════════════════════════════════════════
 // RENDER - STATS
 // ══════════════════════════════════════════
