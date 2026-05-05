@@ -1312,7 +1312,7 @@ function renderStats(){
   document.getElementById("sRevSub").textContent='from ' + src.length + ' orders';
   document.getElementById('sOrderSub').textContent=periodSub;
   document.getElementById('sProdSub').textContent=periodSub;
-  document.getElementById('sCustSub').textContent=custs + ' unique on Telegram';
+  document.getElementById('sCustSub').textContent=custs + ' this month';
   ['sRevPeriod','sOrderPeriod','sProdPeriod','sCustPeriod'].forEach(id=>{document.getElementById(id).textContent='';});
 }
 
