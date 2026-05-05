@@ -151,13 +151,16 @@ async function sbFetch(path, opts = {}) {
     'apikey': SUPABASE_KEY,
     'Authorization': 'Bearer ' + SUPABASE_KEY,
     'Content-Type': 'application/json',
-    'Prefer': opts.prefer || 'return=representation'
+    ...(opts.extraHeaders || {})
   };
+  if (!opts.extraHeaders?.['Prefer']) {
+    headers['Prefer'] = opts.prefer || 'return=representation';
+  }
   try {
     const res = await fetch(url, {
       method: opts.method || 'GET',
       headers,
-      body: opts.body ? JSON.stringify(opts.body) : undefined
+      body: opts.body || undefined
     });
     if (!res.ok) { console.error('Supabase error:', res.status, await res.text()); return null; }
     const text = await res.text();
@@ -401,22 +404,23 @@ async function doLogin() {
   btn.disabled = true;
   errEl.style.display = 'none';
   try {
-    const res = await fetch(SHEETS_URL +
-      '?action=login&username=' + encodeURIComponent(username) +
-      '&password=' + encodeURIComponent(password) +
-      '&t=' + Date.now());
+    // Login via Supabase users table
+    const res = await fetch(SUPABASE_URL + '/rest/v1/users?username=eq.' + encodeURIComponent(username) + '&password=eq.' + encodeURIComponent(password) + '&select=username,name', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
     const data = await res.json();
-    if (data.success) {
+    if (data && data.length > 0) {
+      const user = data[0];
       localStorage.setItem(SESSION_KEY, JSON.stringify({
-        token:   data.token,
-        name:    data.name,
+        token:   'sb_' + Date.now(),
+        name:    user.name || user.username,
         expires: Date.now() + (SESSION_HOURS * 60 * 60 * 1000)
       }));
       document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('loginInfo').textContent = '👤 ' + data.name;
+      document.getElementById('loginInfo').textContent = '👤 ' + (user.name || user.username);
       init();
     } else {
-      showLoginError(data.error || 'Incorrect username or password');
+      showLoginError('Incorrect username or password');
     }
   } catch(e) {
     showLoginError('Connection failed. Check your internet.');
@@ -608,23 +612,83 @@ function connectSheets() {
 }
 
 async function doSync() {
-  if(!SHEETS_URL){openSetup();return;}
+  if(!isSupabaseConnected()){openSetup();return;}
   setSync('loading','Fetching data...');
   try {
-    const res=await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now());
-    const data=await res.json();
-    if(data.success && data.orders){
-      // Normalize all orders from backend
-      orders = data.orders.map(normalizeOrder).filter(o => !pendingDeletedIds.has(String(o.rowId)));
+    const data = await sbFetch('orders?order=created_at.desc&limit=500');
+    if(data && Array.isArray(data)){
+      orders = data.map(sbOrderToLocal);
       saveLocal();
       const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       document.getElementById('lastSyncInfo').textContent='Last sync: '+now;
       setSync('ok','Synced ✓');
       renderAll();
     } else {
-      setSync('err','Failed: '+(data.error||'unknown'));
+      setSync('err','Failed to fetch orders');
     }
   } catch(e){setSync('err','Connection failed');console.error(e);}
+}
+
+// Convert Supabase order row → local format
+function sbOrderToLocal(r) {
+  return {
+    rowId: String(r.row_id || r.id),
+    sheetName: r.sheet_name || '',
+    date: r.date || '',
+    tgId: r.tg_id || '',
+    anabul: r.anabul || '',
+    pawbeefy: r.pawbeefy || 0,
+    pawporkby: r.pawporkby || 0,
+    chickipaw: r.chickipaw || 0,
+    blueberry: r.blueberry || 0,
+    collagen: r.collagen || 0,
+    spawghetti: r.spawghetti || 0,
+    woofball: r.woofball || 0,
+    tilapaw: r.tilapaw || 0,
+    pawtart: r.pawtart || 0,
+    pawnana: r.pawnana || 0,
+    package: r.package || '',
+    packageQty: r.package_qty || 0,
+    special: r.special || 0,
+    disc: r.disc || 0,
+    total: r.total || 0,
+    bill: r.bill || 0,
+    delivery: r.delivery || '',
+    payment: r.payment || '',
+    time: r.time || '',
+    _normalized: true,
+    _sbId: r.id
+  };
+}
+
+// Convert local order → Supabase row format
+function localOrderToSb(order) {
+  return {
+    row_id: String(order.rowId),
+    sheet_name: order.sheetName || '',
+    date: order.date || null,
+    tg_id: order.tgId || '',
+    anabul: order.anabul || '',
+    pawbeefy: order.pawbeefy || 0,
+    pawporkby: order.pawporkby || 0,
+    chickipaw: order.chickipaw || 0,
+    blueberry: order.blueberry || 0,
+    collagen: order.collagen || 0,
+    spawghetti: order.spawghetti || 0,
+    woofball: order.woofball || 0,
+    tilapaw: order.tilapaw || 0,
+    pawtart: order.pawtart || 0,
+    pawnana: order.pawnana || 0,
+    package: order.package || '',
+    package_qty: order.packageQty || 0,
+    special: order.special || 0,
+    disc: order.disc || 0,
+    total: order.total || 0,
+    bill: order.bill || 0,
+    delivery: order.delivery || '',
+    payment: order.payment || '',
+    time: order.time || ''
+  };
 }
 
 async function postSheets(body) {
@@ -647,26 +711,23 @@ function init() {
    document.getElementById('fDate').valueAsDate=now;
    document.getElementById('fTime').value=now.toTimeString().slice(0,5);
    
-   // Supabase status
+   // Supabase — primary data source
    if (isSupabaseConnected()) {
      document.getElementById('supabaseUrl').value = SUPABASE_URL;
      document.getElementById('supabaseKey').value = SUPABASE_KEY;
      document.getElementById('supabaseStatus').innerHTML = '<span style="color:#10b981;">✅ Connected</span>';
      syncStocks();
      setupRealtime();
-   }
-   
-   if(SHEETS_URL){
-     document.getElementById('sheetsUrl').value=SHEETS_URL;
      document.getElementById('setupBanner').classList.add('hidden');
-     setSync('ok','Connected to Sheets');
-     setTimeout(()=>{
-       doSync();
-     },800);
+     setSync('ok','Connected to Supabase');
+     setTimeout(()=>{ doSync(); }, 800);
    } else {
      document.getElementById('setupBanner').classList.remove('hidden');
      renderAll();
    }
+
+   // GAS URL (kept for reference only)
+   if(SHEETS_URL){ document.getElementById('sheetsUrl').value = SHEETS_URL; }
 }
 
 // ══════════════════════════════════════════
@@ -785,10 +846,7 @@ function renderOpProducts() {
   const list = document.getElementById('opProductList');
   list.innerHTML = PRODUCT_META.map(p => `
     <div class="op-item ${(_opQtys[p.key]||0) > 0 ? 'has-qty' : ''}" id="opItem_${p.key}">
-      <img src="/product-imgs/${p.key}.webp"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-        alt="${p.name}" style="display:block;">
-      <div class="op-img-placeholder" style="display:none;">${p.emoji}</div>
+      <img src="/product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="${p.name}">
       <div class="op-info">
         <div class="op-name">${p.name}</div>
         <div class="op-price">$${p.price.toFixed(2)}</div>
@@ -827,9 +885,9 @@ function updateOpPkgDisplay() {
   if (wp) wp.textContent = _opPkgQty['Weekly Pawby Pack'] || 0;
 
   // Highlight package items
-  document.querySelectorAll('#opPackageList .op-item-pkg').forEach(el => {
+  document.querySelectorAll('#opPackageList .op-item').forEach(el => {
     const key = el.dataset.key;
-    el.className = 'op-item-pkg' + ((_opPkgQty[key]||0) > 0 ? ' has-qty' : '');
+    el.className = 'op-item' + ((_opPkgQty[key]||0) > 0 ? ' has-qty' : '');
   });
 }
 
@@ -846,20 +904,11 @@ function renderOpSummary() {
   if (_opPkgQty['Starter Pack'] > 0) items.push(`<div class="op-summary-chip">📦 Starter Pack ×${_opPkgQty['Starter Pack']}</div>`);
   if (_opPkgQty['Weekly Pawby Pack'] > 0) items.push(`<div class="op-summary-chip">📦 Weekly Pack ×${_opPkgQty['Weekly Pawby Pack']}</div>`);
 
-  const subtotal = parseFloat(document.getElementById('fTotal').value) || 0;
-  const disc = parseFloat(document.getElementById('fDisc')?.value) || 0;
-  const finalTotal = Math.max(0, subtotal - disc);
-
-  // Update fTotal to reflect discount
-  if (disc > 0) document.getElementById('fTotal').value = finalTotal.toFixed(2);
-
+  const total = parseFloat(document.getElementById('fTotal').value) || 0;
   document.getElementById('opSummary').innerHTML = `
     <div class="op-summary-title">Order Summary</div>
     <div class="op-summary-items">${items.join('')}</div>
-    <div class="op-summary-total">
-      <span style="color:var(--muted);font-weight:600;">Total${disc > 0 ? ' (after discount)' : ''}</span>
-      <span>$${finalTotal.toFixed(2)}</span>
-    </div>
+    <div class="op-summary-total">Total <span>$${total.toFixed(2)}</span></div>
   `;
 }
 
@@ -979,7 +1028,17 @@ async function saveOrder(){
     closeOrder();
     renderAll();
     showReceipt(order);
-    await postSheets({action:'addOrder',order,sheetName:order.sheetName});
+
+    // Save to Supabase
+    try {
+      const sbRow = localOrderToSb(order);
+      await sbFetch('orders', { method: 'POST', body: JSON.stringify(sbRow),
+        extraHeaders: { 'Prefer': 'return=minimal' } });
+      setSync('ok','Saved ✓');
+    } catch(e) {
+      console.error('Supabase save failed:', e);
+      showToast('⚠️ Order tersimpan lokal, gagal sync ke server', 'warning');
+    }
 
     // 📦 3️⃣ AUTO DEDUCT STOCK (Produk + Paket)
     if (isSupabaseConnected()) {
@@ -1186,14 +1245,11 @@ async function sendReceiptToTelegram() {
 // ══════════════════════════════════════════
 // DELETE ORDER
 // ══════════════════════════════════════════
-async function deleteOrder(rowId,sheetName){
+async function deleteOrder(rowId, sheetName){
   if(!confirm('Hapus order ini?')) return;
 
   // Rollback stock sebelum dihapus
   const o = orders.find(x => String(x.rowId) === String(rowId));
-  console.log('Order found:', o);           // ← ini ada?
-  console.log('Stocks state:', stocks);     // ← ini ada?
-  console.log('isSupabaseConnected:', isSupabaseConnected()); // ← ini ada?
 
   if (o && isSupabaseConnected()) {
     const stockTasks = [];
@@ -1204,30 +1260,30 @@ async function deleteOrder(rowId,sheetName){
     if (o.package && o.package.trim() && PACKAGE_CONTENTS[o.package]) {
       const pkgQty = o.packageQty > 0 ? o.packageQty : 1;
       Object.entries(PACKAGE_CONTENTS[o.package]).forEach(([prodKey, qtyPerPack]) => {
-        const totalQty = qtyPerPack * pkgQty;
-        stockTasks.push(addStock(prodKey, totalQty, `Rollback paket ${o.package} Order #${rowId}`));
+        stockTasks.push(addStock(prodKey, qtyPerPack * pkgQty, `Rollback paket ${o.package} Order #${rowId}`));
       });
     }
     if (stockTasks.length > 0) await Promise.all(stockTasks);
     showToast('🔄 Stok dikembalikan', 'success');
   }
 
-pendingDeletedIds.add(String(rowId));
-orders=orders.filter(o=>String(o.rowId)!==String(rowId));
-saveLocal(); renderAll();
-setSync('loading','Deleting...');
-await postSheets({action:'deleteOrder',rowId,sheetName});
-setTimeout(async()=>{
-  const res = await fetch(SHEETS_URL+'?action=getOrders&t='+Date.now());
-  const data = await res.json();
-  if(data.success && data.orders){
-    orders = data.orders.map(normalizeOrder).filter(o => !pendingDeletedIds.has(String(o.rowId)));
-    pendingDeletedIds.delete(String(rowId));
-    saveLocal(); renderAll();
-    setSync('ok','Synced ✓');
+  // Remove from local immediately — no delay, no pendingDeletedIds needed
+  orders = orders.filter(x => String(x.rowId) !== String(rowId));
+  saveLocal();
+  renderAll();
+  setSync('loading','Deleting...');
+
+  // Delete from Supabase
+  try {
+    await sbFetch('orders?row_id=eq.' + encodeURIComponent(String(rowId)), { method: 'DELETE' });
+    setSync('ok','Deleted ✓');
+    showToast('🗑️ Order berhasil dihapus', 'success');
+  } catch(e) {
+    console.error('Delete failed:', e);
+    showToast('❌ Gagal hapus dari server', 'error');
+    setSync('err','Delete failed');
   }
-}, 5000);
-} 
+}
 // ══════════════════════════════════════════
 // RENDER - STATS
 // ══════════════════════════════════════════
@@ -1614,16 +1670,29 @@ async function saveEdit(){
     time:    document.getElementById('eTime').value,
     anabul:  document.getElementById('eAnabul').value,
   };
-  const idx=orders.findIndex(x=>String(x.rowId)===String(editingOrder.rowId)&&x.sheetName===editingOrder.sheetName);
+  const idx=orders.findIndex(x=>String(x.rowId)===String(editingOrder.rowId));
   if(idx!==-1){orders[idx]=Object.assign({},orders[idx],updates);saveLocal();}
   closeEdit(); renderAll();
-  setSync('loading','Updating Sheets...');
-  const fields=['total','bill','delivery','payment','time','anabul'];
-  for(const field of fields){
-    await postSheets({action:'updateOrder',rowId:editingOrder.rowId,sheetName:editingOrder.sheetName,field,value:updates[field]});
+  setSync('loading','Updating...');
+  try {
+    await sbFetch('orders?row_id=eq.' + encodeURIComponent(String(editingOrder.rowId)), {
+      method: 'PATCH',
+      body: JSON.stringify({
+        total: updates.total,
+        bill: updates.bill,
+        delivery: updates.delivery,
+        payment: updates.payment,
+        time: updates.time,
+        anabul: updates.anabul
+      }),
+      extraHeaders: { 'Prefer': 'return=minimal' }
+    });
+    setSync('ok','Updated ✓');
+  } catch(e) {
+    console.error('Update failed:', e);
+    showToast('⚠️ Gagal update ke server', 'warning');
+    setSync('err','Update failed');
   }
-  setSync('ok','Sheets updated ✓');
-  setTimeout(()=>setSync('ok','Synced ✓'),3000);
 }
 
 // ══════════════════════════════════════════
@@ -1824,4 +1893,4 @@ function closeAlertPanel() {
 }
 
 // ══ AUTO REFRESH every 5 minutes ══
-setInterval(()=>{ if(SHEETS_URL&&checkSession()) doSync(); }, 5*60*1000);
+setInterval(()=>{ if(isSupabaseConnected()&&checkSession()) doSync(); }, 5*60*1000);
