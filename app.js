@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════
 let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
 let pendingDeletedIds = new Set();
-const TG_BOT_TOKEN = '8776883021:AAGFWzgbS2kGKhIM_4Ja5M2ImKtH9hR0wms';
+const TG_BOT_TOKEN = '8776883021:AAEQc0KHyhPPI5fTagJcgXCsej9BBlO0Jp4';
 const TG_CHAT_ID = '7678197283';
 let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbz55bbZR6eJtjvatUXZ5EPN6hUiyvRDNRQoPCaQ_FrpYrrTT2yOVacTisHA0zo3MHwQQA/exec';
 let currentPage = 1;
