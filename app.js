@@ -5,7 +5,7 @@ let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
 let pendingDeletedIds = new Set();
 const TG_BOT_TOKEN = '8776883021:AAGFWzgbS2kGKhIM_4Ja5M2ImKtH9hR0wms';
 const TG_CHAT_ID = '7678197283';
-let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbxLZbxkj-uyS6GW5fkXtX5-8lkPMyhHvnHS-KtOWY0MFTkOYoTuzDWaN4b8CaVMqU9VHA/exec';
+let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbz55bbZR6eJtjvatUXZ5EPN6hUiyvRDNRQoPCaQ_FrpYrrTT2yOVacTisHA0zo3MHwQQA/exec';
 let currentPage = 1;
 const PAGE_SIZE = 10;
 let activeSheet = 'all';
@@ -20,7 +20,9 @@ const PRICES = {
   collagen: 3.00,
   spawghetti: 3.00,
   woofball: 3.00,
-  tilapaw: 2.00
+  tilapaw: 2.00,
+  pawtart: 3.00,
+  pawnana: 12.00
 };
 
 const PRODUCT_META = [
@@ -31,7 +33,9 @@ const PRODUCT_META = [
   { key: 'collagen',  emoji: '🍖', name: 'Collagen Broth',       price: 3.00 },
   { key: 'spawghetti',emoji: '🍝', name: 'Spawghetti Beefonara', price: 3.00 },
   { key: 'woofball',  emoji: '🥣', name: 'Woofball',             price: 3.00 },
-  { key: 'tilapaw',   emoji: '🐟', name: 'Tilapaw',              price: 2.00 } 
+  { key: 'tilapaw',   emoji: '🐟', name: 'Tilapaw',              price: 2.00 },
+  { key: 'pawtart',   emoji: '🥧', name: 'Pawby Pawtart',        price: 3.00 },
+  { key: 'pawnana',   emoji: '🎂', name: 'Pawnana Berry Cake',   price: 12.00 }
 ];
 
 const PACKAGE_PRICES = {
@@ -90,6 +94,9 @@ function normalizeOrder(o) {
     n.collagen  = toInt(n.collagen  || findField(o, ['collagen']));
     n.spawghetti= toInt(n.spawghetti|| findField(o, ['spawghetti']));
     n.woofball  = toInt(n.woofball  || findField(o, ['woofball']));
+    n.tilapaw   = toInt(n.tilapaw   || findField(o, ['tilapaw']));
+    n.pawtart   = toInt(n.pawtart   || findField(o, ['pawtart', 'pawby pawtart']));
+    n.pawnana   = toInt(n.pawnana   || findField(o, ['pawnana', 'pawnana berry']));
     n.package   = n.package   || findField(o, ['package']) || '';
     n.packageQty= toInt(n.packageQty|| findField(o, ['packageqty', 'package qty']));
     n.disc      = toFloat(n.disc    || findField(o, ['discount', 'disc']));
@@ -695,8 +702,168 @@ function switchView(name,btn){
 // ══════════════════════════════════════════
 // MODAL HELPERS
 // ══════════════════════════════════════════
-function openOrder(){ document.getElementById('orderOverlay').classList.add('open'); closeSidebar(); populateTgSuggestions(); }
-function closeOrder(){ document.getElementById('orderOverlay').classList.remove('open'); }
+// ══════════════════════════════════════════
+// ORDER MODAL 2-STEP
+// ══════════════════════════════════════════
+let _opQtys = {}; // { productKey: qty }
+let _opPkgKey = ''; // 'Starter Pack' | 'Weekly Pawby Pack' | ''
+let _opPkgQty = { 'Starter Pack': 0, 'Weekly Pawby Pack': 0 };
+
+function openOrder() {
+  // Reset state
+  _opQtys = {};
+  _opPkgKey = '';
+  _opPkgQty = { 'Starter Pack': 0, 'Weekly Pawby Pack': 0 };
+
+  // Render product list
+  renderOpProducts();
+  updateOpPkgDisplay();
+
+  // Go to step 1
+  _orderShowStep(1);
+
+  // Set default date/time
+  const now = new Date();
+  document.getElementById('fDate').value = now.toISOString().slice(0,10);
+  document.getElementById('fTime').value = now.toTimeString().slice(0,5);
+  document.getElementById('fDisc').value = 0;
+  document.getElementById('fTotal').value = '';
+
+  document.getElementById('orderOverlay').classList.add('open');
+  closeSidebar();
+  populateTgSuggestions();
+}
+
+function closeOrder() {
+  document.getElementById('orderOverlay').classList.remove('open');
+}
+
+function _orderShowStep(n) {
+  document.getElementById('orderStep1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('orderStep2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('oStep1Ind').className = 'order-step' + (n === 1 ? ' active' : ' done');
+  document.getElementById('oStep2Ind').className = 'order-step' + (n === 2 ? ' active' : '');
+  document.getElementById('orderModalTitle').textContent = n === 1 ? '🛒 Select Products' : '📋 Order Details';
+  document.getElementById('oBtnBack').style.display = n === 2 ? '' : 'none';
+  document.getElementById('oBtnCancel').style.display = n === 1 ? '' : 'none';
+  document.getElementById('oBtnNext').style.display = n === 1 ? '' : 'none';
+  document.getElementById('oBtnSave').style.display = n === 2 ? '' : 'none';
+}
+
+function orderGoNext() {
+  // Validate at least 1 item selected
+  const hasProduct = Object.values(_opQtys).some(q => q > 0);
+  const hasPkg = Object.values(_opPkgQty).some(q => q > 0);
+  if (!hasProduct && !hasPkg) {
+    showToast('Please select at least one product!', 'warning');
+    return;
+  }
+
+  // Sync hidden inputs
+  PRODUCT_META.forEach(p => {
+    document.getElementById('f' + cap(p.key)).value = _opQtys[p.key] || 0;
+  });
+
+  // Package: use whichever has qty > 0 (pick first)
+  let pkgName = '';
+  let pkgQty = 0;
+  if (_opPkgQty['Starter Pack'] > 0) { pkgName = 'Starter Pack'; pkgQty = _opPkgQty['Starter Pack']; }
+  else if (_opPkgQty['Weekly Pawby Pack'] > 0) { pkgName = 'Weekly Pawby Pack'; pkgQty = _opPkgQty['Weekly Pawby Pack']; }
+  document.getElementById('fPackage').value = pkgName;
+  document.getElementById('fPackageQty').value = pkgQty;
+
+  calcTotal();
+  renderOpSummary();
+  _orderShowStep(2);
+}
+
+function orderGoBack() {
+  _orderShowStep(1);
+}
+
+function renderOpProducts() {
+  const list = document.getElementById('opProductList');
+  list.innerHTML = PRODUCT_META.map(p => `
+    <div class="op-item ${(_opQtys[p.key]||0) > 0 ? 'has-qty' : ''}" id="opItem_${p.key}">
+      <img src="/product-imgs/${p.key}.webp"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        alt="${p.name}" style="display:block;">
+      <div class="op-img-placeholder" style="display:none;">${p.emoji}</div>
+      <div class="op-info">
+        <div class="op-name">${p.name}</div>
+        <div class="op-price">$${p.price.toFixed(2)}</div>
+      </div>
+      <div class="op-counter">
+        <button class="op-btn" onclick="changeProductQty('${p.key}',-1)">−</button>
+        <span id="opQty_${p.key}">${_opQtys[p.key]||0}</span>
+        <button class="op-btn" onclick="changeProductQty('${p.key}',1)">+</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function changeProductQty(key, delta) {
+  _opQtys[key] = Math.max(0, (_opQtys[key] || 0) + delta);
+  const el = document.getElementById('opQty_' + key);
+  if (el) el.textContent = _opQtys[key];
+  const item = document.getElementById('opItem_' + key);
+  if (item) item.className = 'op-item' + (_opQtys[key] > 0 ? ' has-qty' : '');
+}
+
+function changePackageQty(delta) {
+  _opPkgQty['Starter Pack'] = Math.max(0, (_opPkgQty['Starter Pack'] || 0) + delta);
+  updateOpPkgDisplay();
+}
+
+function changeWeeklyQty(delta) {
+  _opPkgQty['Weekly Pawby Pack'] = Math.max(0, (_opPkgQty['Weekly Pawby Pack'] || 0) + delta);
+  updateOpPkgDisplay();
+}
+
+function updateOpPkgDisplay() {
+  const sp = document.getElementById('opPkgQty');
+  const wp = document.getElementById('opWklyQty');
+  if (sp) sp.textContent = _opPkgQty['Starter Pack'] || 0;
+  if (wp) wp.textContent = _opPkgQty['Weekly Pawby Pack'] || 0;
+
+  // Highlight package items
+  document.querySelectorAll('#opPackageList .op-item-pkg').forEach(el => {
+    const key = el.dataset.key;
+    el.className = 'op-item-pkg' + ((_opPkgQty[key]||0) > 0 ? ' has-qty' : '');
+  });
+}
+
+function renderOpSummary() {
+  const items = [];
+  PRODUCT_META.forEach(p => {
+    const q = _opQtys[p.key] || 0;
+    if (q > 0) items.push(`
+      <div class="op-summary-chip">
+        <img src="/product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="">
+        ${p.emoji} ${p.name} ×${q}
+      </div>`);
+  });
+  if (_opPkgQty['Starter Pack'] > 0) items.push(`<div class="op-summary-chip">📦 Starter Pack ×${_opPkgQty['Starter Pack']}</div>`);
+  if (_opPkgQty['Weekly Pawby Pack'] > 0) items.push(`<div class="op-summary-chip">📦 Weekly Pack ×${_opPkgQty['Weekly Pawby Pack']}</div>`);
+
+  const subtotal = parseFloat(document.getElementById('fTotal').value) || 0;
+  const disc = parseFloat(document.getElementById('fDisc')?.value) || 0;
+  const finalTotal = Math.max(0, subtotal - disc);
+
+  // Update fTotal to reflect discount
+  if (disc > 0) document.getElementById('fTotal').value = finalTotal.toFixed(2);
+
+  document.getElementById('opSummary').innerHTML = `
+    <div class="op-summary-title">Order Summary</div>
+    <div class="op-summary-items">${items.join('')}</div>
+    <div class="op-summary-total">
+      <span style="color:var(--muted);font-weight:600;">Total${disc > 0 ? ' (after discount)' : ''}</span>
+      <span>$${finalTotal.toFixed(2)}</span>
+    </div>
+  `;
+}
+
+function openOrder_old(){} // kept for safety
 function openSetup(){ document.getElementById('setupOverlay').classList.add('open'); closeSidebar(); }
 function closeSetup(){ document.getElementById('setupOverlay').classList.remove('open'); }
 
@@ -755,6 +922,8 @@ async function saveOrder(){
         spawghetti:parseInt(document.getElementById('fSpawghetti').value)||0,
         woofball:parseInt(document.getElementById('fWoofball').value)||0,
         tilapaw: parseInt(document.getElementById('fTilapaw').value) || 0,
+        pawtart: parseInt(document.getElementById('fPawtart').value) || 0,
+        pawnana: parseInt(document.getElementById('fPawnana').value) || 0,
         special:0, package:document.getElementById('fPackage').value,
         packageQty:parseInt(document.getElementById('fPackageQty').value)||0,
         disc, total:parseFloat(document.getElementById('fTotal').value)||0,
@@ -853,9 +1022,13 @@ async function saveOrder(){
 
     // 🔄 4️⃣ RESET FORM
     ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
-    ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fTilapaw','fPackageQty','fDisc']
+    ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fTilapaw','fPawtart','fPawnana','fPackageQty','fDisc']
         .forEach(id=>document.getElementById(id).value=0);
     document.getElementById('fPackage').value='';
+    // Reset 2-step state
+    _opQtys = {};
+    _opPkgQty = { 'Starter Pack': 0, 'Weekly Pawby Pack': 0 };
+    closeOrder();
 }
 
 // Generate sheet name from date: "Mar Pawby Sales", "Apr Pawby Sales"
@@ -1069,7 +1242,8 @@ function renderStats(){
   const qty=src.reduce((s,o)=>
     s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)+(parseInt(o.chickipaw)||0)
     +(parseInt(o.blueberry)||0)+(parseInt(o.collagen)||0)+(parseInt(o.spawghetti)||0)
-    + (parseInt(o.tilapaw)||0)+(parseInt(o.woofball)||0)+(parseInt(o.packageQty)||0),0);
+    +(parseInt(o.tilapaw)||0)+(parseInt(o.woofball)||0)+(parseInt(o.pawtart)||0)
+    +(parseInt(o.pawnana)||0)+(parseInt(o.packageQty)||0),0);
   const custs=[...new Set(src.map(o=>o.tgId).filter(Boolean))].length;
   const lbl=document.getElementById('activePeriodLabel');
   if(lbl) lbl.innerHTML=label + ' <span style="font-size:.65rem;opacity:.5">▼</span>';
@@ -1111,6 +1285,8 @@ function renderOrderTable(elId,list,maxRows){
     const spawghetti = parseInt(o.spawghetti) || 0;
     const woofball = parseInt(o.woofball) || 0;
     const tilapaw = parseInt(o.tilapaw) || 0;
+    const pawtart = parseInt(o.pawtart) || 0;
+    const pawnana = parseInt(o.pawnana) || 0;
     const package_ = o.package || '';
     const packageQty = parseInt(o.packageQty) || 0;
     const total = parseFloat(o.bill || o.total || 0);
@@ -1128,6 +1304,8 @@ function renderOrderTable(elId,list,maxRows){
     if(spawghetti) items.push('🍝×'+spawghetti);
     if(woofball) items.push('🥣×'+woofball);
     if(tilapaw) items.push('🐟×' + tilapaw);
+    if(pawtart) items.push('🥧×' + pawtart);
+    if(pawnana) items.push('🎂×' + pawnana);
     if(package_){const qty=packageQty>1?'×'+packageQty:'';items.push('📦'+esc(package_)+qty);}
     
     const prod=items.length?items.join(' '):'—';

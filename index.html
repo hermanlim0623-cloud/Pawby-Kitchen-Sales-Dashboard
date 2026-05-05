@@ -266,44 +266,92 @@
 </div><!-- /main -->
 
 <!-- ══════════════════════════════════════════
-     MODAL: ADD ORDER
+     MODAL: ADD ORDER (2-Step)
 ══════════════════════════════════════════ -->
 <div class="overlay" id="orderOverlay">
-  <div class="modal">
-    <div class="m-hdr"><h3>🛒 Add New Order</h3><button class="m-close" onclick="closeOrder()">✕</button></div>
-    <div class="m-body">
-      <div class="f2">
+  <div class="modal order-modal-2step">
+
+    <!-- STEP INDICATOR -->
+    <div class="m-hdr" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+        <h3 id="orderModalTitle">🛒 Select Products</h3>
+        <button class="m-close" onclick="closeOrder()">✕</button>
+      </div>
+      <div class="order-steps">
+        <div class="order-step active" id="oStep1Ind"><span>1</span> Products</div>
+        <div class="order-step-line"></div>
+        <div class="order-step" id="oStep2Ind"><span>2</span> Details</div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: PRODUCT PICKER ══ -->
+    <div class="m-body" id="orderStep1">
+
+      <!-- Individual Products -->
+      <div class="op-section-label">🥩 Individual Products</div>
+      <div class="op-list" id="opProductList">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Packages -->
+      <div class="op-section-label" style="margin-top:14px;">📦 Packages</div>
+      <div class="op-list-pkg" id="opPackageList">
+        <div class="op-item-pkg" data-key="Starter Pack">
+          <img src="/product-imgs/starter-pack.webp" onerror="this.style.display='none'" alt="Starter Pack">
+          <div class="op-info">
+            <div class="op-name">Starter Pack</div>
+            <div class="op-sub">2 Pawbeefy · 2 Chikipaw · 3 Pawporkby</div>
+            <div class="op-price">$10.99</div>
+          </div>
+          <div class="op-counter">
+            <button class="op-btn" onclick="changePackageQty(-1)">−</button>
+            <span id="opPkgQty">0</span>
+            <button class="op-btn" onclick="changePackageQty(1)">+</button>
+          </div>
+        </div>
+        <div class="op-item-pkg" data-key="Weekly Pawby Pack">
+          <img src="/product-imgs/weekly-pack.webp" onerror="this.style.display='none'" alt="Weekly Pack">
+          <div class="op-info">
+            <div class="op-name">Weekly Pawby Pack</div>
+            <div class="op-sub">5 Pawbeefy · 4 Chikipaw · 5 Pawporkby</div>
+            <div class="op-price">$21.99</div>
+          </div>
+          <div class="op-counter">
+            <button class="op-btn" onclick="changeWeeklyQty(-1)">−</button>
+            <span id="opWklyQty">0</span>
+            <button class="op-btn" onclick="changeWeeklyQty(1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden inputs (still needed for saveOrder compatibility) -->
+      <div style="display:none">
+        <input type="number" id="fPawbeefy" value="0" min="0">
+        <input type="number" id="fPawporkby" value="0" min="0">
+        <input type="number" id="fChickipaw" value="0" min="0">
+        <input type="number" id="fBlueberry" value="0" min="0">
+        <input type="number" id="fCollagen" value="0" min="0">
+        <input type="number" id="fSpawghetti" value="0" min="0">
+        <input type="number" id="fWoofball" value="0" min="0">
+        <input type="number" id="fTilapaw" value="0" min="0">
+        <input type="number" id="fPawtart" value="0" min="0">
+        <input type="number" id="fPawnana" value="0" min="0">
+        <input type="number" id="fPackageQty" value="0" min="0">
+        <select id="fPackage"><option value="">— None —</option><option value="Starter Pack" data-price="10.99">Starter Pack</option><option value="Weekly Pawby Pack" data-price="21.99">Weekly Pawby Pack</option></select>
+        <input type="number" id="fTotal">
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: ORDER DETAILS ══ -->
+    <div class="m-body" id="orderStep2" style="display:none;">
+
+      <!-- Order Summary -->
+      <div class="op-summary" id="opSummary"></div>
+
+      <div class="f2" style="margin-top:14px;">
         <div class="fg"><label>Telegram ID *</label><input id="fTg" placeholder="@username" list="tgSuggestions" autocomplete="off"></div>
-          <datalist id="tgSuggestions"></datalist>
+        <datalist id="tgSuggestions"></datalist>
         <div class="fg"><label>Furbaby's Name 🐾</label><input id="fAnabul" placeholder="e.g. Milo" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"></div>
-      </div>
-      <div class="fg"><label>Qty per Product</label>
-        <div class="qty-row">
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐄 Pawbeefy</label><input type="number" id="fPawbeefy" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐷 Pawporkby</label><input type="number" id="fPawporkby" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐔 Chickipaw</label><input type="number" id="fChickipaw" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🫐 Blueberry Bliss</label><input type="number" id="fBlueberry" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🍖 Collagen Broth</label><input type="number" id="fCollagen" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🍝 Spawghetti</label><input type="number" id="fSpawghetti" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🥣 Woofball</label><input type="number" id="fWoofball" value="0" min="0" oninput="calcTotal()"></div>
-          <div class="fg" style="margin:0"><label style="font-size:.68rem">🐟 Tilapaw</label><input type="number" id="fTilapaw" min="0" value="0" oninput="calcTotal()"></div>
-        </div>
-      </div>
-      <!-- Package -->
-      <div class="fg">
-        <label>Package</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="fPackage" onchange="calcTotal()" style="flex:1;">
-            <option value="">— None —</option>
-            <option value="Starter Pack" data-price="10.99">Starter Pack ($10.99)</option>
-            <option value="Weekly Pawby Pack" data-price="21.99">Weekly Pawby Pack ($21.99)</option>
-          </select>
-          <input type="number" id="fPackageQty" value="0" min="0" oninput="calcTotal()" style="width:70px;text-align:center;" placeholder="Qty">
-        </div>
-      </div>
-      <div class="f2">
-        <div class="fg"><label>Total ($)</label><input type="number" id="fTotal" placeholder="0.00" step="0.01" style="background:#f0fdf4;font-weight:700;color:#059669;width:100%;box-sizing:border-box;"></div>
-        <div class="fg"><label>Discount ($)</label><input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal()" placeholder="0.00" style="width:100%;box-sizing:border-box;"></div>
       </div>
       <div class="f2">
         <div class="fg"><label>Delivery Method</label>
@@ -314,8 +362,6 @@
             <option value="COD">COD</option>
           </select>
         </div>
-      </div>
-      <div class="f2">
         <div class="fg"><label>Payment</label>
           <select id="fPayment">
             <option value="ABA">ABA</option>
@@ -324,16 +370,23 @@
             <option value="ACLEDA">ACLEDA</option>
           </select>
         </div>
-        <div class="fg"><label>Date</label><input type="date" id="fDate"></div>
       </div>
       <div class="f2">
+        <div class="fg"><label>Date</label><input type="date" id="fDate"></div>
         <div class="fg"><label>Time</label><input type="time" id="fTime"></div>
-        <div class="fg"><label>Info</label><div style="font-size:.72rem;color:var(--muted);padding:10px 0;">Sheet auto-selected by date</div></div>
+      </div>
+      <div class="fg">
+        <label>Discount ($)</label>
+        <input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal();renderOpSummary();" placeholder="0.00">
       </div>
     </div>
+
+    <!-- FOOTER -->
     <div class="m-footer">
-      <button class="btn-cancel" onclick="closeOrder()">Cancel</button>
-      <button class="btn-save" onclick="saveOrder()">💾 Save Order</button>
+      <button class="btn-cancel" id="oBtnBack" onclick="orderGoBack()" style="display:none;">← Back</button>
+      <button class="btn-cancel" id="oBtnCancel" onclick="closeOrder()">Cancel</button>
+      <button class="btn-save" id="oBtnNext" onclick="orderGoNext()">Next →</button>
+      <button class="btn-save" id="oBtnSave" onclick="saveOrder()" style="display:none;">💾 Save Order</button>
     </div>
   </div>
 </div>
