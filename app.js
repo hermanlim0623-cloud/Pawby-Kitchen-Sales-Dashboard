@@ -846,7 +846,7 @@ function renderOpProducts() {
   const list = document.getElementById('opProductList');
   list.innerHTML = PRODUCT_META.map(p => `
     <div class="op-item ${(_opQtys[p.key]||0) > 0 ? 'has-qty' : ''}" id="opItem_${p.key}">
-      <img src="/product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="${p.name}">
+      <img src="product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="${p.name}">
       <div class="op-info">
         <div class="op-name">${p.name}</div>
         <div class="op-price">$${p.price.toFixed(2)}</div>
@@ -897,7 +897,7 @@ function renderOpSummary() {
     const q = _opQtys[p.key] || 0;
     if (q > 0) items.push(`
       <div class="op-summary-chip">
-        <img src="/product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="">
+        <img src="product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="">
         ${p.emoji} ${p.name} ×${q}
       </div>`);
   });
