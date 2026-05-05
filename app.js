@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════
 let orders = JSON.parse(localStorage.getItem('pawby_v2_orders') || '[]');
 let pendingDeletedIds = new Set();
-const TG_BOT_TOKEN = '8776883021:AAEQc0KHyhPPI5fTagJcgXCsej9BBlO0Jp4';
+const TG_BOT_TOKEN = '8776883021:AAF95fnhUzmd_aJXG9qLlgBn2LAfKuDkUnw';
 const TG_CHAT_ID = '7678197283';
 let SHEETS_URL = localStorage.getItem('pawby_sheets_url') || 'https://script.google.com/macros/s/AKfycbz55bbZR6eJtjvatUXZ5EPN6hUiyvRDNRQoPCaQ_FrpYrrTT2yOVacTisHA0zo3MHwQQA/exec';
 let currentPage = 1;
@@ -26,16 +26,16 @@ const PRICES = {
 };
 
 const PRODUCT_META = [
-  { key: 'pawbeefy',  emoji: '🐄', name: 'Pawbeefy',             price: 2.00 },
-  { key: 'pawporkby', emoji: '🐷', name: 'Pawporkby',            price: 1.50 },
-  { key: 'chickipaw', emoji: '🐔', name: 'Chickipaw',            price: 1.50 },
-  { key: 'blueberry', emoji: '🫐', name: 'Blueberry Bliss',      price: 2.50 },
-  { key: 'collagen',  emoji: '🍖', name: 'Collagen Broth',       price: 3.00 },
-  { key: 'spawghetti',emoji: '🍝', name: 'Spawghetti Beefonara', price: 3.00 },
-  { key: 'woofball',  emoji: '🥣', name: 'Woofball',             price: 3.00 },
-  { key: 'tilapaw',   emoji: '🐟', name: 'Tilapaw',              price: 2.00 },
-  { key: 'pawtart',   emoji: '🥧', name: 'Pawby Pawtart',        price: 3.00 },
-  { key: 'pawnana',   emoji: '🎂', name: 'Pawnana Berry Cake',   price: 12.00 }
+  { key: 'pawbeefy', emoji: '🐄', name: 'Pawbeefy', price: 2.00 },
+  { key: 'pawporkby', emoji: '🐷', name: 'Pawporkby', price: 1.50 },
+  { key: 'chickipaw', emoji: '🐔', name: 'Chickipaw', price: 1.50 },
+  { key: 'blueberry', emoji: '🫐', name: 'Blueberry Bliss', price: 2.50 },
+  { key: 'collagen', emoji: '🍖', name: 'Collagen Broth', price: 3.00 },
+  { key: 'spawghetti', emoji: '🍝', name: 'Spawghetti Beefonara', price: 3.00 },
+  { key: 'woofball', emoji: '🥣', name: 'Woofball', price: 3.00 },
+  { key: 'tilapaw', emoji: '🐟', name: 'Tilapaw', price: 2.00 },
+  { key: 'pawtart', emoji: '🥧', name: 'Pawby Pawtart', price: 3.00 },
+  { key: 'pawnana', emoji: '🎂', name: 'Pawnana Berry Cake', price: 12.00 }
 ];
 
 const PACKAGE_PRICES = {
@@ -44,16 +44,16 @@ const PACKAGE_PRICES = {
 };
 
 const PACKAGE_CONTENTS = {
-    'Starter Pack': {
-        pawbeefy: 2,
-        chickipaw: 2,
-        pawporkby: 3
-    },
-    'Weekly Pawby Pack': {
-        pawbeefy: 5,
-        chickipaw: 4,
-        pawporkby: 5
-    }
+  'Starter Pack': {
+    pawbeefy: 2,
+    chickipaw: 2,
+    pawporkby: 3
+  },
+  'Weekly Pawby Pack': {
+    pawbeefy: 5,
+    chickipaw: 4,
+    pawporkby: 5
+  }
 };
 
 // ══════════════════════════════════════════
@@ -85,28 +85,28 @@ function normalizeOrder(o) {
   // might still have emoji headers, we do a fallback check:
   if (!n.tgId && !n.date) {
     // Try emoji header keys from old data
-    n.date      = n.date      || findField(o, ['date']) || '';
-    n.tgId      = n.tgId      || findField(o, ['telegram id', 'telegram']) || '';
-    n.pawbeefy  = toInt(n.pawbeefy  || findField(o, ['pawbeefy']));
+    n.date = n.date || findField(o, ['date']) || '';
+    n.tgId = n.tgId || findField(o, ['telegram id', 'telegram']) || '';
+    n.pawbeefy = toInt(n.pawbeefy || findField(o, ['pawbeefy']));
     n.pawporkby = toInt(n.pawporkby || findField(o, ['pawporkby']));
     n.chickipaw = toInt(n.chickipaw || findField(o, ['chickipaw']));
     n.blueberry = toInt(n.blueberry || findField(o, ['blueberry']));
-    n.collagen  = toInt(n.collagen  || findField(o, ['collagen']));
-    n.spawghetti= toInt(n.spawghetti|| findField(o, ['spawghetti']));
-    n.woofball  = toInt(n.woofball  || findField(o, ['woofball']));
-    n.tilapaw   = toInt(n.tilapaw   || findField(o, ['tilapaw']));
-    n.pawtart   = toInt(n.pawtart   || findField(o, ['pawtart', 'pawby pawtart']));
-    n.pawnana   = toInt(n.pawnana   || findField(o, ['pawnana', 'pawnana berry']));
-    n.package   = n.package   || findField(o, ['package']) || '';
-    n.packageQty= toInt(n.packageQty|| findField(o, ['packageqty', 'package qty']));
-    n.disc      = toFloat(n.disc    || findField(o, ['discount', 'disc']));
-    n.total     = toFloat(n.total   || findField(o, ['total']));
-    n.bill      = toFloat(n.bill    || findField(o, ['bill']));
-    n.delivery  = n.delivery  || findField(o, ['delivery']) || '';
-    n.payment   = n.payment   || findField(o, ['payment']) || '';
-    n.time      = n.time      || findField(o, ['time']) || '';
-    n.anabul    = n.anabul    || findField(o, ['anabul', 'furbaby']) || '';
-    n.rowId     = n.rowId     || findField(o, ['rowid']) || '';
+    n.collagen = toInt(n.collagen || findField(o, ['collagen']));
+    n.spawghetti = toInt(n.spawghetti || findField(o, ['spawghetti']));
+    n.woofball = toInt(n.woofball || findField(o, ['woofball']));
+    n.tilapaw = toInt(n.tilapaw || findField(o, ['tilapaw']));
+    n.pawtart = toInt(n.pawtart || findField(o, ['pawtart', 'pawby pawtart']));
+    n.pawnana = toInt(n.pawnana || findField(o, ['pawnana', 'pawnana berry']));
+    n.package = n.package || findField(o, ['package']) || '';
+    n.packageQty = toInt(n.packageQty || findField(o, ['packageqty', 'package qty']));
+    n.disc = toFloat(n.disc || findField(o, ['discount', 'disc']));
+    n.total = toFloat(n.total || findField(o, ['total']));
+    n.bill = toFloat(n.bill || findField(o, ['bill']));
+    n.delivery = n.delivery || findField(o, ['delivery']) || '';
+    n.payment = n.payment || findField(o, ['payment']) || '';
+    n.time = n.time || findField(o, ['time']) || '';
+    n.anabul = n.anabul || findField(o, ['anabul', 'furbaby']) || '';
+    n.rowId = n.rowId || findField(o, ['rowid']) || '';
   }
 
   // Ensure date is a string in YYYY-MM-DD format
@@ -165,7 +165,7 @@ async function sbFetch(path, opts = {}) {
     if (!res.ok) { console.error('Supabase error:', res.status, await res.text()); return null; }
     const text = await res.text();
     return text ? JSON.parse(text) : true;
-  } catch(e) { console.error('Supabase fetch failed:', e); return null; }
+  } catch (e) { console.error('Supabase fetch failed:', e); return null; }
 }
 
 async function sbRpc(fnName, params = {}) {
@@ -182,7 +182,7 @@ async function sbRpc(fnName, params = {}) {
     });
     if (!res.ok) { console.error('Supabase RPC error:', await res.text()); return null; }
     return await res.json();
-  } catch(e) { console.error('Supabase RPC failed:', e); return null; }
+  } catch (e) { console.error('Supabase RPC failed:', e); return null; }
 }
 
 function isSupabaseConnected() { return !!(SUPABASE_URL && SUPABASE_KEY); }
@@ -208,30 +208,30 @@ let realtimeHbInterval = null;
 
 function setupRealtime() {
   if (!isSupabaseConnected()) return;
-  if (realtimeWs) { try { realtimeWs.close(); } catch(e){} }
+  if (realtimeWs) { try { realtimeWs.close(); } catch (e) { } }
   if (realtimeHbInterval) clearInterval(realtimeHbInterval);
 
   const wsUrl = SUPABASE_URL.replace('https://', 'wss://') +
     '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0';
-  
+
   try {
     realtimeWs = new WebSocket(wsUrl);
     realtimeWs.onopen = () => {
       realtimeWs.send(JSON.stringify({
         topic: 'realtime:public:stocks',
         event: 'phx_join',
-        payload: { config: { postgres_changes: [{ event: '*', schema: 'public', table: 'stocks' }]}},
+        payload: { config: { postgres_changes: [{ event: '*', schema: 'public', table: 'stocks' }] } },
         ref: '1'
       }));
       realtimeWs.send(JSON.stringify({
         topic: 'realtime:public:stock_alerts',
         event: 'phx_join',
-        payload: { config: { postgres_changes: [{ event: 'INSERT', schema: 'public', table: 'stock_alerts' }]}},
+        payload: { config: { postgres_changes: [{ event: 'INSERT', schema: 'public', table: 'stock_alerts' }] } },
         ref: '2'
       }));
       realtimeHbInterval = setInterval(() => {
         if (realtimeWs && realtimeWs.readyState === 1)
-          realtimeWs.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));
+          realtimeWs.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' }));
       }, 30000);
     };
     realtimeWs.onmessage = (e) => {
@@ -242,10 +242,10 @@ function setupRealtime() {
           if (msg.payload.table === 'stock_alerts' && msg.payload.eventType === 'INSERT')
             showStockAlert(msg.payload.record);
         }
-      } catch(err) {}
+      } catch (err) { }
     };
     realtimeWs.onclose = () => { setTimeout(setupRealtime, 5000); };
-  } catch(e) { console.error('Realtime setup failed:', e); }
+  } catch (e) { console.error('Realtime setup failed:', e); }
 }
 
 function showStockAlert(alert) {
@@ -302,13 +302,13 @@ async function syncStocks() {
       loadUnreadAlerts();
       return true;
     }
-  } catch(e) { console.error('Stock sync failed:', e); }
+  } catch (e) { console.error('Stock sync failed:', e); }
   return false;
 }
 
 function getSessionName() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY) || '{}').name || 'admin'; }
-  catch(e) { return 'admin'; }
+  catch (e) { return 'admin'; }
 }
 
 async function updateStock(productKey, newQty, notes) {
@@ -391,14 +391,14 @@ function checkSession() {
     if (s.token && s.expires > Date.now()) return s;
     localStorage.removeItem(SESSION_KEY);
     return false;
-  } catch(e) { return false; }
+  } catch (e) { return false; }
 }
 
 async function doLogin() {
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPass').value;
-  const btn      = document.getElementById('loginBtn');
-  const errEl    = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
   if (!username || !password) { showLoginError('Username and password are required!'); return; }
   btn.textContent = 'Memverifikasi...';
   btn.disabled = true;
@@ -412,8 +412,8 @@ async function doLogin() {
     if (data && data.length > 0) {
       const user = data[0];
       localStorage.setItem(SESSION_KEY, JSON.stringify({
-        token:   'sb_' + Date.now(),
-        name:    user.name || user.username,
+        token: 'sb_' + Date.now(),
+        name: user.name || user.username,
         expires: Date.now() + (SESSION_HOURS * 60 * 60 * 1000)
       }));
       document.getElementById('loginScreen').style.display = 'none';
@@ -422,7 +422,7 @@ async function doLogin() {
     } else {
       showLoginError('Incorrect username or password');
     }
-  } catch(e) {
+  } catch (e) {
     showLoginError('Connection failed. Check your internet.');
   }
   btn.textContent = 'Sign In →';
@@ -442,7 +442,7 @@ function doLogout() {
 }
 
 // Check session on load
-(function() {
+(function () {
   const session = checkSession();
   if (session) {
     document.getElementById('loginScreen').style.display = 'none';
@@ -455,28 +455,28 @@ function doLogout() {
 // DATE RANGE PICKER
 // ══════════════════════════════════════════
 const _now = new Date();
-const _todayStr = _now.toISOString().slice(0,10);
-function _monthStart(y,m){ return y + '-' + String(m).padStart(2,'0') + '-01'; }
-function _monthEnd(y,m)  { return y + '-' + String(m).padStart(2,'0') + '-31'; }
-let rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth()+1);
-let rangeTo   = _monthEnd(_now.getFullYear(),   _now.getMonth()+1);
-let pickStep=0, hoverDate=null;
+const _todayStr = _now.toISOString().slice(0, 10);
+function _monthStart(y, m) { return y + '-' + String(m).padStart(2, '0') + '-01'; }
+function _monthEnd(y, m) { return y + '-' + String(m).padStart(2, '0') + '-31'; }
+let rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth() + 1);
+let rangeTo = _monthEnd(_now.getFullYear(), _now.getMonth() + 1);
+let pickStep = 0, hoverDate = null;
 let calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
 
 function getActiveMonthRange() {
-  const f=rangeFrom, t=rangeTo;
-  const df=new Date(f), dt=new Date(t);
+  const f = rangeFrom, t = rangeTo;
+  const df = new Date(f), dt = new Date(t);
   let label;
   const isMobile = window.innerWidth <= 480;
-  if (f===t) {
-    label = df.toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'});
-  } else if (f.slice(0,7)===t.slice(0,7) && f.slice(8)==='01' && parseInt(t.slice(8))>=28) {
-    label = new Date(f.slice(0,7)+'-02').toLocaleString('en-US',{month:'long',year:'numeric'});
+  if (f === t) {
+    label = df.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  } else if (f.slice(0, 7) === t.slice(0, 7) && f.slice(8) === '01' && parseInt(t.slice(8)) >= 28) {
+    label = new Date(f.slice(0, 7) + '-02').toLocaleString('en-US', { month: 'long', year: 'numeric' });
   } else {
-    const fmt = isMobile ? {day:'numeric',month:'short'} : {day:'numeric',month:'short',year:'numeric'};
-    label = df.toLocaleDateString('en-US',{day:'numeric',month:'short'}) + ' – ' + dt.toLocaleDateString('en-US',fmt);
+    const fmt = isMobile ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' };
+    label = df.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) + ' – ' + dt.toLocaleDateString('en-US', fmt);
   }
-  return { from:f, to:t, label:'📅 ' + label };
+  return { from: f, to: t, label: '📅 ' + label };
 }
 
 function toggleRangePicker() {
@@ -487,146 +487,146 @@ function toggleRangePicker() {
 
 function closePicker() {
   document.getElementById('calDropdown').classList.remove('open');
-  pickStep=0; hoverDate=null;
+  pickStep = 0; hoverDate = null;
 }
 
 function goToday() {
-  rangeFrom=_todayStr; rangeTo=_todayStr;
-  calViewLeft=new Date(_now.getFullYear(),_now.getMonth(),1);
-  pickStep=0; hoverDate=null;
+  rangeFrom = _todayStr; rangeTo = _todayStr;
+  calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
+  pickStep = 0; hoverDate = null;
   renderCals(); attachCalHover(); updateDayStyles(); updateRangeLabel();
 }
 
 function applyRange() {
-  if (rangeTo<rangeFrom){const t=rangeFrom;rangeFrom=rangeTo;rangeTo=t;}
+  if (rangeTo < rangeFrom) { const t = rangeFrom; rangeFrom = rangeTo; rangeTo = t; }
   closePicker(); renderStats();
 }
 
 function resetToCurrentMonth() {
-  rangeFrom=_monthStart(_now.getFullYear(),_now.getMonth()+1);
-  rangeTo=_monthEnd(_now.getFullYear(),_now.getMonth()+1);
-  calViewLeft=new Date(_now.getFullYear(),_now.getMonth(),1);
-  pickStep=0; hoverDate=null;
+  rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth() + 1);
+  rangeTo = _monthEnd(_now.getFullYear(), _now.getMonth() + 1);
+  calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
+  pickStep = 0; hoverDate = null;
   renderCals(); attachCalHover(); applyRange();
 }
 
-function navCal(side,dir) {
-  calViewLeft=new Date(calViewLeft.getFullYear(),calViewLeft.getMonth()+dir,1);
+function navCal(side, dir) {
+  calViewLeft = new Date(calViewLeft.getFullYear(), calViewLeft.getMonth() + dir, 1);
   renderCals(); attachCalHover();
 }
 
 function renderCals() {
-  document.getElementById('calLeft').innerHTML=buildCal(calViewLeft,'left');
+  document.getElementById('calLeft').innerHTML = buildCal(calViewLeft, 'left');
   updateDayStyles(); updateRangeLabel();
 }
 
-function buildCal(viewDate,side) {
-  const y=viewDate.getFullYear(),mo=viewDate.getMonth();
-  const monthName=viewDate.toLocaleString('en-US',{month:'long',year:'numeric'});
-  const firstDay=new Date(y,mo,1).getDay();
-  const daysInMonth=new Date(y,mo+1,0).getDate();
-  const offset=(firstDay+6)%7;
-  const dows=['Mo','Tu','We','Th','Fr','Sa','Su'];
-  let html='<div class="cal-nav">' +
+function buildCal(viewDate, side) {
+  const y = viewDate.getFullYear(), mo = viewDate.getMonth();
+  const monthName = viewDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const firstDay = new Date(y, mo, 1).getDay();
+  const daysInMonth = new Date(y, mo + 1, 0).getDate();
+  const offset = (firstDay + 6) % 7;
+  const dows = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  let html = '<div class="cal-nav">' +
     '<button class="cal-nav-btn" onclick="navCal(\'' + side + '\',-1)">&#8249;</button>' +
     '<span class="cal-month-lbl">' + monthName + '</span>' +
     '<button class="cal-nav-btn" onclick="navCal(\'' + side + '\',1)">&#8250;</button>' +
     '</div><div class="cal-grid">';
   dows.forEach(d => { html += '<div class="cal-dow">' + d + '</div>'; });
-  for(let i=0;i<offset;i++) html+='<div class="cal-day cal-empty"></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const ds = y + '-' + String(mo+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  for (let i = 0; i < offset; i++) html += '<div class="cal-day cal-empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = y + '-' + String(mo + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     const isToday = ds === _todayStr;
-    html += '<button class="cal-day' + (isToday?' is-today':'') + '" data-date="' + ds + '" onclick="pickDay(\'' + ds + '\')">' + d + '</button>';
+    html += '<button class="cal-day' + (isToday ? ' is-today' : '') + '" data-date="' + ds + '" onclick="pickDay(\'' + ds + '\')">' + d + '</button>';
   }
-  html+='</div>';
+  html += '</div>';
   return html;
 }
 
-function updateDayStyles(effFrom,effTo) {
-  const f=effFrom||rangeFrom, t=effTo||rangeTo;
+function updateDayStyles(effFrom, effTo) {
+  const f = effFrom || rangeFrom, t = effTo || rangeTo;
   document.querySelectorAll('.cal-day[data-date]').forEach(btn => {
-    const ds=btn.dataset.date;
-    btn.classList.remove('range-start','range-end','in-range');
-    if(ds===f&&ds===t){btn.classList.add('range-start','range-end');}
-    else if(ds===f){btn.classList.add('range-start');}
-    else if(ds===t){btn.classList.add('range-end');}
-    else if(ds>f&&ds<t){btn.classList.add('in-range');}
+    const ds = btn.dataset.date;
+    btn.classList.remove('range-start', 'range-end', 'in-range');
+    if (ds === f && ds === t) { btn.classList.add('range-start', 'range-end'); }
+    else if (ds === f) { btn.classList.add('range-start'); }
+    else if (ds === t) { btn.classList.add('range-end'); }
+    else if (ds > f && ds < t) { btn.classList.add('in-range'); }
   });
 }
 
 function attachCalHover() {
-  const body=document.getElementById('calBody');
-  body.onmouseover=function(e){
-    if(pickStep!==1)return;
-    const btn=e.target.closest('.cal-day[data-date]');
-    if(!btn)return;
-    const ds=btn.dataset.date;
-    if(ds===hoverDate)return;
-    hoverDate=ds;
-    const eff_to=ds<rangeFrom?rangeFrom:ds;
-    const eff_from=ds<rangeFrom?ds:rangeFrom;
-    updateDayStyles(eff_from,eff_to);
+  const body = document.getElementById('calBody');
+  body.onmouseover = function (e) {
+    if (pickStep !== 1) return;
+    const btn = e.target.closest('.cal-day[data-date]');
+    if (!btn) return;
+    const ds = btn.dataset.date;
+    if (ds === hoverDate) return;
+    hoverDate = ds;
+    const eff_to = ds < rangeFrom ? rangeFrom : ds;
+    const eff_from = ds < rangeFrom ? ds : rangeFrom;
+    updateDayStyles(eff_from, eff_to);
   };
-  body.onmouseleave=function(){
-    if(pickStep!==1)return;
-    hoverDate=null; updateDayStyles();
+  body.onmouseleave = function () {
+    if (pickStep !== 1) return;
+    hoverDate = null; updateDayStyles();
   };
 }
 
 function pickDay(ds) {
-  if(pickStep===0){rangeFrom=ds;rangeTo=ds;pickStep=1;updateDayStyles();updateRangeLabel();}
-  else{
-    if(ds<rangeFrom){rangeTo=rangeFrom;rangeFrom=ds;}else rangeTo=ds;
-    pickStep=0;hoverDate=null;updateDayStyles();updateRangeLabel();
+  if (pickStep === 0) { rangeFrom = ds; rangeTo = ds; pickStep = 1; updateDayStyles(); updateRangeLabel(); }
+  else {
+    if (ds < rangeFrom) { rangeTo = rangeFrom; rangeFrom = ds; } else rangeTo = ds;
+    pickStep = 0; hoverDate = null; updateDayStyles(); updateRangeLabel();
   }
 }
 
 function updateRangeLabel() {
-  const lbl=document.getElementById('rangeSelectedLabel');
-  if(!lbl)return;
-  if(pickStep===1){lbl.textContent='→ pilih akhir';return;}
-  lbl.textContent=rangeFrom===rangeTo?rangeFrom:(rangeFrom + '  →  ' + rangeTo);
+  const lbl = document.getElementById('rangeSelectedLabel');
+  if (!lbl) return;
+  if (pickStep === 1) { lbl.textContent = '→ pilih akhir'; return; }
+  lbl.textContent = rangeFrom === rangeTo ? rangeFrom : (rangeFrom + '  →  ' + rangeTo);
 }
 
 // ══════════════════════════════════════════
 // CORE UTILITIES
 // ══════════════════════════════════════════
 const saveLocal = () => localStorage.setItem('pawby_v2_orders', JSON.stringify(orders));
-const fmt$ = n => '$' + parseFloat(n||0).toFixed(2);
-const ini  = s => (s||'?').replace('@','').slice(0,2).toUpperCase();
+const fmt$ = n => '$' + parseFloat(n || 0).toFixed(2);
+const ini = s => (s || '?').replace('@', '').slice(0, 2).toUpperCase();
 
-function setSync(state,txt) {
-  const el=document.getElementById('syncChip');
-  el.className='sync-chip '+state;
-  document.getElementById('syncTxt').textContent=txt;
+function setSync(state, txt) {
+  const el = document.getElementById('syncChip');
+  el.className = 'sync-chip ' + state;
+  document.getElementById('syncTxt').textContent = txt;
 }
 
 function connectSheets() {
-  const url=document.getElementById('sheetsUrl').value.trim();
-  if(!url.includes('script.google.com')){alert('Invalid URL!');return;}
-  SHEETS_URL=url;
-  localStorage.setItem('pawby_sheets_url',url);
+  const url = document.getElementById('sheetsUrl').value.trim();
+  if (!url.includes('script.google.com')) { alert('Invalid URL!'); return; }
+  SHEETS_URL = url;
+  localStorage.setItem('pawby_sheets_url', url);
   document.getElementById('setupBanner').classList.add('hidden');
   closeSetup(); doSync();
 }
 
 async function doSync() {
-  if(!isSupabaseConnected()){openSetup();return;}
-  setSync('loading','Fetching data...');
+  if (!isSupabaseConnected()) { openSetup(); return; }
+  setSync('loading', 'Fetching data...');
   try {
     const data = await sbFetch('orders?order=created_at.desc&limit=500');
-    if(data && Array.isArray(data)){
+    if (data && Array.isArray(data)) {
       orders = data.map(sbOrderToLocal);
       saveLocal();
-      const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-      document.getElementById('lastSyncInfo').textContent='Last sync: '+now;
-      setSync('ok','Synced ✓');
+      const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('lastSyncInfo').textContent = 'Last sync: ' + now;
+      setSync('ok', 'Synced ✓');
       renderAll();
     } else {
-      setSync('err','Failed to fetch orders');
+      setSync('err', 'Failed to fetch orders');
     }
-  } catch(e){setSync('err','Connection failed');console.error(e);}
+  } catch (e) { setSync('err', 'Connection failed'); console.error(e); }
 }
 
 // Convert Supabase order row → local format
@@ -692,72 +692,72 @@ function localOrderToSb(order) {
 }
 
 async function postSheets(body) {
-  if(!SHEETS_URL)return;
+  if (!SHEETS_URL) return;
   try {
-    await fetch(SHEETS_URL,{
-      method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)
+    await fetch(SHEETS_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
-    setSync('ok','Saved ✓');
-    setTimeout(()=>setSync('ok','Synced ✓'),3000);
-  } catch(e){setSync('err','Send failed');}
+    setSync('ok', 'Saved ✓');
+    setTimeout(() => setSync('ok', 'Synced ✓'), 3000);
+  } catch (e) { setSync('err', 'Send failed'); }
 }
 
 function init() {
-   document.getElementById('datePill').textContent =
-     new Date().toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
-   const now=new Date();
-   document.getElementById('fDate').valueAsDate=now;
-   document.getElementById('fTime').value=now.toTimeString().slice(0,5);
-   
-   // Supabase — primary data source
-   if (isSupabaseConnected()) {
-     document.getElementById('supabaseUrl').value = SUPABASE_URL;
-     document.getElementById('supabaseKey').value = SUPABASE_KEY;
-     document.getElementById('supabaseStatus').innerHTML = '<span style="color:#10b981;">✅ Connected</span>';
-     syncStocks();
-     setupRealtime();
-     document.getElementById('setupBanner').classList.add('hidden');
-     setSync('ok','Connected to Supabase');
-     setTimeout(()=>{ doSync(); }, 800);
-   } else {
-     document.getElementById('setupBanner').classList.remove('hidden');
-     renderAll();
-   }
+  document.getElementById('datePill').textContent =
+    new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+  const now = new Date();
+  document.getElementById('fDate').valueAsDate = now;
+  document.getElementById('fTime').value = now.toTimeString().slice(0, 5);
 
-   // GAS URL (kept for reference only)
-   if(SHEETS_URL){ document.getElementById('sheetsUrl').value = SHEETS_URL; }
+  // Supabase — primary data source
+  if (isSupabaseConnected()) {
+    document.getElementById('supabaseUrl').value = SUPABASE_URL;
+    document.getElementById('supabaseKey').value = SUPABASE_KEY;
+    document.getElementById('supabaseStatus').innerHTML = '<span style="color:#10b981;">✅ Connected</span>';
+    syncStocks();
+    setupRealtime();
+    document.getElementById('setupBanner').classList.add('hidden');
+    setSync('ok', 'Connected to Supabase');
+    setTimeout(() => { doSync(); }, 800);
+  } else {
+    document.getElementById('setupBanner').classList.remove('hidden');
+    renderAll();
+  }
+
+  // GAS URL (kept for reference only)
+  if (SHEETS_URL) { document.getElementById('sheetsUrl').value = SHEETS_URL; }
 }
 
 // ══════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════
-function toggleSidebar(){
+function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('open');
 }
-function closeSidebar(){
+function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
-function switchView(name,btn){
-   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
-   document.getElementById('view-'+name).classList.add('active');
-   btn.classList.add('active');
-   const map={
-     dashboard:['Dashboard Overview','Welcome back, Pawby Admin 🐾'],
-     orders:['All Orders','Manage orders from all months'],
-     customers:['Customers','Telegram customer data'],
-     products:['Product Catalog','Statistics per product'],
-     stock:['📦 Stock Management','Track inventory for all products'],
-   };
-   document.getElementById('vTitle').textContent=map[name][0];
-   document.getElementById('vSub').textContent=map[name][1];
-   closeSidebar();
-   if(name === 'stock') renderStockView();
-   else renderAll();
+function switchView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  btn.classList.add('active');
+  const map = {
+    dashboard: ['Dashboard Overview', 'Welcome back, Pawby Admin 🐾'],
+    orders: ['All Orders', 'Manage orders from all months'],
+    customers: ['Customers', 'Telegram customer data'],
+    products: ['Product Catalog', 'Statistics per product'],
+    stock: ['📦 Stock Management', 'Track inventory for all products'],
+  };
+  document.getElementById('vTitle').textContent = map[name][0];
+  document.getElementById('vSub').textContent = map[name][1];
+  closeSidebar();
+  if (name === 'stock') renderStockView();
+  else renderAll();
 }
 
 // ══════════════════════════════════════════
@@ -785,8 +785,8 @@ function openOrder() {
 
   // Set default date/time
   const now = new Date();
-  document.getElementById('fDate').value = now.toISOString().slice(0,10);
-  document.getElementById('fTime').value = now.toTimeString().slice(0,5);
+  document.getElementById('fDate').value = now.toISOString().slice(0, 10);
+  document.getElementById('fTime').value = now.toTimeString().slice(0, 5);
   document.getElementById('fDisc').value = 0;
   document.getElementById('fTotal').value = '';
 
@@ -845,7 +845,7 @@ function orderGoBack() {
 function renderOpProducts() {
   const list = document.getElementById('opProductList');
   list.innerHTML = PRODUCT_META.map(p => `
-    <div class="op-item ${(_opQtys[p.key]||0) > 0 ? 'has-qty' : ''}" id="opItem_${p.key}">
+    <div class="op-item ${(_opQtys[p.key] || 0) > 0 ? 'has-qty' : ''}" id="opItem_${p.key}">
       <img src="product-imgs/${p.key}.webp" onerror="this.style.display='none'" alt="${p.name}">
       <div class="op-info">
         <div class="op-name">${p.name}</div>
@@ -853,7 +853,7 @@ function renderOpProducts() {
       </div>
       <div class="op-counter">
         <button class="op-btn" onclick="changeProductQty('${p.key}',-1)">−</button>
-        <span id="opQty_${p.key}">${_opQtys[p.key]||0}</span>
+        <span id="opQty_${p.key}">${_opQtys[p.key] || 0}</span>
         <button class="op-btn" onclick="changeProductQty('${p.key}',1)">+</button>
       </div>
     </div>
@@ -887,7 +887,7 @@ function updateOpPkgDisplay() {
   // Highlight package items
   document.querySelectorAll('#opPackageList .op-item').forEach(el => {
     const key = el.dataset.key;
-    el.className = 'op-item' + ((_opPkgQty[key]||0) > 0 ? ' has-qty' : '');
+    el.className = 'op-item' + ((_opPkgQty[key] || 0) > 0 ? ' has-qty' : '');
   });
 }
 
@@ -912,37 +912,37 @@ function renderOpSummary() {
   `;
 }
 
-function openOrder_old(){} // kept for safety
-function openSetup(){ document.getElementById('setupOverlay').classList.add('open'); closeSidebar(); }
-function closeSetup(){ document.getElementById('setupOverlay').classList.remove('open'); }
+function openOrder_old() { } // kept for safety
+function openSetup() { document.getElementById('setupOverlay').classList.add('open'); closeSidebar(); }
+function closeSetup() { document.getElementById('setupOverlay').classList.remove('open'); }
 
-document.getElementById('orderOverlay').addEventListener('click',function(e){if(e.target===this)closeOrder();});
-document.getElementById('setupOverlay').addEventListener('click',function(e){if(e.target===this)closeSetup();});
-document.getElementById('editStockOverlay').addEventListener('click',function(e){if(e.target===this)closeStockEdit();});
-document.getElementById('stockHistoryOverlay').addEventListener('click',function(e){if(e.target===this)closeStockHistory();});
-document.getElementById('custDetailOverlay').addEventListener('click',function(e){if(e.target===this)closeCustDetail();});
+document.getElementById('orderOverlay').addEventListener('click', function (e) { if (e.target === this) closeOrder(); });
+document.getElementById('setupOverlay').addEventListener('click', function (e) { if (e.target === this) closeSetup(); });
+document.getElementById('editStockOverlay').addEventListener('click', function (e) { if (e.target === this) closeStockEdit(); });
+document.getElementById('stockHistoryOverlay').addEventListener('click', function (e) { if (e.target === this) closeStockHistory(); });
+document.getElementById('custDetailOverlay').addEventListener('click', function (e) { if (e.target === this) closeCustDetail(); });
 
 // ══════════════════════════════════════════
 // ORDER FORM - CALC TOTAL
 // ══════════════════════════════════════════
-function calcTotal(){
-  let total=0;
-  PRODUCT_META.forEach(p=>{
-    total+=(parseInt(document.getElementById('f'+cap(p.key)).value)||0)*p.price;
+function calcTotal() {
+  let total = 0;
+  PRODUCT_META.forEach(p => {
+    total += (parseInt(document.getElementById('f' + cap(p.key)).value) || 0) * p.price;
   });
   // Package
-  const pkgSelect=document.getElementById('fPackage');
-  const pkgQty=parseInt(document.getElementById('fPackageQty').value)||0;
-  if(pkgSelect.value && pkgQty>0){
-    const pkgPrice=parseFloat(pkgSelect.options[pkgSelect.selectedIndex].dataset.price)||0;
-    total+=pkgPrice*pkgQty;
+  const pkgSelect = document.getElementById('fPackage');
+  const pkgQty = parseInt(document.getElementById('fPackageQty').value) || 0;
+  if (pkgSelect.value && pkgQty > 0) {
+    const pkgPrice = parseFloat(pkgSelect.options[pkgSelect.selectedIndex].dataset.price) || 0;
+    total += pkgPrice * pkgQty;
   }
-  const disc=parseFloat(document.getElementById('fDisc').value)||0;
-  const finalTotal=Math.max(0,total-disc);
-  document.getElementById('fTotal').value=finalTotal>0?finalTotal.toFixed(2):'';
+  const disc = parseFloat(document.getElementById('fDisc').value) || 0;
+  const finalTotal = Math.max(0, total - disc);
+  document.getElementById('fTotal').value = finalTotal > 0 ? finalTotal.toFixed(2) : '';
 }
 
-function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 function populateTgSuggestions() {
   const dl = document.getElementById('tgSuggestions');
@@ -954,140 +954,142 @@ function populateTgSuggestions() {
 // ══════════════════════════════════════════
 // SAVE ORDER
 // ══════════════════════════════════════════
-async function saveOrder(){
-    let tgId=document.getElementById('fTg').value.trim();
-    if(tgId&&!tgId.startsWith('@')) tgId='@'+tgId;
-    const disc=parseFloat(document.getElementById('fDisc').value)||0;
-    const orderDate = document.getElementById('fDate').value;
-    const sheetName = getSheetNameForDate(orderDate);
-    
-    const order={
-        tgId, anabul:document.getElementById('fAnabul').value.trim(),
-        pawbeefy:parseInt(document.getElementById('fPawbeefy').value)||0,
-        pawporkby:parseInt(document.getElementById('fPawporkby').value)||0,
-        chickipaw:parseInt(document.getElementById('fChickipaw').value)||0,
-        blueberry:parseInt(document.getElementById('fBlueberry').value)||0,
-        collagen:parseInt(document.getElementById('fCollagen').value)||0,
-        spawghetti:parseInt(document.getElementById('fSpawghetti').value)||0,
-        woofball:parseInt(document.getElementById('fWoofball').value)||0,
-        tilapaw: parseInt(document.getElementById('fTilapaw').value) || 0,
-        pawtart: parseInt(document.getElementById('fPawtart').value) || 0,
-        pawnana: parseInt(document.getElementById('fPawnana').value) || 0,
-        special:0, package:document.getElementById('fPackage').value,
-        packageQty:parseInt(document.getElementById('fPackageQty').value)||0,
-        disc, total:parseFloat(document.getElementById('fTotal').value)||0,
-        delivery:document.getElementById('fDelivery').value,
-        payment:document.getElementById('fPayment').value,
-        date:orderDate, time:document.getElementById('fTime').value,
-        sheetName: sheetName,
-    };
-    order.bill=order.total;
-    order.rowId=Date.now();
-    order._normalized = true;
+async function saveOrder() {
+  let tgId = document.getElementById('fTg').value.trim();
+  if (tgId && !tgId.startsWith('@')) tgId = '@' + tgId;
+  const disc = parseFloat(document.getElementById('fDisc').value) || 0;
+  const orderDate = document.getElementById('fDate').value;
+  const sheetName = getSheetNameForDate(orderDate);
 
-    // 🔍 1️⃣ VALIDASI STOK (Produk + Paket)
-    if (isSupabaseConnected()) {
-        const insufficient = [];
-        
-        // Validasi produk individual
-        PRODUCT_META.forEach(p => {
-            const qty = order[p.key] || 0;
-            if (qty > 0) {
-                const available = stocks[p.key]?.quantity || 0;
-                if (available < qty) {
-                    insufficient.push(`${p.emoji} ${p.name} (Butuh: ${qty} | Ada: ${available})`);
-                }
-            }
-        });
-        
-        // Validasi komponen paket
-        if (order.package && order.packageQty > 0 && PACKAGE_CONTENTS[order.package]) {
-            const components = PACKAGE_CONTENTS[order.package];
-            Object.entries(components).forEach(([prodKey, qtyPerPack]) => {
-                const totalNeeded = qtyPerPack * order.packageQty;
-                const available = stocks[prodKey]?.quantity || 0;
-                const productMeta = PRODUCT_META.find(p => p.key === prodKey);
-                const emoji = productMeta ? productMeta.emoji : '📦';
-                const name = productMeta ? productMeta.name : prodKey;
-                
-                if (available < totalNeeded) {
-                    insufficient.push(`${emoji} ${name} untuk paket (Butuh: ${totalNeeded} | Ada: ${available})`);
-                }
-            });
-        }
+  const order = {
+    tgId, anabul: document.getElementById('fAnabul').value.trim(),
+    pawbeefy: parseInt(document.getElementById('fPawbeefy').value) || 0,
+    pawporkby: parseInt(document.getElementById('fPawporkby').value) || 0,
+    chickipaw: parseInt(document.getElementById('fChickipaw').value) || 0,
+    blueberry: parseInt(document.getElementById('fBlueberry').value) || 0,
+    collagen: parseInt(document.getElementById('fCollagen').value) || 0,
+    spawghetti: parseInt(document.getElementById('fSpawghetti').value) || 0,
+    woofball: parseInt(document.getElementById('fWoofball').value) || 0,
+    tilapaw: parseInt(document.getElementById('fTilapaw').value) || 0,
+    pawtart: parseInt(document.getElementById('fPawtart').value) || 0,
+    pawnana: parseInt(document.getElementById('fPawnana').value) || 0,
+    special: 0, package: document.getElementById('fPackage').value,
+    packageQty: parseInt(document.getElementById('fPackageQty').value) || 0,
+    disc, total: parseFloat(document.getElementById('fTotal').value) || 0,
+    delivery: document.getElementById('fDelivery').value,
+    payment: document.getElementById('fPayment').value,
+    date: orderDate, time: document.getElementById('fTime').value,
+    sheetName: sheetName,
+  };
+  order.bill = order.total;
+  order.rowId = Date.now();
+  order._normalized = true;
 
-        if (insufficient.length > 0) {
-            showToast('❌ Stok tidak cukup:\n' + insufficient.join('\n'), 'error');
-            return; // BLOKIR ORDER
+  // 🔍 1️⃣ VALIDASI STOK (Produk + Paket)
+  if (isSupabaseConnected()) {
+    const insufficient = [];
+
+    // Validasi produk individual
+    PRODUCT_META.forEach(p => {
+      const qty = order[p.key] || 0;
+      if (qty > 0) {
+        const available = stocks[p.key]?.quantity || 0;
+        if (available < qty) {
+          insufficient.push(`${p.emoji} ${p.name} (Butuh: ${qty} | Ada: ${available})`);
         }
+      }
+    });
+
+    // Validasi komponen paket
+    if (order.package && order.packageQty > 0 && PACKAGE_CONTENTS[order.package]) {
+      const components = PACKAGE_CONTENTS[order.package];
+      Object.entries(components).forEach(([prodKey, qtyPerPack]) => {
+        const totalNeeded = qtyPerPack * order.packageQty;
+        const available = stocks[prodKey]?.quantity || 0;
+        const productMeta = PRODUCT_META.find(p => p.key === prodKey);
+        const emoji = productMeta ? productMeta.emoji : '📦';
+        const name = productMeta ? productMeta.name : prodKey;
+
+        if (available < totalNeeded) {
+          insufficient.push(`${emoji} ${name} untuk paket (Butuh: ${totalNeeded} | Ada: ${available})`);
+        }
+      });
     }
 
-    // ✅ 2️⃣ STOK CUKUP → LANJUTKAN SAVE
-    orders.unshift(order);
-    saveLocal();
-    closeOrder();
-    renderAll();
-    showReceipt(order);
+    if (insufficient.length > 0) {
+      showToast('❌ Stok tidak cukup:\n' + insufficient.join('\n'), 'error');
+      return; // BLOKIR ORDER
+    }
+  }
 
-    // Save to Supabase
-    try {
-      const sbRow = localOrderToSb(order);
-      await sbFetch('orders', { method: 'POST', body: JSON.stringify(sbRow),
-        extraHeaders: { 'Prefer': 'return=minimal' } });
-      setSync('ok','Saved ✓');
-    } catch(e) {
-      console.error('Supabase save failed:', e);
-      showToast('⚠️ Order tersimpan lokal, gagal sync ke server', 'warning');
+  // ✅ 2️⃣ STOK CUKUP → LANJUTKAN SAVE
+  orders.unshift(order);
+  saveLocal();
+  closeOrder();
+  renderAll();
+  showReceipt(order);
+
+  // Save to Supabase
+  try {
+    const sbRow = localOrderToSb(order);
+    await sbFetch('orders', {
+      method: 'POST', body: JSON.stringify(sbRow),
+      extraHeaders: { 'Prefer': 'return=minimal' }
+    });
+    setSync('ok', 'Saved ✓');
+  } catch (e) {
+    console.error('Supabase save failed:', e);
+    showToast('⚠️ Order tersimpan lokal, gagal sync ke server', 'warning');
+  }
+
+  // 📦 3️⃣ AUTO DEDUCT STOCK (Produk + Paket)
+  if (isSupabaseConnected()) {
+    const stockTasks = [];
+
+    // Deduct produk individual
+    PRODUCT_META.forEach(p => {
+      const qty = order[p.key] || 0;
+      if (qty > 0) {
+        stockTasks.push(reduceStock(p.key, qty, `Order #${order.rowId} | ${order.tgId}`));
+      }
+    });
+
+    // Deduct komponen paket
+    if (order.package && order.packageQty > 0 && PACKAGE_CONTENTS[order.package]) {
+      const components = PACKAGE_CONTENTS[order.package];
+      Object.entries(components).forEach(([prodKey, qtyPerPack]) => {
+        const totalQty = qtyPerPack * order.packageQty;
+        stockTasks.push(reduceStock(
+          prodKey,
+          totalQty,
+          `Paket ${order.package} (${order.packageQty}x) | Order #${order.rowId}`
+        ));
+      });
     }
 
-    // 📦 3️⃣ AUTO DEDUCT STOCK (Produk + Paket)
-    if (isSupabaseConnected()) {
-        const stockTasks = [];
-        
-        // Deduct produk individual
-        PRODUCT_META.forEach(p => {
-            const qty = order[p.key] || 0;
-            if (qty > 0) {
-                stockTasks.push(reduceStock(p.key, qty, `Order #${order.rowId} | ${order.tgId}`));
-            }
-        });
-        
-        // Deduct komponen paket
-        if (order.package && order.packageQty > 0 && PACKAGE_CONTENTS[order.package]) {
-            const components = PACKAGE_CONTENTS[order.package];
-            Object.entries(components).forEach(([prodKey, qtyPerPack]) => {
-                const totalQty = qtyPerPack * order.packageQty;
-                stockTasks.push(reduceStock(
-                    prodKey, 
-                    totalQty, 
-                    `Paket ${order.package} (${order.packageQty}x) | Order #${order.rowId}`
-                ));
-            });
-        }
+    if (stockTasks.length > 0) {
+      showToast('📦 Memproses pengurangan stok...', 'info');
+      const results = await Promise.all(stockTasks);
+      const failed = results.filter(r => r === false);
 
-        if (stockTasks.length > 0) {
-            showToast('📦 Memproses pengurangan stok...', 'info');
-            const results = await Promise.all(stockTasks);
-            const failed = results.filter(r => r === false);
-            
-            if (failed.length > 0) {
-                showToast('⚠️ Order tersimpan, tapi gagal kurangi sebagian stok', 'warning');
-            } else {
-                showToast('✅ Order berhasil & stok otomatis terpotong', 'success');
-            }
-            if (document.getElementById('view-stock').classList.contains('active')) renderStockView();
-        }
+      if (failed.length > 0) {
+        showToast('⚠️ Order tersimpan, tapi gagal kurangi sebagian stok', 'warning');
+      } else {
+        showToast('✅ Order berhasil & stok otomatis terpotong', 'success');
+      }
+      if (document.getElementById('view-stock').classList.contains('active')) renderStockView();
     }
+  }
 
-    // 🔄 4️⃣ RESET FORM
-    ['fTg','fAnabul','fTotal'].forEach(id=>document.getElementById(id).value='');
-    ['fPawbeefy','fPawporkby','fChickipaw','fBlueberry','fCollagen','fSpawghetti','fWoofball','fTilapaw','fPawtart','fPawnana','fPackageQty','fDisc']
-        .forEach(id=>document.getElementById(id).value=0);
-    document.getElementById('fPackage').value='';
-    // Reset 2-step state
-    _opQtys = {};
-    _opPkgQty = { 'Starter Pack': 0, 'Weekly Pawby Pack': 0 };
-    closeOrder();
+  // 🔄 4️⃣ RESET FORM
+  ['fTg', 'fAnabul', 'fTotal'].forEach(id => document.getElementById(id).value = '');
+  ['fPawbeefy', 'fPawporkby', 'fChickipaw', 'fBlueberry', 'fCollagen', 'fSpawghetti', 'fWoofball', 'fTilapaw', 'fPawtart', 'fPawnana', 'fPackageQty', 'fDisc']
+    .forEach(id => document.getElementById(id).value = 0);
+  document.getElementById('fPackage').value = '';
+  // Reset 2-step state
+  _opQtys = {};
+  _opPkgQty = { 'Starter Pack': 0, 'Weekly Pawby Pack': 0 };
+  closeOrder();
 }
 
 // Generate sheet name from date: "Mar Pawby Sales", "Apr Pawby Sales"
@@ -1095,13 +1097,13 @@ function getSheetNameForDate(dateStr) {
   if (!dateStr) return 'Pawby Sales';
   const d = new Date(dateStr);
   if (isNaN(d)) return 'Pawby Sales';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   // Try to match existing sheet names from orders
   const monthStr = months[d.getMonth()];
   // Check known patterns: "March Pawby Sales", "Apr Pawby Sales", "Pawby Sales"
   const knownSheets = [...new Set(orders.map(o => o.sheetName).filter(Boolean))];
   // Try full month name first
-  const fullMonth = d.toLocaleString('en-US', {month:'long'});
+  const fullMonth = d.toLocaleString('en-US', { month: 'long' });
   const matchFull = knownSheets.find(s => s.toLowerCase().includes(fullMonth.toLowerCase()));
   if (matchFull) return matchFull;
   // Try abbreviated
@@ -1114,16 +1116,16 @@ function getSheetNameForDate(dateStr) {
 // ══════════════════════════════════════════
 // RECEIPT
 // ══════════════════════════════════════════
-function showReceipt(order){
-  document.getElementById('rcTg').textContent     = order.tgId   || '—';
-  document.getElementById('rcAnabul').textContent  = order.anabul || '—';
-  document.getElementById('rcDate').textContent    = order.date   || '—';
+function showReceipt(order) {
+  document.getElementById('rcTg').textContent = order.tgId || '—';
+  document.getElementById('rcAnabul').textContent = order.anabul || '—';
+  document.getElementById('rcDate').textContent = order.date || '—';
   const rawTime = order.time || '';
   const timeDisplay = rawTime.length > 8 ? rawTime.slice(16, 21) : rawTime;
   document.getElementById('rcTime').textContent = timeDisplay || '—';
-  document.getElementById('rcDelivery').textContent= order.delivery|| '—';
+  document.getElementById('rcDelivery').textContent = order.delivery || '—';
   document.getElementById('rcPayment').textContent = order.payment || '—';
-  const orderNum = (function(id) {
+  const orderNum = (function (id) {
     let h = 0;
     for (let i = 0; i < id.length; i++) {
       h = Math.imul(31, h) + id.charCodeAt(i) | 0;
@@ -1141,14 +1143,14 @@ function showReceipt(order){
     subtotal += lineTotal;
     prodHTML += '<div class="rc-prod-row">' +
       '<div class="rc-prod-left">' +
-        '<span class="rc-prod-emoji">' + p.emoji + '</span>' +
-        '<div>' +
-          '<div class="rc-prod-name">' + esc(p.name) + '</div>' +
-          '<div class="rc-prod-qty">x' + qty + ' @ $' + p.price.toFixed(2) + '</div>' +
-        '</div>' +
+      '<span class="rc-prod-emoji">' + p.emoji + '</span>' +
+      '<div>' +
+      '<div class="rc-prod-name">' + esc(p.name) + '</div>' +
+      '<div class="rc-prod-qty">x' + qty + ' @ $' + p.price.toFixed(2) + '</div>' +
+      '</div>' +
       '</div>' +
       '<div class="rc-prod-price">$' + lineTotal.toFixed(2) + '</div>' +
-    '</div>';
+      '</div>';
   });
 
   // Package
@@ -1159,14 +1161,14 @@ function showReceipt(order){
     subtotal += pkgTotal;
     prodHTML += '<div class="rc-prod-row">' +
       '<div class="rc-prod-left">' +
-        '<span class="rc-prod-emoji">📦</span>' +
-        '<div>' +
-          '<div class="rc-prod-name">' + esc(order.package) + '</div>' +
-          '<div class="rc-prod-qty">x' + pkgQty + ' @ $' + pkgPrice.toFixed(2) + '</div>' +
-        '</div>' +
+      '<span class="rc-prod-emoji">📦</span>' +
+      '<div>' +
+      '<div class="rc-prod-name">' + esc(order.package) + '</div>' +
+      '<div class="rc-prod-qty">x' + pkgQty + ' @ $' + pkgPrice.toFixed(2) + '</div>' +
+      '</div>' +
       '</div>' +
       '<div class="rc-prod-price">$' + pkgTotal.toFixed(2) + '</div>' +
-    '</div>';
+      '</div>';
   }
 
   document.getElementById('rcProducts').innerHTML =
@@ -1179,8 +1181,8 @@ function showReceipt(order){
   }
   tHTML += '<div class="rc-total-row">' +
     '<span class="rc-total-label">TOTAL</span>' +
-    '<span class="rc-total-amount">$' + (order.total||0).toFixed(2) + '</span>' +
-  '</div>';
+    '<span class="rc-total-amount">$' + (order.total || 0).toFixed(2) + '</span>' +
+    '</div>';
   document.getElementById('rcTotals').innerHTML = tHTML;
 
   document.getElementById('receiptOverlay').classList.add('open');
@@ -1192,21 +1194,21 @@ function showReceiptById(rowId, sheetName) {
   showReceipt(o);
 }
 
-function closeReceipt(){
+function closeReceipt() {
   document.getElementById('receiptOverlay').classList.remove('open');
 }
 
-async function downloadReceipt(){
-  const el=document.getElementById('receiptContent');
-  if(typeof html2canvas !== 'undefined'){
-    const canvas=await html2canvas(el,{scale:3,backgroundColor:'#ffffff',useCORS:true});
-    const link=document.createElement('a');
-    link.download='pawby-receipt-'+Date.now()+'.png';
-    link.href=canvas.toDataURL('image/png');
+async function downloadReceipt() {
+  const el = document.getElementById('receiptContent');
+  if (typeof html2canvas !== 'undefined') {
+    const canvas = await html2canvas(el, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+    const link = document.createElement('a');
+    link.download = 'pawby-receipt-' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
     link.click();
   } else {
-    const w=window.open('','_blank');
-    w.document.write('<html><head><title>Pawby Receipt</title></head><body style="margin:0;padding:20px;">'+el.outerHTML+'</body></html>');
+    const w = window.open('', '_blank');
+    w.document.write('<html><head><title>Pawby Receipt</title></head><body style="margin:0;padding:20px;">' + el.outerHTML + '</body></html>');
     w.document.close(); w.print();
   }
 }
@@ -1217,7 +1219,19 @@ async function sendReceiptToTelegram() {
   btn.disabled = true;
   try {
     const el = document.getElementById('receiptContent');
-    const canvas = await html2canvas(el, {scale:3, backgroundColor:'#ffffff', useCORS:true});
+    // Hide images to prevent tainted canvas
+    const imgs = el.querySelectorAll('img');
+    imgs.forEach(img => img.style.visibility = 'hidden');
+
+    const canvas = await html2canvas(el, {
+      scale: 3,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      allowTaint: false
+    });
+
+    // Restore images
+    imgs.forEach(img => img.style.visibility = '');
     canvas.toBlob(async (blob) => {
       const formData = new FormData();
       formData.append('chat_id', TG_CHAT_ID);
@@ -1227,6 +1241,7 @@ async function sendReceiptToTelegram() {
         body: formData
       });
       const data = await res.json();
+      console.log('TG Response:', JSON.stringify(data)); // ← tambah ini
       if (data.ok) {
         btn.textContent = '✅ Sent!';
         setTimeout(() => { btn.textContent = '✈️ Send to Telegram'; btn.disabled = false; }, 2000);
@@ -1235,7 +1250,7 @@ async function sendReceiptToTelegram() {
         btn.disabled = false;
       }
     }, 'image/png');
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     btn.textContent = '❌ Error';
     btn.disabled = false;
@@ -1245,8 +1260,8 @@ async function sendReceiptToTelegram() {
 // ══════════════════════════════════════════
 // DELETE ORDER
 // ══════════════════════════════════════════
-async function deleteOrder(rowId, sheetName){
-  if(!confirm('Hapus order ini?')) return;
+async function deleteOrder(rowId, sheetName) {
+  if (!confirm('Hapus order ini?')) return;
 
   // Rollback stock sebelum dihapus
   const o = orders.find(x => String(x.rowId) === String(rowId));
@@ -1271,64 +1286,64 @@ async function deleteOrder(rowId, sheetName){
   orders = orders.filter(x => String(x.rowId) !== String(rowId));
   saveLocal();
   renderAll();
-  setSync('loading','Deleting...');
+  setSync('loading', 'Deleting...');
 
   // Delete from Supabase
   try {
     await sbFetch('orders?row_id=eq.' + encodeURIComponent(String(rowId)), { method: 'DELETE' });
-    setSync('ok','Deleted ✓');
+    setSync('ok', 'Deleted ✓');
     showToast('🗑️ Order berhasil dihapus', 'success');
-  } catch(e) {
+  } catch (e) {
     console.error('Delete failed:', e);
     showToast('❌ Gagal hapus dari server', 'error');
-    setSync('err','Delete failed');
+    setSync('err', 'Delete failed');
   }
 }
 // ══════════════════════════════════════════
 // RENDER - STATS
 // ══════════════════════════════════════════
-function getFilteredOrders(){
-  return orders.filter(o=>{if(!o.date)return false;return o.date>=rangeFrom&&o.date<=rangeTo;});
+function getFilteredOrders() {
+  return orders.filter(o => { if (!o.date) return false; return o.date >= rangeFrom && o.date <= rangeTo; });
 }
 
-function renderStats(){
-  const src=getFilteredOrders();
-  const{label}=getActiveMonthRange();
-  const rev=src.reduce((s,o)=>{const v=parseFloat(o.bill||o.total||0);return s+(isNaN(v)?0:v);},0);
-  const qty=src.reduce((s,o)=>
-    s+(parseInt(o.pawbeefy)||0)+(parseInt(o.pawporkby)||0)+(parseInt(o.chickipaw)||0)
-    +(parseInt(o.blueberry)||0)+(parseInt(o.collagen)||0)+(parseInt(o.spawghetti)||0)
-    +(parseInt(o.tilapaw)||0)+(parseInt(o.woofball)||0)+(parseInt(o.pawtart)||0)
-    +(parseInt(o.pawnana)||0)+(parseInt(o.packageQty)||0),0);
-  const custs=[...new Set(src.map(o=>o.tgId).filter(Boolean))].length;
-  const lbl=document.getElementById('activePeriodLabel');
-  if(lbl) lbl.innerHTML=label + ' <span style="font-size:.65rem;opacity:.5">▼</span>';
-  document.getElementById('sRev').textContent=fmt$(rev);
-  document.getElementById('sOrders').textContent=src.length;
-  document.getElementById('sProd').textContent=qty;
-  document.getElementById('sCust').textContent=custs;
-  const isSingleMonth=rangeFrom.slice(0,7)===rangeTo.slice(0,7)&&rangeFrom.slice(8)==='01'&&parseInt(rangeTo.slice(8))>=28;
-  const periodSub=isSingleMonth?'this month':'this period';
-  document.getElementById("sRevSub").textContent='from ' + src.length + ' orders';
-  document.getElementById('sOrderSub').textContent=periodSub;
-  document.getElementById('sProdSub').textContent=periodSub;
-  document.getElementById('sCustSub').textContent=custs + ' this month';
-  ['sRevPeriod','sOrderPeriod','sProdPeriod','sCustPeriod'].forEach(id=>{document.getElementById(id).textContent='';});
+function renderStats() {
+  const src = getFilteredOrders();
+  const { label } = getActiveMonthRange();
+  const rev = src.reduce((s, o) => { const v = parseFloat(o.bill || o.total || 0); return s + (isNaN(v) ? 0 : v); }, 0);
+  const qty = src.reduce((s, o) =>
+    s + (parseInt(o.pawbeefy) || 0) + (parseInt(o.pawporkby) || 0) + (parseInt(o.chickipaw) || 0)
+    + (parseInt(o.blueberry) || 0) + (parseInt(o.collagen) || 0) + (parseInt(o.spawghetti) || 0)
+    + (parseInt(o.tilapaw) || 0) + (parseInt(o.woofball) || 0) + (parseInt(o.pawtart) || 0)
+    + (parseInt(o.pawnana) || 0) + (parseInt(o.packageQty) || 0), 0);
+  const custs = [...new Set(src.map(o => o.tgId).filter(Boolean))].length;
+  const lbl = document.getElementById('activePeriodLabel');
+  if (lbl) lbl.innerHTML = label + ' <span style="font-size:.65rem;opacity:.5">▼</span>';
+  document.getElementById('sRev').textContent = fmt$(rev);
+  document.getElementById('sOrders').textContent = src.length;
+  document.getElementById('sProd').textContent = qty;
+  document.getElementById('sCust').textContent = custs;
+  const isSingleMonth = rangeFrom.slice(0, 7) === rangeTo.slice(0, 7) && rangeFrom.slice(8) === '01' && parseInt(rangeTo.slice(8)) >= 28;
+  const periodSub = isSingleMonth ? 'this month' : 'this period';
+  document.getElementById("sRevSub").textContent = 'from ' + src.length + ' orders';
+  document.getElementById('sOrderSub').textContent = periodSub;
+  document.getElementById('sProdSub').textContent = periodSub;
+  document.getElementById('sCustSub').textContent = custs + ' this month';
+  ['sRevPeriod', 'sOrderPeriod', 'sProdPeriod', 'sCustPeriod'].forEach(id => { document.getElementById(id).textContent = ''; });
 }
 
 // ══════════════════════════════════════════
 // RENDER - ORDER TABLE
 // ══════════════════════════════════════════
-function renderOrderTable(elId,list,maxRows){
-  const el=document.getElementById(elId);
-  const rows=maxRows?list.slice(0,maxRows):list;
-  if(!rows.length){el.innerHTML='<div class="empty"><div class="e-ico">📭</div><p>No orders yet</p></div>';return;}
-  
-  const delClass=d=>{if(!d)return'';const u=(d+'').toUpperCase();if(u.includes('DELIVERY'))return'delivery';if(u.includes('PICK'))return'pickup';if(u.includes('COD'))return'cod';return'';};
-  
+function renderOrderTable(elId, list, maxRows) {
+  const el = document.getElementById(elId);
+  const rows = maxRows ? list.slice(0, maxRows) : list;
+  if (!rows.length) { el.innerHTML = '<div class="empty"><div class="e-ico">📭</div><p>No orders yet</p></div>'; return; }
+
+  const delClass = d => { if (!d) return ''; const u = (d + '').toUpperCase(); if (u.includes('DELIVERY')) return 'delivery'; if (u.includes('PICK')) return 'pickup'; if (u.includes('COD')) return 'cod'; return ''; };
+
   let html = '<div class="tbl-wrap"><table class="tbl">' +
     '<thead><tr><th>Customer</th><th>Products</th><th>Total</th><th class="hide-sm">Delivery</th><th class="hide-sm">Date</th><th></th></tr></thead><tbody>';
-  
+
   rows.forEach(o => {
     // All orders are now normalized - use clean field names directly
     const tgId = o.tgId || '?';
@@ -1350,103 +1365,103 @@ function renderOrderTable(elId,list,maxRows){
     const date_ = o.date || '—';
     const rowId = o.rowId || '';
     const sheetName = o.sheetName || '';
-    
-    const items=[];
-    if(pawbeefy) items.push('🐄×'+pawbeefy);
-    if(pawporkby) items.push('🐷×'+pawporkby);
-    if(chickipaw) items.push('🐔×'+chickipaw);
-    if(blueberry) items.push('🫐×'+blueberry);
-    if(collagen) items.push('🍖×'+collagen);
-    if(spawghetti) items.push('🍝×'+spawghetti);
-    if(woofball) items.push('🥣×'+woofball);
-    if(tilapaw) items.push('🐟×' + tilapaw);
-    if(pawtart) items.push('🥧×' + pawtart);
-    if(pawnana) items.push('🎂×' + pawnana);
-    if(package_){const qty=packageQty>1?'×'+packageQty:'';items.push('📦'+esc(package_)+qty);}
-    
-    const prod=items.length?items.join(' '):'—';
-    const del=delivery&&isNaN(parseFloat(delivery))?delivery:'—';
-    const dc=delClass(del);
-    
+
+    const items = [];
+    if (pawbeefy) items.push('🐄×' + pawbeefy);
+    if (pawporkby) items.push('🐷×' + pawporkby);
+    if (chickipaw) items.push('🐔×' + chickipaw);
+    if (blueberry) items.push('🫐×' + blueberry);
+    if (collagen) items.push('🍖×' + collagen);
+    if (spawghetti) items.push('🍝×' + spawghetti);
+    if (woofball) items.push('🥣×' + woofball);
+    if (tilapaw) items.push('🐟×' + tilapaw);
+    if (pawtart) items.push('🥧×' + pawtart);
+    if (pawnana) items.push('🎂×' + pawnana);
+    if (package_) { const qty = packageQty > 1 ? '×' + packageQty : ''; items.push('📦' + esc(package_) + qty); }
+
+    const prod = items.length ? items.join(' ') : '—';
+    const del = delivery && isNaN(parseFloat(delivery)) ? delivery : '—';
+    const dc = delClass(del);
+
     html += '<tr>' +
       '<td data-label="Customer"><div style="display:flex;align-items:center;gap:8px">' +
-        '<div class="av">' + ini(tgId) + '</div>' +
-        '<div><div class="cname">' + esc(tgId) + '</div>' +
-        '<div class="cphone">' + (anabul?'🐾 '+esc(anabul):'') + '</div></div>' +
+      '<div class="av">' + ini(tgId) + '</div>' +
+      '<div><div class="cname">' + esc(tgId) + '</div>' +
+      '<div class="cphone">' + (anabul ? '🐾 ' + esc(anabul) : '') + '</div></div>' +
       '</div></td>' +
       '<td data-label="Products" style="font-size:.75rem">' + prod + '</td>' +
       '<td data-label="Total"><span class="price">' + fmt$(total) + '</span></td>' +
       '<td data-label="Delivery" class="hide-sm"><span class="del-badge ' + dc + '">' + esc(del) + '</span></td>' +
       '<td data-label="Date" class="hide-sm" style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">' + esc(date_) + '</td>' +
       '<td data-label=""><div class="action-btns">' +
-        '<button class="edit-btn" onclick="openEdit(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Edit">✏️</button>' +
-        '<button class="edit-btn" onclick="showReceiptById(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Receipt">🧾</button>' +
-        '<button class="del-btn" onclick="deleteOrder(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Hapus">🗑</button>' +
+      '<button class="edit-btn" onclick="openEdit(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Edit">✏️</button>' +
+      '<button class="edit-btn" onclick="showReceiptById(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Receipt">🧾</button>' +
+      '<button class="del-btn" onclick="deleteOrder(\'' + esc(rowId) + '\',\'' + esc(sheetName) + '\')" title="Hapus">🗑</button>' +
       '</div></td>' +
-    '</tr>';
+      '</tr>';
   });
-  
+
   html += '</tbody></table></div>';
   el.innerHTML = html;
-  
-  if(elId==='recentTbl'&&document.getElementById('recentCnt'))
-    document.getElementById('recentCnt').textContent=rows.length<list.length?(rows.length+' of '+list.length):(list.length+' orders');
-  if(elId==='allTbl'&&document.getElementById('allCnt'))
-    document.getElementById('allCnt').textContent=list.length+' order';
+
+  if (elId === 'recentTbl' && document.getElementById('recentCnt'))
+    document.getElementById('recentCnt').textContent = rows.length < list.length ? (rows.length + ' of ' + list.length) : (list.length + ' orders');
+  if (elId === 'allTbl' && document.getElementById('allCnt'))
+    document.getElementById('allCnt').textContent = list.length + ' order';
 }
 
 // ══════════════════════════════════════════
 // RENDER - MONTH TABS (from actual data)
 // ══════════════════════════════════════════
-function getMonthsFromOrders(data){
-  const months=new Set();
-  data.forEach(o=>{
-    if(o.date){
+function getMonthsFromOrders(data) {
+  const months = new Set();
+  data.forEach(o => {
+    if (o.date) {
       const parts = o.date.split('-');
-      if (parts.length >= 2) months.add(parts[0]+'-'+parts[1]);
+      if (parts.length >= 2) months.add(parts[0] + '-' + parts[1]);
     }
   });
   return Array.from(months).sort().reverse();
 }
 
-function renderMonthTabs(){
-  const el=document.getElementById('sheetTabs');
-  const months=getMonthsFromOrders(orders);
-  let html = '<button class="stab ' + (activeSheet==='all'?'active':'') + '" onclick="filterSheet(\'all\')">📋 Semua</button>';
+function renderMonthTabs() {
+  const el = document.getElementById('sheetTabs');
+  const months = getMonthsFromOrders(orders);
+  let html = '<button class="stab ' + (activeSheet === 'all' ? 'active' : '') + '" onclick="filterSheet(\'all\')">📋 Semua</button>';
   months.forEach(m => {
-    const[y,mo]=m.split('-');
-    const name=new Date(y,mo-1).toLocaleString('en-US',{month:'long'});
-    html += '<button class="stab ' + (activeSheet===m?'active':'') + '" onclick="filterSheet(\'' + m + '\')">' + name + '</button>';
+    const [y, mo] = m.split('-');
+    const name = new Date(y, mo - 1).toLocaleString('en-US', { month: 'long' });
+    html += '<button class="stab ' + (activeSheet === m ? 'active' : '') + '" onclick="filterSheet(\'' + m + '\')">' + name + '</button>';
   });
   el.innerHTML = html;
 }
 
-function filterSheet(month){ activeSheet=month; currentPage=1; renderAll(); }
+function filterSheet(month) { activeSheet = month; currentPage = 1; renderAll(); }
 
 // ══════════════════════════════════════════
 // RENDER - TOP PRODUCTS
 // ══════════════════════════════════════════
-function renderTopProducts(){
-  const el=document.getElementById('topProds');
-  const map={};
-  const add=(name,qty,price)=>{if(!qty||qty<=0)return;if(!map[name])map[name]={qty:0,rev:0};map[name].qty+=qty;map[name].rev+=qty*price;};
-  orders.forEach(o=>{
-    PRODUCT_META.forEach(p=>add(p.name,parseInt(o[p.key])||0,p.price));
-    if(o.package&&String(o.package).trim()){
-      const price=PACKAGE_PRICES[String(o.package).trim()]||10.99;
-      add(String(o.package).trim(),parseInt(o.packageQty)||1,price);
+function renderTopProducts() {
+  const el = document.getElementById('topProds');
+  const map = {};
+  const add = (name, qty, price) => { if (!qty || qty <= 0) return; if (!map[name]) map[name] = { qty: 0, rev: 0 }; map[name].qty += qty; map[name].rev += qty * price; };
+  orders.forEach(o => {
+    PRODUCT_META.forEach(p => add(p.name, parseInt(o[p.key]) || 0, p.price));
+    if (o.package && String(o.package).trim()) {
+      const price = PACKAGE_PRICES[String(o.package).trim()] || 10.99;
+      add(String(o.package).trim(), parseInt(o.packageQty) || 1, price);
     }
   });
-  const sorted=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,6);
-  if(!sorted.length){el.innerHTML='<div class="empty"><div class="e-ico">📊</div><p>No data yet</p></div>';return;}
-  const maxQ=sorted[0][1].qty;
-  const rc=['g','s','b','','',''];
-  el.innerHTML=sorted.map(([name,d],i)=>
+  const sorted = Object.entries(map).sort((a, b) => b[1].qty - a[1].qty).slice(0, 6);
+  if (!sorted.length) { el.innerHTML = '<div class="empty"><div class="e-ico">📊</div><p>No data yet</p></div>'; return; }
+  const maxQ = sorted[0][1].qty;
+  const rc = ['g', 's', 'b', '', '', ''];
+  el.innerHTML = sorted.map(([name, d], i) =>
     '<div class="prod-item">' +
-      '<div class="rank ' + rc[i] + '">' + (i+1) + '</div>' +
-      '<div class="prod-info"><div class="prod-name">' + esc(name) + '</div><div class="prod-sold">' + d.qty + ' sold</div></div>' +
-      '<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:' + Math.round(d.qty/maxQ*100) + '%"></div></div></div>' +
-      '<div class="prod-rev">' + fmt$(d.rev) + '</div>' +
+    '<div class="rank ' + rc[i] + '">' + (i + 1) + '</div>' +
+    '<div class="prod-info"><div class="prod-name">' + esc(name) + '</div><div class="prod-sold">' + d.qty + ' sold</div></div>' +
+    '<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:' + Math.round(d.qty / maxQ * 100) + '%"></div></div></div>' +
+    '<div class="prod-rev">' + fmt$(d.rev) + '</div>' +
     '</div>'
   ).join('');
 }
@@ -1454,23 +1469,23 @@ function renderTopProducts(){
 // ══════════════════════════════════════════
 // RENDER - CUSTOMERS
 // ══════════════════════════════════════════
-function renderCustomers(){
-  const el=document.getElementById('custList');
-  const map={};
-  orders.forEach(o=>{
-    const key=o.tgId||'?';
-    if(!map[key])map[key]={tgId:o.tgId||'',anabul:o.anabul||'',orders:0,total:0};
+function renderCustomers() {
+  const el = document.getElementById('custList');
+  const map = {};
+  orders.forEach(o => {
+    const key = o.tgId || '?';
+    if (!map[key]) map[key] = { tgId: o.tgId || '', anabul: o.anabul || '', orders: 0, total: 0 };
     map[key].orders++;
-    map[key].total+=parseFloat(o.bill||o.total||0)||0;
+    map[key].total += parseFloat(o.bill || o.total || 0) || 0;
   });
-  const list=Object.values(map).sort((a,b)=>b.total-a.total);
-  document.getElementById('custCnt').textContent=list.length+' customers';
-  if(!list.length){el.innerHTML='<div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div>';return;}
-  el.innerHTML=list.map(c=>
+  const list = Object.values(map).sort((a, b) => b.total - a.total);
+  document.getElementById('custCnt').textContent = list.length + ' customers';
+  if (!list.length) { el.innerHTML = '<div class="empty"><div class="e-ico">👥</div><p>No data yet</p></div>'; return; }
+  el.innerHTML = list.map(c =>
     '<div class="cust-item" style="cursor:pointer;" onclick="openCustDetail(\'' + esc(c.tgId) + '\')">' +
-      '<div class="cust-av">' + ini(c.tgId) + '</div>' +
-      '<div><div class="cust-name">' + esc(c.tgId) + '</div><div class="cust-sub">' + (c.anabul?'🐾 '+esc(c.anabul)+' · ':'') + c.orders + ' order</div></div>' +
-      '<div class="cust-total">' + fmt$(c.total) + '</div>' +
+    '<div class="cust-av">' + ini(c.tgId) + '</div>' +
+    '<div><div class="cust-name">' + esc(c.tgId) + '</div><div class="cust-sub">' + (c.anabul ? '🐾 ' + esc(c.anabul) + ' · ' : '') + c.orders + ' order</div></div>' +
+    '<div class="cust-total">' + fmt$(c.total) + '</div>' +
     '</div>'
   ).join('');
 }
@@ -1478,7 +1493,7 @@ function renderCustomers(){
 function openCustDetail(tgId) {
   const custOrders = orders.filter(o => o.tgId === tgId);
   document.getElementById('custDetailTitle').textContent = tgId + ' — ' + custOrders.length + ' order';
-  
+
   if (!custOrders.length) {
     document.getElementById('custDetailBody').innerHTML = '<div class="empty"><p>No orders found</p></div>';
   } else {
@@ -1488,15 +1503,15 @@ function openCustDetail(tgId) {
       if (o.package && o.package.trim()) items.push('📦 ' + o.package);
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">' +
         '<div>' +
-          '<div style="font-size:.82rem;font-weight:600;color:var(--navy);">' + esc(o.date) + '</div>' +
-          '<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">' + (items.join(' · ') || '—') + '</div>' +
-          '<div style="font-size:.72rem;color:var(--muted);margin-top:2px;">' + esc(o.delivery || '—') + ' · ' + esc(o.payment || '—') + '</div>' +
+        '<div style="font-size:.82rem;font-weight:600;color:var(--navy);">' + esc(o.date) + '</div>' +
+        '<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">' + (items.join(' · ') || '—') + '</div>' +
+        '<div style="font-size:.72rem;color:var(--muted);margin-top:2px;">' + esc(o.delivery || '—') + ' · ' + esc(o.payment || '—') + '</div>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
-          '<span style="font-weight:700;color:var(--navy);">$' + parseFloat(o.total||0).toFixed(2) + '</span>' +
-          '<button class="edit-btn" onclick="showReceiptById(\'' + esc(o.rowId) + '\',\'' + esc(o.sheetName) + '\')" title="Receipt">🧾</button>' +
+        '<span style="font-weight:700;color:var(--navy);">$' + parseFloat(o.total || 0).toFixed(2) + '</span>' +
+        '<button class="edit-btn" onclick="showReceiptById(\'' + esc(o.rowId) + '\',\'' + esc(o.sheetName) + '\')" title="Receipt">🧾</button>' +
         '</div>' +
-      '</div>';
+        '</div>';
     }).join('');
   }
   document.getElementById('custDetailOverlay').classList.add('open');
@@ -1509,34 +1524,34 @@ function closeCustDetail() {
 // ══════════════════════════════════════════
 // RENDER - PRODUCTS CATALOG
 // ══════════════════════════════════════════
-function renderProducts(){
-  const map={};
-  orders.forEach(o=>{
-    PRODUCT_META.forEach(p=>{
-      const qty=parseInt(o[p.key])||0;
-      if(!qty)return;
-      if(!map[p.name])map[p.name]={qty:0,rev:0};
-      map[p.name].qty+=qty; map[p.name].rev+=qty*p.price;
+function renderProducts() {
+  const map = {};
+  orders.forEach(o => {
+    PRODUCT_META.forEach(p => {
+      const qty = parseInt(o[p.key]) || 0;
+      if (!qty) return;
+      if (!map[p.name]) map[p.name] = { qty: 0, rev: 0 };
+      map[p.name].qty += qty; map[p.name].rev += qty * p.price;
     });
-    if(o.package&&String(o.package).trim()){
+    if (o.package && String(o.package).trim()) {
       const pkgName = String(o.package).trim();
-      const price=PACKAGE_PRICES[pkgName]||10.99;
-      const pkgQty=parseInt(o.packageQty)||1;
-      if(!map[pkgName])map[pkgName]={qty:0,rev:0};
-      map[pkgName].qty+=pkgQty; map[pkgName].rev+=price*pkgQty;
+      const price = PACKAGE_PRICES[pkgName] || 10.99;
+      const pkgQty = parseInt(o.packageQty) || 1;
+      if (!map[pkgName]) map[pkgName] = { qty: 0, rev: 0 };
+      map[pkgName].qty += pkgQty; map[pkgName].rev += price * pkgQty;
     }
   });
-  const items=[
-    ...PRODUCT_META.map(p=>({name:p.name,emoji:p.emoji,price:'$'+p.price.toFixed(2)})),
-    {name:'Starter Pack',      emoji:'🍱',price:'$10.99'},
-    {name:'Weekly Pawby Pack', emoji:'🥩',price:'$21.99'},
+  const items = [
+    ...PRODUCT_META.map(p => ({ name: p.name, emoji: p.emoji, price: '$' + p.price.toFixed(2) })),
+    { name: 'Starter Pack', emoji: '🍱', price: '$10.99' },
+    { name: 'Weekly Pawby Pack', emoji: '🥩', price: '$21.99' },
   ];
-  document.getElementById('prodGrid').innerHTML=items.map(p=>
+  document.getElementById('prodGrid').innerHTML = items.map(p =>
     '<div class="p-card">' +
-      '<div class="p-emoji">' + p.emoji + '</div>' +
-      '<h4>' + esc(p.name) + '</h4>' +
-      '<div class="p-price">' + p.price + '</div>' +
-      '<div class="p-stat"><span>🛒 ' + (map[p.name]?.qty||0) + ' sold</span><span>💰 ' + fmt$(map[p.name]?.rev||0) + '</span></div>' +
+    '<div class="p-emoji">' + p.emoji + '</div>' +
+    '<h4>' + esc(p.name) + '</h4>' +
+    '<div class="p-price">' + p.price + '</div>' +
+    '<div class="p-stat"><span>🛒 ' + (map[p.name]?.qty || 0) + ' sold</span><span>💰 ' + fmt$(map[p.name]?.rev || 0) + '</span></div>' +
     '</div>'
   ).join('');
 }
@@ -1566,10 +1581,10 @@ function applyOrderFilters() {
   const base = activeSheet === 'all'
     ? orders
     : orders.filter(o => {
-        if (!o.date) return false;
-        const parts = o.date.split('-');
-        return parts.length >= 2 && parts[0] + '-' + parts[1] === activeSheet;
-      });
+      if (!o.date) return false;
+      const parts = o.date.split('-');
+      return parts.length >= 2 && parts[0] + '-' + parts[1] === activeSheet;
+    });
 
   const filtered = base.filter(o => {
     if (search) {
@@ -1603,9 +1618,9 @@ function renderOrderTablePaged(elId, list) {
   const nav = document.createElement('div');
   nav.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 4px 4px;gap:8px;';
   nav.innerHTML =
-    '<button onclick="changePage(-1)" ' + (currentPage===1?'disabled':'') + ' style="padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);">← Prev</button>' +
+    '<button onclick="changePage(-1)" ' + (currentPage === 1 ? 'disabled' : '') + ' style="padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);">← Prev</button>' +
     '<span style="font-size:.75rem;color:var(--muted);">Page ' + currentPage + ' of ' + totalPages + '</span>' +
-    '<button onclick="changePage(1)" ' + (currentPage===totalPages?'disabled':'') + ' style="padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);">Next →</button>';
+    '<button onclick="changePage(1)" ' + (currentPage === totalPages ? 'disabled' : '') + ' style="padding:6px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--navy);">Next →</button>';
   el.appendChild(nav);
 
   document.getElementById('allCnt').textContent = total + ' order · page ' + currentPage + '/' + totalPages;
@@ -1614,24 +1629,24 @@ function renderOrderTablePaged(elId, list) {
 function changePage(dir) {
   currentPage += dir;
   applyOrderFilters();
-  document.getElementById('view-orders').scrollIntoView({behavior:'smooth'});
+  document.getElementById('view-orders').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ══════════════════════════════════════════
 // RENDER ALL
 // ══════════════════════════════════════════
-function renderAll(){
+function renderAll() {
   renderStats();
   applyOrderFilters();
-  const filtered=activeSheet==='all'
-    ?orders
-    :orders.filter(o=>{
-      if(!o.date)return false;
-      const parts=o.date.split('-');
-      if(parts.length<2) return false;
-      return parts[0]+'-'+parts[1]===activeSheet;
+  const filtered = activeSheet === 'all'
+    ? orders
+    : orders.filter(o => {
+      if (!o.date) return false;
+      const parts = o.date.split('-');
+      if (parts.length < 2) return false;
+      return parts[0] + '-' + parts[1] === activeSheet;
     });
-  renderOrderTable('recentTbl',filtered,5);
+  renderOrderTable('recentTbl', filtered, 5);
   renderMonthTabs();
   renderTopProducts();
   renderCustomers();
@@ -1643,37 +1658,37 @@ function renderAll(){
 // ══════════════════════════════════════════
 let editingOrder = null;
 
-function openEdit(rowId,sheetName){
-  const o=orders.find(x=>String(x.rowId)===String(rowId)&&x.sheetName===sheetName);
-  if(!o) return;
-  editingOrder=o;
-  document.getElementById('editInfo').innerHTML='<strong>' + esc(o.tgId) + '</strong> · ' + esc(o.date) + ' · ' + esc(o.sheetName);
-  document.getElementById('eTotal').value=o.total||'';
-  document.getElementById('eBill').value=o.bill||'';
-  document.getElementById('eDelivery').value=o.delivery||'DELIVERY by PD';
-  document.getElementById('ePayment').value=o.payment||'ABA';
-  document.getElementById('eTime').value=o.time||'';
-  document.getElementById('eAnabul').value=o.anabul||'';
+function openEdit(rowId, sheetName) {
+  const o = orders.find(x => String(x.rowId) === String(rowId) && x.sheetName === sheetName);
+  if (!o) return;
+  editingOrder = o;
+  document.getElementById('editInfo').innerHTML = '<strong>' + esc(o.tgId) + '</strong> · ' + esc(o.date) + ' · ' + esc(o.sheetName);
+  document.getElementById('eTotal').value = o.total || '';
+  document.getElementById('eBill').value = o.bill || '';
+  document.getElementById('eDelivery').value = o.delivery || 'DELIVERY by PD';
+  document.getElementById('ePayment').value = o.payment || 'ABA';
+  document.getElementById('eTime').value = o.time || '';
+  document.getElementById('eAnabul').value = o.anabul || '';
   document.getElementById('editOverlay').classList.add('open');
 }
 
-function closeEdit(){ document.getElementById('editOverlay').classList.remove('open'); editingOrder=null; }
-document.getElementById('editOverlay').addEventListener('click',function(e){if(e.target===this)closeEdit();});
+function closeEdit() { document.getElementById('editOverlay').classList.remove('open'); editingOrder = null; }
+document.getElementById('editOverlay').addEventListener('click', function (e) { if (e.target === this) closeEdit(); });
 
-async function saveEdit(){
-  if(!editingOrder) return;
-  const updates={
-    total:   parseFloat(document.getElementById('eTotal').value)||editingOrder.total,
-    bill:    parseFloat(document.getElementById('eBill').value)||editingOrder.bill,
-    delivery:document.getElementById('eDelivery').value,
+async function saveEdit() {
+  if (!editingOrder) return;
+  const updates = {
+    total: parseFloat(document.getElementById('eTotal').value) || editingOrder.total,
+    bill: parseFloat(document.getElementById('eBill').value) || editingOrder.bill,
+    delivery: document.getElementById('eDelivery').value,
     payment: document.getElementById('ePayment').value,
-    time:    document.getElementById('eTime').value,
-    anabul:  document.getElementById('eAnabul').value,
+    time: document.getElementById('eTime').value,
+    anabul: document.getElementById('eAnabul').value,
   };
-  const idx=orders.findIndex(x=>String(x.rowId)===String(editingOrder.rowId));
-  if(idx!==-1){orders[idx]=Object.assign({},orders[idx],updates);saveLocal();}
+  const idx = orders.findIndex(x => String(x.rowId) === String(editingOrder.rowId));
+  if (idx !== -1) { orders[idx] = Object.assign({}, orders[idx], updates); saveLocal(); }
   closeEdit(); renderAll();
-  setSync('loading','Updating...');
+  setSync('loading', 'Updating...');
   try {
     await sbFetch('orders?row_id=eq.' + encodeURIComponent(String(editingOrder.rowId)), {
       method: 'PATCH',
@@ -1687,11 +1702,11 @@ async function saveEdit(){
       }),
       extraHeaders: { 'Prefer': 'return=minimal' }
     });
-    setSync('ok','Updated ✓');
-  } catch(e) {
+    setSync('ok', 'Updated ✓');
+  } catch (e) {
     console.error('Update failed:', e);
     showToast('⚠️ Gagal update ke server', 'warning');
-    setSync('err','Update failed');
+    setSync('err', 'Update failed');
   }
 }
 
@@ -1706,12 +1721,12 @@ function renderStockView() {
     PRODUCT_META.map(p => '<option value="' + p.key + '">' + p.emoji + ' ' + esc(p.name) + '</option>').join('');
 
   const table = document.getElementById('stockTable');
-  
+
   if (!isSupabaseConnected()) {
     table.innerHTML = '<div class="empty"><div class="e-ico">🔌</div><p>Supabase not connected. Go to Setup to connect.</p></div>';
     return;
   }
-  
+
   const items = PRODUCT_META.map(p => {
     const stock = stocks[p.key] || {};
     const qty = stock.quantity || 0;
@@ -1720,33 +1735,33 @@ function renderStockView() {
     const statusColor = status === 'out' ? '#dc2626' : status === 'low' ? '#ef4444' : status === 'high' ? '#10b981' : '#f59e0b';
     const statusEmoji = status === 'out' ? '🚨' : status === 'low' ? '⚠️' : status === 'high' ? '✅' : '📦';
     const statusLabel = status === 'out' ? 'OUT!' : status;
-    
+
     const lastUpdate = stock.lastUpdated ? new Date(stock.lastUpdated).toLocaleString('en-US', {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     }) : '—';
-    
+
     return '<div class="stock-row' + (status === 'out' || status === 'low' ? ' stock-row-warn' : '') + '">' +
       '<div style="display:flex;align-items:center;gap:12px;flex:1;">' +
-        '<span style="font-size:1.5rem;">' + p.emoji + '</span>' +
-        '<div style="flex:1">' +
-          '<div style="font-weight:600;color:var(--navy);">' + esc(p.name) + '</div>' +
-          '<div style="font-size:.72rem;color:var(--muted);">Last: ' + lastUpdate + '</div>' +
-        '</div>' +
+      '<span style="font-size:1.5rem;">' + p.emoji + '</span>' +
+      '<div style="flex:1">' +
+      '<div style="font-weight:600;color:var(--navy);">' + esc(p.name) + '</div>' +
+      '<div style="font-size:.72rem;color:var(--muted);">Last: ' + lastUpdate + '</div>' +
+      '</div>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:16px;">' +
-        '<div style="text-align:right;">' +
-          '<div style="display:flex;align-items:baseline;gap:6px;">' +
-            '<div style="font-size:1.4rem;font-weight:700;color:' + statusColor + ';">' + qty + '</div>' +
-            '<div style="font-size:.75rem;color:var(--muted);">/ ' + minQty + '</div>' +
-          '</div>' +
-          '<div style="font-size:.68rem;color:var(--muted);">' + statusEmoji + ' ' + statusLabel + '</div>' +
-        '</div>' +
-        '<div style="display:flex;gap:6px;">' +
-          '<button onclick="openStockEdit(\'' + p.key + '\')" style="padding:6px 12px;background:#fff;color:var(--blue);border:1.5px solid var(--blue);border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">Edit</button>' +
-          '<button onclick="openStockHistory(\'' + p.key + '\')" style="padding:6px 12px;background:#fff;color:#8b5cf6;border:1.5px solid #8b5cf6;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">History</button>' +
-        '</div>' +
+      '<div style="text-align:right;">' +
+      '<div style="display:flex;align-items:baseline;gap:6px;">' +
+      '<div style="font-size:1.4rem;font-weight:700;color:' + statusColor + ';">' + qty + '</div>' +
+      '<div style="font-size:.75rem;color:var(--muted);">/ ' + minQty + '</div>' +
       '</div>' +
-    '</div>';
+      '<div style="font-size:.68rem;color:var(--muted);">' + statusEmoji + ' ' + statusLabel + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;">' +
+      '<button onclick="openStockEdit(\'' + p.key + '\')" style="padding:6px 12px;background:#fff;color:var(--blue);border:1.5px solid var(--blue);border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">Edit</button>' +
+      '<button onclick="openStockHistory(\'' + p.key + '\')" style="padding:6px 12px;background:#fff;color:#8b5cf6;border:1.5px solid #8b5cf6;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;">History</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
   }).join('');
 
   table.innerHTML = items || '<div class="empty"><div class="e-ico">📭</div><p>No stock data</p></div>';
@@ -1767,7 +1782,7 @@ async function handleQuickAddStock() {
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Saving...'; }
 
   const ok = await addStock(productKey, quantity, notes);
-  
+
   if (ok) {
     document.getElementById('stockQty').value = '';
     document.getElementById('stockNotes').value = '';
@@ -1777,7 +1792,7 @@ async function handleQuickAddStock() {
   } else {
     showToast('❌ Failed to add stock', 'error');
   }
-  
+
   if (btn) { btn.disabled = false; btn.textContent = '➕ Add Stock Now'; }
 }
 
@@ -1801,9 +1816,9 @@ async function saveStockEdit() {
   if (!editingStockKey) return;
   const qty = parseInt(document.getElementById('editStockQty').value);
   const notes = document.getElementById('editStockNotes').value;
-  
+
   if (qty < 0) { alert('⚠️ Quantity cannot be negative'); return; }
-  
+
   const ok = await updateStock(editingStockKey, qty, notes);
   closeStockEdit();
   if (ok) {
@@ -1817,42 +1832,42 @@ async function saveStockEdit() {
 async function openStockHistory(productKey) {
   const stock = stocks[productKey];
   if (!stock) return;
-  
+
   const modal = document.getElementById('stockHistoryOverlay');
   document.getElementById('historyProductName').textContent = stock.emoji + ' ' + stock.name + ' — History';
   document.getElementById('historyList').innerHTML = '<div class="empty" style="padding:20px;"><p>Loading...</p></div>';
   modal.classList.add('open');
-  
+
   const history = await loadStockHistory(productKey);
-  
+
   if (!history || !history.length) {
     document.getElementById('historyList').innerHTML = '<div class="empty"><div class="e-ico">📋</div><p>No history yet</p></div>';
     return;
   }
-  
+
   document.getElementById('historyList').innerHTML = history.map(h => {
     const date = new Date(h.created_at).toLocaleString('en-US', {
-      month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
     const isPositive = h.change_amount > 0;
     const changeColor = isPositive ? '#10b981' : h.change_amount < 0 ? '#ef4444' : 'var(--muted)';
     const changeSign = isPositive ? '+' : '';
     const actionIcon = h.action === 'add' ? '📥' : h.action === 'reduce' ? '📤' : h.action === 'order_deduct' ? '🛒' : '✏️';
-    
+
     return '<div class="history-row">' +
       '<div style="display:flex;align-items:center;gap:10px;flex:1;">' +
-        '<span style="font-size:1rem;">' + actionIcon + '</span>' +
-        '<div>' +
-          '<div style="font-size:.8rem;font-weight:600;color:var(--navy);">' + (h.action || 'update') + '</div>' +
-          '<div style="font-size:.68rem;color:var(--muted);">' + date + ' · ' + esc(h.created_by || 'admin') + '</div>' +
-          (h.notes ? '<div style="font-size:.68rem;color:var(--muted);margin-top:2px;">📝 ' + esc(h.notes) + '</div>' : '') +
-        '</div>' +
+      '<span style="font-size:1rem;">' + actionIcon + '</span>' +
+      '<div>' +
+      '<div style="font-size:.8rem;font-weight:600;color:var(--navy);">' + (h.action || 'update') + '</div>' +
+      '<div style="font-size:.68rem;color:var(--muted);">' + date + ' · ' + esc(h.created_by || 'admin') + '</div>' +
+      (h.notes ? '<div style="font-size:.68rem;color:var(--muted);margin-top:2px;">📝 ' + esc(h.notes) + '</div>' : '') +
+      '</div>' +
       '</div>' +
       '<div style="text-align:right;">' +
-        '<div style="font-size:.9rem;font-weight:700;color:' + changeColor + ';">' + changeSign + h.change_amount + '</div>' +
-        '<div style="font-size:.68rem;color:var(--muted);">' + h.quantity_before + ' → ' + h.quantity_after + '</div>' +
+      '<div style="font-size:.9rem;font-weight:700;color:' + changeColor + ';">' + changeSign + h.change_amount + '</div>' +
+      '<div style="font-size:.68rem;color:var(--muted);">' + h.quantity_before + ' → ' + h.quantity_after + '</div>' +
       '</div>' +
-    '</div>';
+      '</div>';
   }).join('');
 }
 
@@ -1880,11 +1895,11 @@ function toggleAlertPanel() {
   }
   document.getElementById('alertList').innerHTML = unreadAlerts.map(a => {
     const icon = a.alert_type === 'out_of_stock' ? '🚨' : '⚠️';
-    const time = new Date(a.created_at).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const time = new Date(a.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     return '<div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:.78rem;">' +
       '<div>' + icon + ' ' + esc(a.message) + '</div>' +
       '<div style="font-size:.65rem;color:var(--muted);margin-top:3px;">' + time + '</div>' +
-    '</div>';
+      '</div>';
   }).join('');
 }
 
@@ -1893,4 +1908,4 @@ function closeAlertPanel() {
 }
 
 // ══ AUTO REFRESH every 5 minutes ══
-setInterval(()=>{ if(isSupabaseConnected()&&checkSession()) doSync(); }, 5*60*1000);
+setInterval(() => { if (isSupabaseConnected() && checkSession()) doSync(); }, 5 * 60 * 1000);
