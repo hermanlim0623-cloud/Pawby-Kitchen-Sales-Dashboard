@@ -28,7 +28,8 @@ const PRICES = {
   tilapaw: 2.00,
   pawtart: 3.00,
   pawnana: 12.00,
-  heartpaw: 3.00
+  heartpaw: 3.00,
+  porkypops: 3.00
 };
 
 const PRODUCT_META = [
@@ -42,7 +43,8 @@ const PRODUCT_META = [
   { key: 'tilapaw', emoji: '🐟', name: 'Tilapaw', price: 2.00 },
   { key: 'pawtart', emoji: '🥧', name: 'Pawby Pawtart', price: 3.00 },
   { key: 'pawnana', emoji: '🎂', name: 'Pawnana Berry Cake', price: 12.00 },
-  { key: 'heartpaw', emoji: '🫓', name: 'HeartPaw Patty', price: 3.00 }
+  { key: 'heartpaw', emoji: '🫓', name: 'HeartPaw Patty', price: 3.00 },
+  { key: 'porkypops', emoji: '🐖', name: 'Porky Pops', price: 3.00 }
 ];
 
 const PACKAGES = [
@@ -664,6 +666,7 @@ function sbOrderToLocal(r) {
     pawtart: r.pawtart || 0,
     pawnana: r.pawnana || 0,
     heartpaw: r.heartpaw || 0,
+    porkypops: r.porkypops || 0,
     package: r.package || '',
     packageQty: r.package_qty || 0,
     special: r.special || 0,
@@ -697,6 +700,7 @@ function localOrderToSb(order) {
     pawtart: order.pawtart || 0,
     pawnana: order.pawnana || 0,
     heartpaw: order.heartpaw || 0,
+    porkypops: order.porkypops || 0,
     package: order.package || '',
     package_qty: order.packageQty || 0,
     special: order.special || 0,
@@ -1020,6 +1024,7 @@ async function saveOrder() {
     pawtart: parseInt(document.getElementById('fPawtart').value) || 0,
     pawnana: parseInt(document.getElementById('fPawnana').value) || 0,
     heartpaw: parseInt(document.getElementById('fHeartpaw').value) || 0,
+    porkypops: parseInt(document.getElementById('fPorkypops').value) || 0,
     special: 0, package: document.getElementById('fPackage').value,
     packageQty: parseInt(document.getElementById('fPackageQty').value) || 0,
     disc, total: parseFloat(document.getElementById('fTotal').value) || 0,
@@ -1145,7 +1150,7 @@ async function saveOrder() {
 
   // 🔄 4️⃣ RESET FORM
   ['fTg', 'fAnabul', 'fTotal'].forEach(id => document.getElementById(id).value = '');
-  ['fPawbeefy', 'fPawporkby', 'fChickipaw', 'fBlueberry', 'fCollagen', 'fSpawghetti', 'fWoofball', 'fTilapaw', 'fPawtart', 'fPawnana', 'fHeartpaw', 'fPackageQty', 'fDisc']
+  ['fPawbeefy', 'fPawporkby', 'fChickipaw', 'fBlueberry', 'fCollagen', 'fSpawghetti', 'fWoofball', 'fTilapaw', 'fPawtart', 'fPawnana', 'fHeartpaw', 'fPorkypops', 'fPackageQty', 'fDisc']
     .forEach(id => document.getElementById(id).value = 0);
   document.getElementById('fPackage').value = '';
   // Reset 2-step state
@@ -1417,7 +1422,7 @@ function renderStats() {
     s + (parseInt(o.pawbeefy) || 0) + (parseInt(o.pawporkby) || 0) + (parseInt(o.chickipaw) || 0)
     + (parseInt(o.blueberry) || 0) + (parseInt(o.collagen) || 0) + (parseInt(o.spawghetti) || 0)
     + (parseInt(o.tilapaw) || 0) + (parseInt(o.woofball) || 0) + (parseInt(o.pawtart) || 0)
-    + (parseInt(o.pawnana) || 0) + (parseInt(o.heartpaw) || 0) + (parseInt(o.packageQty) || 0), 0);
+    + (parseInt(o.pawnana) || 0) + (parseInt(o.heartpaw) || 0) + (parseInt(o.porkypops) || 0) + (parseInt(o.packageQty) || 0), 0);
   const custs = [...new Set(src.map(o => o.tgId).filter(Boolean))].length;
   const lbl = document.getElementById('activePeriodLabel');
   if (lbl) lbl.innerHTML = label + ' <span style="font-size:.65rem;opacity:.5">▼</span>';
@@ -1462,6 +1467,7 @@ function renderOrderTable(elId, list, maxRows) {
     const pawtart = parseInt(o.pawtart) || 0;
     const pawnana = parseInt(o.pawnana) || 0;
     const heartpaw = parseInt(o.heartpaw) || 0;
+    const porkypops = parseInt(o.porkypops) || 0;
     const package_ = o.package || '';
     const packageQty = parseInt(o.packageQty) || 0;
     const total = parseFloat(o.bill || o.total || 0);
@@ -1482,6 +1488,7 @@ function renderOrderTable(elId, list, maxRows) {
     if (pawtart) items.push('🥧×' + pawtart);
     if (pawnana) items.push('🎂×' + pawnana);
     if (heartpaw) items.push('🫓×' + heartpaw);
+    if (porkypops) items.push('🐖×' + porkypops);
     if (package_) {
       try {
         const pkgData = JSON.parse(package_);
@@ -1803,7 +1810,7 @@ function renderSalesChart() {
       (parseInt(o.collagen) || 0) + (parseInt(o.spawghetti) || 0) +
       (parseInt(o.tilapaw) || 0) + (parseInt(o.woofball) || 0) +
       (parseInt(o.pawtart) || 0) + (parseInt(o.pawnana) || 0) +
-      (parseInt(o.heartpaw) || 0) + (parseInt(o.packageQty) || 0);
+      (parseInt(o.heartpaw) || 0) + (parseInt(o.porkypops) || 0) + (parseInt(o.packageQty) || 0);
   });
 
   // Sort months chronologically
