@@ -375,9 +375,15 @@
         <div class="fg"><label>Date</label><input type="date" id="fDate"></div>
         <div class="fg"><label>Time</label><input type="time" id="fTime"></div>
       </div>
-      <div class="fg">
-        <label>Discount ($)</label>
-        <input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal();renderOpSummary();" placeholder="0.00">
+      <div class="f2">
+        <div class="fg">
+          <label>Discount ($)</label>
+          <input type="number" id="fDisc" value="0" min="0" step="0.01" oninput="calcTotal();renderOpSummary();" placeholder="0.00">
+        </div>
+        <div class="fg">
+          <label>Delivery Fee ($)</label>
+          <input type="number" id="fDeliveryFee" value="0" min="0" step="0.01" oninput="calcTotal();renderOpSummary();" placeholder="0.00">
+        </div>
       </div>
     </div>
 

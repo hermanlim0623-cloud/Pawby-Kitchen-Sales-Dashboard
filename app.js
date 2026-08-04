@@ -671,6 +671,7 @@ function sbOrderToLocal(r) {
     packageQty: r.package_qty || 0,
     special: r.special || 0,
     disc: r.disc || 0,
+    deliveryFee: r.delivery_fee || 0,
     total: r.total || 0,
     bill: r.bill || 0,
     delivery: r.delivery || '',
@@ -705,6 +706,7 @@ function localOrderToSb(order) {
     package_qty: order.packageQty || 0,
     special: order.special || 0,
     disc: order.disc || 0,
+    delivery_fee: order.deliveryFee || 0,
     total: order.total || 0,
     bill: order.bill || 0,
     delivery: order.delivery || '',
@@ -808,6 +810,7 @@ function openOrder() {
   document.getElementById('fDate').value = now.toISOString().slice(0, 10);
   document.getElementById('fTime').value = now.toTimeString().slice(0, 5);
   document.getElementById('fDisc').value = 0;
+  document.getElementById('fDeliveryFee').value = 0;
   document.getElementById('fTotal').value = '';
 
   document.getElementById('orderOverlay').classList.add('open');
@@ -988,7 +991,8 @@ function calcTotal() {
     if (pkgVal && pkgQtyFallback > 0) total += (PACKAGE_PRICES[pkgVal] || 0) * pkgQtyFallback;
   }
   const disc = parseFloat(document.getElementById('fDisc').value) || 0;
-  const finalTotal = Math.max(0, total - disc);
+  const deliveryFee = parseFloat(document.getElementById('fDeliveryFee').value) || 0;
+  const finalTotal = Math.max(0, total - disc) + deliveryFee;
   document.getElementById('fTotal').value = finalTotal > 0 ? finalTotal.toFixed(2) : '';
 }
 
@@ -1008,6 +1012,7 @@ async function saveOrder() {
   let tgId = document.getElementById('fTg').value.trim();
   if (tgId && !tgId.startsWith('@')) tgId = '@' + tgId;
   const disc = parseFloat(document.getElementById('fDisc').value) || 0;
+  const deliveryFee = parseFloat(document.getElementById('fDeliveryFee').value) || 0;
   const orderDate = document.getElementById('fDate').value;
   const sheetName = getSheetNameForDate(orderDate);
 
@@ -1027,7 +1032,7 @@ async function saveOrder() {
     porkypops: parseInt(document.getElementById('fPorkypops').value) || 0,
     special: 0, package: document.getElementById('fPackage').value,
     packageQty: parseInt(document.getElementById('fPackageQty').value) || 0,
-    disc, total: parseFloat(document.getElementById('fTotal').value) || 0,
+    disc, deliveryFee, total: parseFloat(document.getElementById('fTotal').value) || 0,
     delivery: document.getElementById('fDelivery').value,
     payment: document.getElementById('fPayment').value,
     date: orderDate, time: document.getElementById('fTime').value,
@@ -1150,7 +1155,7 @@ async function saveOrder() {
 
   // 🔄 4️⃣ RESET FORM
   ['fTg', 'fAnabul', 'fTotal'].forEach(id => document.getElementById(id).value = '');
-  ['fPawbeefy', 'fPawporkby', 'fChickipaw', 'fBlueberry', 'fCollagen', 'fSpawghetti', 'fWoofball', 'fTilapaw', 'fPawtart', 'fPawnana', 'fHeartpaw', 'fPorkypops', 'fPackageQty', 'fDisc']
+  ['fPawbeefy', 'fPawporkby', 'fChickipaw', 'fBlueberry', 'fCollagen', 'fSpawghetti', 'fWoofball', 'fTilapaw', 'fPawtart', 'fPawnana', 'fHeartpaw', 'fPorkypops', 'fPackageQty', 'fDisc', 'fDeliveryFee']
     .forEach(id => document.getElementById(id).value = 0);
   document.getElementById('fPackage').value = '';
   // Reset 2-step state
@@ -1265,9 +1270,13 @@ function showReceipt(order) {
     prodHTML || '<div style="font-size:.75rem;color:#5a7a99;">—</div>';
 
   const disc = order.disc || 0;
+  const deliveryFee = order.deliveryFee || 0;
   let tHTML = '<div class="rc-subtotal-row"><span>Subtotal</span><span>$' + subtotal.toFixed(2) + '</span></div>';
   if (disc > 0) {
     tHTML += '<div class="rc-discount-row"><span>Discount</span><span>-$' + disc.toFixed(2) + '</span></div>';
+  }
+  if (deliveryFee > 0) {
+    tHTML += '<div class="rc-subtotal-row"><span>Delivery Fee</span><span>$' + deliveryFee.toFixed(2) + '</span></div>';
   }
   tHTML += '<div class="rc-total-row">' +
     '<span class="rc-total-label">TOTAL</span>' +
