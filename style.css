@@ -119,6 +119,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .stat-lbl{font-size:.75rem;color:var(--muted);font-weight:500;}
 .stat-sub{display:inline-flex;align-items:center;gap:3px;font-size:.7rem;font-weight:600;margin-top:7px;padding:3px 8px;border-radius:99px;}
 .stat-sub.up{background:#d1fae5;color:#059669;}
+.stat-sub.down{background:#fee2e2;color:#dc2626;}
 .stat-sub.neu{background:#f1f5f9;color:var(--muted);}
 .stat-period{font-size:.62rem;color:var(--muted);font-style:italic;margin-top:2px;}
 

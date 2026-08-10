@@ -66,6 +66,15 @@ const PACKAGES = [
     contents:{ tilapaw:5, chickipaw:5, pawbeefy:2, pawporkby:2 } },
   { key:'land_lover', name:'Land Lover', category:'weekly', price:21.99, value:23.50,
     contents:{ pawbeefy:5, pawporkby:5, chickipaw:4 } },
+  // Big Bowl Pack (500g, 1 rasa per bowl)
+  { key:'bigbowl_pawbeefy', name:'Pawbeefy', category:'bigbowl', price:10.00, value:10.00,
+    contents:{ pawbeefy:1 } },
+  { key:'bigbowl_tilapaw', name:'Tilapaw', category:'bigbowl', price:10.00, value:10.00,
+    contents:{ tilapaw:1 } },
+  { key:'bigbowl_pawporkby', name:'Pawporkby', category:'bigbowl', price:8.00, value:8.00,
+    contents:{ pawporkby:1 } },
+  { key:'bigbowl_chickipaw', name:'Chickipaw', category:'bigbowl', price:8.00, value:8.00,
+    contents:{ chickipaw:1 } },
 ];
 // Auto-generate from PACKAGES (backward compat)
 const PACKAGE_PRICES = {};
@@ -480,9 +489,11 @@ let rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth() + 1);
 let rangeTo = _monthEnd(_now.getFullYear(), _now.getMonth() + 1);
 let pickStep = 0, hoverDate = null;
 let calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
+let _isAllTime = false;
 
 function getActiveMonthRange() {
   const f = rangeFrom, t = rangeTo;
+  if (_isAllTime) return { from: f, to: t, label: '📅 All Time' };
   const df = new Date(f), dt = new Date(t);
   let label;
   const isMobile = window.innerWidth <= 480;
@@ -509,18 +520,30 @@ function closePicker() {
 }
 
 function goToday() {
+  _isAllTime = false;
   rangeFrom = _todayStr; rangeTo = _todayStr;
   calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
   pickStep = 0; hoverDate = null;
   renderCals(); attachCalHover(); updateDayStyles(); updateRangeLabel();
 }
 
+function viewAllTime() {
+  _isAllTime = true;
+  const dates = orders.map(o => o.date).filter(Boolean);
+  rangeFrom = dates.length ? dates.reduce((a, b) => a < b ? a : b) : _todayStr;
+  rangeTo = _todayStr;
+  calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
+  pickStep = 0; hoverDate = null;
+  renderCals(); attachCalHover(); applyRange();
+}
+
 function applyRange() {
   if (rangeTo < rangeFrom) { const t = rangeFrom; rangeFrom = rangeTo; rangeTo = t; }
-  closePicker(); renderStats();
+  closePicker(); renderStats(); renderSalesChart(); renderTopProducts();
 }
 
 function resetToCurrentMonth() {
+  _isAllTime = false;
   rangeFrom = _monthStart(_now.getFullYear(), _now.getMonth() + 1);
   rangeTo = _monthEnd(_now.getFullYear(), _now.getMonth() + 1);
   calViewLeft = new Date(_now.getFullYear(), _now.getMonth(), 1);
@@ -593,6 +616,7 @@ function attachCalHover() {
 }
 
 function pickDay(ds) {
+  _isAllTime = false;
   if (pickStep === 0) { rangeFrom = ds; rangeTo = ds; pickStep = 1; updateDayStyles(); updateRangeLabel(); }
   else {
     if (ds < rangeFrom) { rangeTo = rangeFrom; rangeFrom = ds; } else rangeTo = ds;
@@ -897,15 +921,16 @@ function renderOpPackages() {
         const savings = (p.value - p.price).toFixed(2);
         const chips = Object.entries(p.contents)
           .map(([k,v]) => '<span class="pkg-chip">' + getEmoji(k) + '×' + v + '</span>').join('');
-        const imgSrc = p.category === 'starter' ? 'product-imgs/starter-pack.webp' : 'product-imgs/weekly-pack.webp';
+        const imgSrc = p.category === 'starter' ? 'product-imgs/starter-pack.webp' :
+          p.category === 'bigbowl' ? 'product-imgs/bigbowl-pack-thumb.webp' : 'product-imgs/weekly-pack.webp';
         return '<div class="pkg-card' + (isSel ? ' selected' : '') + '" onclick="selectPackage(\'' + p.name.replace(/'/g,"\\'") + '\')">' +
           '<img class="pkg-card-img" src="' + imgSrc + '" onerror="this.style.display=\'none\'" alt="' + p.name + '">' +
           '<div class="pkg-card-top">' +
           '<div class="pkg-card-name">' + p.name + '</div>' +
-          '<div class="pkg-card-save">Save $' + savings + '</div>' +
+          (savings > 0 ? '<div class="pkg-card-save">Save $' + savings + '</div>' : '') +
           '</div>' +
           '<div class="pkg-card-price">$' + p.price.toFixed(2) + '</div>' +
-          '<div class="pkg-card-value">Value $' + p.value.toFixed(2) + '</div>' +
+          (savings > 0 ? '<div class="pkg-card-value">Value $' + p.value.toFixed(2) + '</div>' : '') +
           '<div class="pkg-card-contents">' + chips + '</div>' +
           (isSel ? '<div class="pkg-qty-row">' +
             '<button class="op-btn" onclick="changePkgQty(\'' + p.name.replace(/'/g,"\\'") + '\',-1,event)">−</button>' +
@@ -918,7 +943,8 @@ function renderOpPackages() {
   };
   document.getElementById('opPackageList').innerHTML =
     renderCat('starter', 'Starter Pack — 7 Meals') +
-    renderCat('weekly', 'Weekly Pack — 14 Meals');
+    renderCat('weekly', 'Weekly Pack — 14 Meals') +
+    renderCat('bigbowl', 'Big Bowl Pack — 500g');
 }
 
 function selectPackage(name) {
@@ -950,7 +976,8 @@ function renderOpSummary() {
   Object.entries(_opPkgSelections).forEach(([pkgName, qty]) => {
     if (qty <= 0) return;
     const pkgObj = PACKAGES.find(p => p.name === pkgName);
-    const imgSrc = pkgObj ? (pkgObj.category === 'starter' ? 'product-imgs/starter-pack.webp' : 'product-imgs/weekly-pack.webp') : '';
+    const imgSrc = pkgObj ? (pkgObj.category === 'starter' ? 'product-imgs/starter-pack.webp' :
+      pkgObj.category === 'bigbowl' ? 'product-imgs/bigbowl-pack-thumb.webp' : 'product-imgs/weekly-pack.webp') : '';
     const imgTag = imgSrc ? '<img src="' + imgSrc + '" width="20" height="20" style="border-radius:4px;object-fit:cover" onerror="this.style.display=\'none\'">' : '';
     items.push('<div class="op-summary-chip">' + imgTag + ' ' + pkgName + ' ×' + qty + '</div>');
   });
@@ -1235,11 +1262,12 @@ function showReceipt(order) {
         const pkgTotal = pkgPrice * pkgQty;
         subtotal += pkgTotal;
         const pkgEmoji = '📦';
+        const pkgLabel = pkgObj && pkgObj.category === 'bigbowl' ? pkgName + ' 500g' : pkgName;
         prodHTML += '<div class="rc-prod-row">' +
           '<div class="rc-prod-left">' +
           '<span class="rc-prod-emoji">' + pkgEmoji + '</span>' +
           '<div>' +
-          '<div class="rc-prod-name">' + esc(pkgName) + '</div>' +
+          '<div class="rc-prod-name">' + esc(pkgLabel) + '</div>' +
           '<div class="rc-prod-qty">x' + pkgQty + ' @ $' + pkgPrice.toFixed(2) + '</div>' +
           '</div>' +
           '</div>' +
@@ -1252,11 +1280,13 @@ function showReceipt(order) {
         const pkgPrice = PACKAGE_PRICES[order.package] || 0;
         const pkgTotal = pkgPrice * pkgQty;
         subtotal += pkgTotal;
+        const pkgObjFallback = PACKAGES.find(p => p.name === order.package);
+        const pkgLabelFallback = pkgObjFallback && pkgObjFallback.category === 'bigbowl' ? order.package + ' 500g' : order.package;
         prodHTML += '<div class="rc-prod-row">' +
           '<div class="rc-prod-left">' +
           '<span class="rc-prod-emoji">📦</span>' +
           '<div>' +
-          '<div class="rc-prod-name">' + esc(order.package) + '</div>' +
+          '<div class="rc-prod-name">' + esc(pkgLabelFallback) + '</div>' +
           '<div class="rc-prod-qty">x' + pkgQty + ' @ $' + pkgPrice.toFixed(2) + '</div>' +
           '</div>' +
           '</div>' +
@@ -1419,33 +1449,100 @@ async function deleteOrder(rowId, sheetName) {
 // ══════════════════════════════════════════
 // RENDER - STATS
 // ══════════════════════════════════════════
-function getFilteredOrders() {
-  return orders.filter(o => { if (!o.date) return false; return o.date >= rangeFrom && o.date <= rangeTo; });
+function getFilteredOrders(from = rangeFrom, to = rangeTo) {
+  return orders.filter(o => { if (!o.date) return false; return o.date >= from && o.date <= to; });
+}
+
+// Previous period equivalent to [from, to]: same calendar month if a full
+// month is active, otherwise a trailing window of identical length.
+function getPreviousPeriodRange(from, to) {
+  const isSingleMonth = from.slice(0, 7) === to.slice(0, 7) && from.slice(8) === '01' && parseInt(to.slice(8)) >= 28;
+  if (isSingleMonth) {
+    const [y, m] = from.split('-').map(Number);
+    const prevM = m === 1 ? 12 : m - 1;
+    const prevY = m === 1 ? y - 1 : y;
+    return { from: _monthStart(prevY, prevM), to: _monthEnd(prevY, prevM) };
+  }
+  const iso = d => d.toISOString().slice(0, 10);
+  const dFrom = new Date(from), dTo = new Date(to);
+  const lengthDays = Math.round((dTo - dFrom) / 86400000) + 1;
+  const prevTo = new Date(dFrom); prevTo.setDate(prevTo.getDate() - 1);
+  const prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate() - (lengthDays - 1));
+  return { from: iso(prevFrom), to: iso(prevTo) };
+}
+
+function calcRevenue(list) {
+  return list.reduce((s, o) => {
+    const v = parseFloat(o.bill || o.total || 0) - parseFloat(o.deliveryFee || 0) + parseFloat(o.disc || 0);
+    return s + (isNaN(v) ? 0 : v);
+  }, 0);
+}
+function calcQty(list) {
+  return list.reduce((s, o) =>
+    s + (parseInt(o.pawbeefy) || 0) + (parseInt(o.pawporkby) || 0) + (parseInt(o.chickipaw) || 0)
+    + (parseInt(o.blueberry) || 0) + (parseInt(o.collagen) || 0) + (parseInt(o.spawghetti) || 0)
+    + (parseInt(o.tilapaw) || 0) + (parseInt(o.woofball) || 0) + (parseInt(o.pawtart) || 0)
+    + (parseInt(o.pawnana) || 0) + (parseInt(o.heartpaw) || 0) + (parseInt(o.porkypops) || 0) + (parseInt(o.packageQty) || 0), 0);
+}
+function calcCustomers(list) {
+  return [...new Set(list.map(o => o.tgId).filter(Boolean))].length;
+}
+
+// null = no baseline to compare against (previous period was 0)
+function pctChange(cur, prev) {
+  if (prev === 0) return cur === 0 ? 0 : null;
+  return (cur - prev) / prev * 100;
+}
+
+function renderTrend(subId, periodId, cur, prev, periodLabel) {
+  const subEl = document.getElementById(subId);
+  const periodEl = document.getElementById(periodId);
+  const pct = pctChange(cur, prev);
+  subEl.classList.remove('up', 'down', 'neu');
+  if (pct === null) {
+    subEl.classList.add('up');
+    subEl.textContent = '↑ New';
+  } else if (pct > 0) {
+    subEl.classList.add('up');
+    subEl.textContent = '↑ ' + pct.toFixed(1) + '%';
+  } else if (pct < 0) {
+    subEl.classList.add('down');
+    subEl.textContent = '↓ ' + Math.abs(pct).toFixed(1) + '%';
+  } else {
+    subEl.classList.add('neu');
+    subEl.textContent = '– 0%';
+  }
+  periodEl.textContent = periodLabel;
 }
 
 function renderStats() {
   const src = getFilteredOrders();
   const { label } = getActiveMonthRange();
-  const rev = src.reduce((s, o) => { const v = parseFloat(o.bill || o.total || 0); return s + (isNaN(v) ? 0 : v); }, 0);
-  const qty = src.reduce((s, o) =>
-    s + (parseInt(o.pawbeefy) || 0) + (parseInt(o.pawporkby) || 0) + (parseInt(o.chickipaw) || 0)
-    + (parseInt(o.blueberry) || 0) + (parseInt(o.collagen) || 0) + (parseInt(o.spawghetti) || 0)
-    + (parseInt(o.tilapaw) || 0) + (parseInt(o.woofball) || 0) + (parseInt(o.pawtart) || 0)
-    + (parseInt(o.pawnana) || 0) + (parseInt(o.heartpaw) || 0) + (parseInt(o.porkypops) || 0) + (parseInt(o.packageQty) || 0), 0);
-  const custs = [...new Set(src.map(o => o.tgId).filter(Boolean))].length;
+  const rev = calcRevenue(src);
+  const qty = calcQty(src);
+  const custs = calcCustomers(src);
   const lbl = document.getElementById('activePeriodLabel');
   if (lbl) lbl.innerHTML = label + ' <span style="font-size:.65rem;opacity:.5">▼</span>';
   document.getElementById('sRev').textContent = fmt$(rev);
   document.getElementById('sOrders').textContent = src.length;
   document.getElementById('sProd').textContent = qty;
   document.getElementById('sCust').textContent = custs;
-  const isSingleMonth = rangeFrom.slice(0, 7) === rangeTo.slice(0, 7) && rangeFrom.slice(8) === '01' && parseInt(rangeTo.slice(8)) >= 28;
-  const periodSub = isSingleMonth ? 'this month' : 'this period';
-  document.getElementById("sRevSub").textContent = 'from ' + src.length + ' orders';
-  document.getElementById('sOrderSub').textContent = periodSub;
-  document.getElementById('sProdSub').textContent = periodSub;
-  document.getElementById('sCustSub').textContent = custs + ' this month';
-  ['sRevPeriod', 'sOrderPeriod', 'sProdPeriod', 'sCustPeriod'].forEach(id => { document.getElementById(id).textContent = ''; });
+
+  const trendIds = ['sRevSub', 'sOrderSub', 'sProdSub', 'sCustSub', 'sRevPeriod', 'sOrderPeriod', 'sProdPeriod', 'sCustPeriod'];
+  if (_isAllTime) {
+    // "vs previous period" is meaningless for an all-time aggregate — hide the trend badges.
+    trendIds.forEach(id => { document.getElementById(id).style.display = 'none'; });
+  } else {
+    trendIds.forEach(id => { document.getElementById(id).style.display = ''; });
+    const isSingleMonth = rangeFrom.slice(0, 7) === rangeTo.slice(0, 7) && rangeFrom.slice(8) === '01' && parseInt(rangeTo.slice(8)) >= 28;
+    const vsLabel = isSingleMonth ? 'vs last month' : 'vs previous period';
+    const prevRange = getPreviousPeriodRange(rangeFrom, rangeTo);
+    const prevSrc = getFilteredOrders(prevRange.from, prevRange.to);
+    renderTrend('sRevSub', 'sRevPeriod', rev, calcRevenue(prevSrc), vsLabel);
+    renderTrend('sOrderSub', 'sOrderPeriod', src.length, prevSrc.length, vsLabel);
+    renderTrend('sProdSub', 'sProdPeriod', qty, calcQty(prevSrc), vsLabel);
+    renderTrend('sCustSub', 'sCustPeriod', custs, calcCustomers(prevSrc), vsLabel);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1573,7 +1670,7 @@ function renderTopProducts() {
   const el = document.getElementById('topProds');
   const map = {};
   const add = (name, qty, price) => { if (!qty || qty <= 0) return; if (!map[name]) map[name] = { qty: 0, rev: 0 }; map[name].qty += qty; map[name].rev += qty * price; };
-  orders.forEach(o => {
+  getFilteredOrders().forEach(o => {
     PRODUCT_META.forEach(p => add(p.name, parseInt(o[p.key]) || 0, p.price));
     if (o.package && String(o.package).trim()) {
       try {
@@ -1682,7 +1779,7 @@ function renderProducts() {
   });
   const items = [
     ...PRODUCT_META.map(p => ({ name: p.name, emoji: p.emoji, price: '$' + p.price.toFixed(2) })),
-    ...PACKAGES.map(p => ({ name: p.name, emoji: p.category === 'starter' ? '🎁' : '📦', price: '$' + p.price.toFixed(2) })),
+    ...PACKAGES.map(p => ({ name: p.name, emoji: p.category === 'starter' ? '🎁' : p.category === 'bigbowl' ? '🥣' : '📦', price: '$' + p.price.toFixed(2) })),
   ];
   document.getElementById('prodGrid').innerHTML = items.map(p =>
     '<div class="p-card">' +
@@ -1799,18 +1896,19 @@ function setChartMode(mode) {
 function renderSalesChart() {
   const canvas = document.getElementById('salesChart');
   if (!canvas) return;
-  if (!orders.length) {
+  const src = getFilteredOrders();
+  if (!src.length) {
     if (_salesChart) { _salesChart.destroy(); _salesChart = null; }
     return;
   }
 
-  // Group orders by month (YYYY-MM) — always all-time, ignores date range filter
+  // Group orders by month (YYYY-MM) — respects the active date range filter
   const map = {};
-  orders.forEach(o => {
+  src.forEach(o => {
     if (!o.date) return;
     const ym = o.date.slice(0, 7); // "2026-03"
     if (!map[ym]) map[ym] = { revenue: 0, orders: 0, items: 0 };
-    const val = parseFloat(o.bill || o.total || 0);
+    const val = parseFloat(o.bill || o.total || 0) - parseFloat(o.deliveryFee || 0) + parseFloat(o.disc || 0);
     map[ym].revenue += isNaN(val) ? 0 : val;
     map[ym].orders += 1;
     map[ym].items +=
